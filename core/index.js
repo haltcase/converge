@@ -26,17 +26,18 @@ module.exports = class Core extends EventEmitter {
     this.ownerName = config.ownerName
     this.botName = config.botName
 
-    loadDatabase(this, options.db).then(db => {
-      this.db = db
-      loadBot(this, config)
-      loadLibraries(this)
-      loadRegistry(this)
-      // loadPlugins(this)
+    loadDatabase(this, options.db)
+      .then(db => { this.db = db })
+      .then(() => loadBot(this, config))
+      .then(() => loadLibraries(this))
+      .then(() => loadRegistry(this))
+      .then(() => {
+        // loadPlugins(this)
 
-      console.log('ready')
-      callHook('ready', this)
-      exitHooks(this)
-    })
+        console.log('ready')
+        callHook('ready', this)
+        exitHooks(this)
+      })
   }
 
   extend (object) {
