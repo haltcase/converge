@@ -21,7 +21,7 @@ module.exports = (context, db) => {
 
   return Promise.all([
     db.model('settings', {
-      key: String,
+      key: { type: String, primary: true },
       value: String,
       info: String
     }),
