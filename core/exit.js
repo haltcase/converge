@@ -2,7 +2,6 @@ const exitHook = require('async-exit-hook')
 
 const { callHook } = require('./hooks')
 
-
 let shutdown = exports.shutdown = context => {
   return callHook('beforeShutdown', context)
 }
