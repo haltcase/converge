@@ -1,6 +1,8 @@
-# twitch-bot &middot; [![Version](https://img.shields.io/npm/v/twitch-bot.svg?style=flat-square&maxAge=3600)](https://www.npmjs.com/package/twitch-bot) [![License](https://img.shields.io/npm/l/twitch-bot.svg?style=flat-square&maxAge=3600)](https://www.npmjs.com/package/twitch-bot) [![Travis CI](https://img.shields.io/travis/citycide/twitch-bot.svg?style=flat-square&maxAge=3600)](https://travis-ci.org/citycide/twitch-bot) [![JavaScript Standard Style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square&maxAge=3600)](https://standardjs.com)
+# srtbt &middot; [![Version](https://img.shields.io/npm/v/twitch-bot.svg?style=flat-square&maxAge=3600)](https://www.npmjs.com/package/twitch-bot) [![License](https://img.shields.io/npm/l/twitch-bot.svg?style=flat-square&maxAge=3600)](https://www.npmjs.com/package/twitch-bot) [![JavaScript Standard Style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square&maxAge=3600)](https://standardjs.com)
 
-> NPM installable Twitch bot component.
+> Experimental bot thing.
+
+**NOTE**:This entire readme is a placeholder. None of this will make any sense or apply to what's actually here.
 
 ## features
 
