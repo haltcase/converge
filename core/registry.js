@@ -1,4 +1,7 @@
+'use strict'
+
 const callsites = require('callsites')
+const map = require('stunsail/util/map')
 
 let registry = exports.registry = {}
 
@@ -6,13 +9,14 @@ exports.addCommand = (context, name, options) => {
   if (!name) return
 
   let object = Object.assign({
-    name: name.toLowerCase(),
     handler: name,
     cooldown: 30,
     permission: 5,
-    status: true,
+    status: 1,
     price: 0
-  }, options)
+  }, options, {
+    name: name.toLowerCase()
+  })
 
   let caller = callsites()[1].getFileName()
   return registerCommand(context, object, caller)
@@ -21,17 +25,19 @@ exports.addCommand = (context, name, options) => {
 exports.addSubcommand = (context, name, parent, options) => {
   if (!name || !parent || !registry[parent]) return
 
+  let caller = callsites()[1].getFileName()
   let object = Object.assign({
-    name: name.toLowerCase(),
-    parent,
     cooldown: -1,
     permission: -1,
-    // status: true,
+    status: -1,
     price: -1
-  }, options)
+  }, options, {
+    name: name.toLowerCase(),
+    caller,
+    parent
+  })
 
-  let caller = callsites()[1].getFileName()
-  return registerSubcommand(context, object, caller)
+  return registerSubcommand(context, object)
 }
 
 exports.getCommand = name => registry[name]
@@ -48,11 +54,13 @@ exports.loadRegistry = context => {
 
   context.on('beforeShutdown', save)
 
-  return registry
+  return loadTables(context)
+    .then(() => loadCommands(context))
+    .then(() => registry)
 }
 
-function registerCommand (context, command, caller) {
-  let { name, handler } = command
+function registerCommand (context, command) {
+  let { name, handler, caller } = command
   if (registry[name]) {
     if (registry[name].caller === caller) return
 
@@ -62,12 +70,7 @@ function registerCommand (context, command, caller) {
     return
   }
 
-  registry[name] = {
-    name,
-    handler,
-    caller,
-    subcommands: {}
-  }
+  registry[name] = Object.assign({}, command, { subcommands: {} })
 
   console.debug(`\`- Command loaded:: '${name}' (${caller})`)
   return context
@@ -79,6 +82,69 @@ function registerSubcommand (context, command, caller, parent) {
 }
 
 function save (context) {
-  // persist the commands to the database
-  // should do this on an interval and before shutdowns
+  console.log('saving commands')
+
+  return Promise.all(
+    map(command => {
+      return context.db.updateOrCreate('commands', {
+        name: command.name,
+        caller: command.caller,
+        status: command.status,
+        cooldown: command.cooldown,
+        permission: command.permission,
+        price: command.price
+      }).then(() => {
+        return Promise.all(
+          map(sub => {
+            return context.db.updateOrCreate('subcommands', {
+              name: sub.name,
+              parent: command.name,
+              status: sub.status,
+              cooldown: sub.cooldown,
+              permission: sub.permission,
+              price: sub.price
+            })
+          }, command.subcommands)
+        )
+      })
+    }, registry)
+  ).then(() => console.log('saved commands'))
+}
+
+function loadTables (context) {
+  return Promise.all([
+    context.db.model('commands', {
+      name: { type: String, primary: true },
+      caller: { type: String, notNullable: true },
+      status: { type: Number, defaultTo: 0 },
+      cooldown: { type: Number, defaultTo: 30 },
+      permission: { type: Number, defaultTo: 5 },
+      price: { type: Number, defaultTo: 0 }
+    }),
+
+    context.db.model('subcommands', {
+      name: { type: String, primary: true },
+      parent: { type: String, notNullable: true },
+      status:  { type: Number, defaultTo: -1 },
+      cooldown: { type: Number, defaultTo: -1 },
+      permission: { type: Number, defaultTo: -1 },
+      price: { type: Number, defaultTo: -1 }
+    })
+  ])
+}
+
+function loadCommands (context) {
+  return Promise.all([
+    context.db.find('commands').then(commands => {
+      commands.forEach(command => {
+        registerCommand(context, command.name, command)
+      })
+    }),
+
+    context.db.find('subcommands').then(subs => {
+      subs.forEach(sub => {
+        registerSubcommand(context, sub.name, sub)
+      })
+    })
+  ])
 }
