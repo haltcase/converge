@@ -123,12 +123,14 @@ function loadTables (context) {
     }),
 
     context.db.model('subcommands', {
-      name: { type: String, primary: true },
-      parent: { type: String, notNullable: true },
+      name: String,
+      parent: String,
       status:  { type: Number, defaultTo: -1 },
       cooldown: { type: Number, defaultTo: -1 },
       permission: { type: Number, defaultTo: -1 },
       price: { type: Number, defaultTo: -1 }
+    }, {
+      primary: ['name', 'parent']
     })
   ])
 }
