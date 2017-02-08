@@ -1,0 +1,61 @@
+{
+  "name": "srtbt",
+  "version": "1.0.0-alpha.1",
+  "description": "Experimental Twitch bot component.",
+  "author": "Bo Lingen <thecitycide@gmail.com>",
+  "license": "MIT",
+  "repository": "citycide/singularity",
+  "main": "entry.js",
+  "bin": {
+    "singularity": "cli.js"
+  },
+  "scripts": {
+    "test": "ava",
+    "test:watch": "ava -w"
+  },
+  "keywords": [
+    "cli",
+    "cli-app",
+    "twitch",
+    "bot"
+  ],
+  "files": [
+    "main.js",
+    "cli.js",
+    "startup.js"
+  ],
+  "engines": {
+    "node": ">=4"
+  },
+  "dependencies": {
+    "args": "^2.2.4",
+    "async-exit-hook": "^1.1.1",
+    "callsites": "^2.0.0",
+    "env-paths": "^1.0.0",
+    "eventemitter2": "^3.0.0",
+    "fs-jetpack": "^0.10.5",
+    "is-valid-path": "^0.1.1",
+    "lodash": "^4.17.4",
+    "req-all": "^1.0.0",
+    "sqlite3": "^3.1.8",
+    "stunsail": "^1.0.0-alpha.2",
+    "tmi.js": "^1.1.2",
+    "trilogy": "^1.0.0-alpha.3"
+  },
+  "devDependencies": {
+    "ava": "^0.17.0",
+    "commitizen": "^2.9.0",
+    "cz-conventional-changelog": "^1.2.0",
+    "eslint": "^3.12.2",
+    "eslint-config-standard": "^6.2.1",
+    "eslint-plugin-prefer-let": "^0.1.0",
+    "eslint-plugin-promise": "^3.4.0",
+    "eslint-plugin-standard": "^2.0.1",
+    "standard-changelog": "0.0.1"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  }
+}
