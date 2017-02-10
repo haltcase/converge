@@ -64,15 +64,15 @@ function registerCommand (context, command) {
   if (registry[name]) {
     if (registry[name].caller === caller) return
 
-    console.debug(`Duplicate command registration attempted by '${caller}'`)
-    console.debug(`!${name} already registered to '${registry[name].caller}'`)
+    console.log(`Duplicate command registration attempted by '${caller}'`)
+    console.log(`!${name} already registered to '${registry[name].caller}'`)
 
     return
   }
 
   registry[name] = Object.assign({}, command, { subcommands: {} })
 
-  console.debug(`\`- Command loaded:: '${name}' (${caller})`)
+  console.log(`\`- Command loaded:: '${name}' (${caller})`)
   return context
 }
 
