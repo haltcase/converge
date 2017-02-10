@@ -1,4 +1,5 @@
 const pipe = require('stunsail/fn/pipe')
+const apply = require('stunsail/fn/apply')
 const toArray = require('stunsail/to/array')
 
 let hooks = exports.hooks = {
@@ -13,8 +14,11 @@ let hooks = exports.hooks = {
 exports.getHooks = () => Object.keys(hooks)
 
 exports.callHook = (name, context) => {
-  if (!hooks[name]) return
   let args = toArray(arguments, 2)
   args.unshift(context)
-  return pipe(hooks[name].map(fn => fn.bind.apply(fn, args)))
+
+  return Promise.all([
+    apply(context.emitAsync, context, [name].concat(args)),
+    hooks[name] && pipe(hooks[name].map(fn => apply(fn.bind, fn, args)))
+  ])
 }
