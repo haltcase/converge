@@ -60,6 +60,8 @@ exports.loadBot = (context, config) => {
     }
   })
 
+  context.on('beforeShutdown', bot.disconnect)
+
   return bot.connect()
     .then(() => getPrefix())
     .then(prefix => setupListeners(context, bot, prefix))
