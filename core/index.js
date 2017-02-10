@@ -54,6 +54,14 @@ module.exports = class Core extends EventEmitter {
   }
 
   runCommand (event, prevent) {}
+
+  shutdown () {
+    if (this.shuttingDown) return Promise.resolve()
+    this.shuttingDown = true
+    console.log('shutting down core...')
+    return callHook('beforeShutdown', this)
+      .then(() => this.emit('shutdown'))
+  }
 }
 
 function loadLibraries (context) {
