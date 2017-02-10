@@ -60,7 +60,7 @@ exports.loadRegistry = context => {
 }
 
 function registerCommand (context, command) {
-  let { name, handler, caller } = command
+  let { name, caller } = command
   if (registry[name]) {
     if (registry[name].caller === caller) return
 
