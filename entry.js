@@ -5,6 +5,7 @@ const { read, writeAsync } = require('fs-jetpack')
 const { includes, lowerCase } = require('lodash')
 const { resolve } = require('path')
 
+const log = require('./core/logger')
 const startup = require('./startup')
 const { paths } = require('./constants')
 
@@ -12,7 +13,7 @@ process.on('uncaughtException', console.error)
 process.on('unhandledRejection', console.error)
 
 module.exports = function initialize (options) {
-  console.log('initializing...')
+  log.info('initializing...')
   options = Object.assign({ name: 'singularity-bot' }, options)
 
   let required = [
