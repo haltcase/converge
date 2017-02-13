@@ -1,3 +1,5 @@
+'use strict'
+
 const Trilogy = require('trilogy')
 const getPaths = require('env-paths')
 const { join } = require('path')

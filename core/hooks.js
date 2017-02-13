@@ -1,5 +1,7 @@
 const pipe = require('stunsail/fn/pipe')
 const apply = require('stunsail/fn/apply')
+'use strict'
+
 const toArray = require('stunsail/to/array')
 
 let hooks = exports.hooks = {

@@ -1,4 +1,6 @@
 const getPaths = require('env-paths')
+'use strict'
+
 const isValidPath = require('is-valid-path')
 const { read, writeAsync } = require('fs-jetpack')
 const { includes, lowerCase } = require('lodash')

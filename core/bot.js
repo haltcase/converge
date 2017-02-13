@@ -1,3 +1,5 @@
+'use strict'
+
 const { client: Client } = require('tmi.js')
 const once = require('stunsail/fn/once')
 const isObject = require('stunsail/is/object')

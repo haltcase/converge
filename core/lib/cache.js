@@ -1,3 +1,5 @@
+'use strict'
+
 const _ = require('lodash')
 const callsites = require('callsites')
 const { basename, dirname } = require('path')
