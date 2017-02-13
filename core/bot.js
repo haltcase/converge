@@ -63,7 +63,7 @@ exports.loadBot = (context, config) => {
     }
   })
 
-  context.on('beforeShutdown', bot.disconnect)
+  context.on('beforeShutdown', () => bot.disconnect())
 
   return bot.connect()
     .then(() => getPrefix())
