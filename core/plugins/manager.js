@@ -1,7 +1,7 @@
 'use strict'
 
+const axios = require('axios')
 const Promise = require('bluebird')
-const isPackage = require('npm-name')
 const { resolve } = require('path')
 const { install, prune } = require('pnpm')
 const getPackageProps = require('npm-package-arg')
@@ -130,4 +130,18 @@ function makeDependencies (plugins) {
       return acc
     }
   }, {})
+}
+
+function isPackage (name) {
+  if (!name || typeof name !== 'string') {
+    return Promise.reject(new Error('invalid package name'))
+  }
+
+  let query = name.toLowerCase()
+  return axios.head(`https://registry.npmjs.org/${query}`)
+    .then(() => true)
+    .catch(e => {
+      if (e.response.status === 404) return false
+      throw e
+    })
 }
