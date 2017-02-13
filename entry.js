@@ -90,7 +90,6 @@ function getQuestions (required, current) {
 }
 
 function errorHandler (err, promise) {
-  if (err.message !== `Cannot read property 'readyState' of undefined`) {
-    log.error(err)
-  }
+  // TODO: are the core exit hooks enough for graceful shutdown?
+  log.error(err)
 }

@@ -44,10 +44,6 @@ run(options).then(core => {
 
   term.on('close', () => quit(core))
   core.on('shutdown', quit)
-  core.onAny((_, one, two) => {
-    console.log(one.event)
-  })
-
   core.on('ready', () => term.prompt())
 }).catch(e => {
   console.error(`bot > error: ${e.message || e}`)
