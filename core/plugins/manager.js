@@ -56,10 +56,10 @@ exports.update = context => {
 
 exports.addPlugin = (context, title) => {
   let { name, version } = getPackageProps(title)
-  return isPackage(name)
-    .then(exists => exists && exports.getPlugins())
-    .then(current => {
-      if (!current) return false
+
+  return Promise.all([isPackage(name), exports.getPlugins()])
+    .then((exists, current) => {
+      if (!exists) return false
       let index = current.indexOf(name)
       if (index >= 0) return false
       return true
