@@ -63,7 +63,13 @@ module.exports = class Core extends EventEmitter {
     super.on(channel, fn)
   }
 
-  runCommand (event, prevent) {}
+  runCommand (event) {
+    let runner = stageCommand(event.command)
+    // TODO: event.subcommand
+
+    return Promise.resolve(runner(this, event))
+      .then(() => callHook('afterCommand', event))
+  }
 
   shutdown () {
     if (this.shuttingDown) return Promise.resolve()
