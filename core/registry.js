@@ -3,12 +3,22 @@
 const Promise = require('bluebird')
 const callsites = require('callsites')
 const map = require('stunsail/util/map')
+const once = require('stunsail/fn/once')
+
+const log = require('./logger')
 
 let registry = exports.registry = {}
+
+exports.stageCommand = name => {
+  let { caller, handler } = registry[name]
+  delete require.cache[caller]
+  return require(caller)[handler]
+}
 
 exports.addCommand = (context, name, options) => {
   if (!name) return
 
+  let caller = callsites()[2].getFileName()
   let object = Object.assign({
     handler: name,
     cooldown: 30,
@@ -16,17 +26,17 @@ exports.addCommand = (context, name, options) => {
     status: 1,
     price: 0
   }, options, {
-    name: name.toLowerCase()
+    name: name.toLowerCase(),
+    caller
   })
 
-  let caller = callsites()[1].getFileName()
-  return registerCommand(context, object, caller)
+  return registerCommand(context, object)
 }
 
 exports.addSubcommand = (context, name, parent, options) => {
   if (!name || !parent || !registry[parent]) return
 
-  let caller = callsites()[1].getFileName()
+  let caller = callsites()[2].getFileName()
   let object = Object.assign({
     cooldown: -1,
     permission: -1,
@@ -44,9 +54,16 @@ exports.addSubcommand = (context, name, parent, options) => {
 exports.getCommand = name => registry[name]
 exports.getSubcommand = (parent, name) => registry[parent][name]
 
-exports.loadRegistry = context => {
-  let addCommand = (name, options) => exports.addCommand(context, name, options)
-  let addSubcommand = (name, options) => exports.addSubcommand(context, name, options)
+exports.loadRegistry = once(context => {
+  log.trace('creating registry')
+
+  function addCommand (name, options) {
+    return exports.addCommand(context, name, options)
+  }
+
+  function addSubcommand (name, parent, options) {
+    return exports.addSubcommand(context, name, parent, options)
+  }
 
   context.extend({
     addCommand,
@@ -58,7 +75,7 @@ exports.loadRegistry = context => {
   return loadTables(context)
     .then(() => loadCommands(context))
     .then(() => registry)
-}
+})
 
 function registerCommand (context, command) {
   let { name, caller } = command
@@ -85,31 +102,34 @@ function registerSubcommand (context, command, caller, parent) {
 function save (context) {
   log.trace('saving commands')
 
-  return Promise.all(
-    map(command => {
-      return context.db.updateOrCreate('commands', {
-        name: command.name,
+  return Promise.props(map(command => {
+    return Promise.all([
+      context.db.updateOrCreate('commands', {
+        name: command.name
+      }, {
+        handler: command.handler,
         caller: command.caller,
         status: command.status,
         cooldown: command.cooldown,
         permission: command.permission,
         price: command.price
-      }).then(() => {
-        return Promise.all(
-          map(sub => {
-            return context.db.updateOrCreate('subcommands', {
-              name: sub.name,
-              parent: command.name,
-              status: sub.status,
-              cooldown: sub.cooldown,
-              permission: sub.permission,
-              price: sub.price
-            })
-          }, command.subcommands)
-        )
-      })
-    }, registry)
-  ).then(() => console.log('saved commands'))
+      }),
+
+      Promise.all([
+        map(sub => {
+          return context.db.updateOrCreate('subcommands', {
+            name: sub.name
+          }, {
+            parent: command.name,
+            status: sub.status,
+            cooldown: sub.cooldown,
+            permission: sub.permission,
+            price: sub.price
+          })
+        }, command.subcommands)
+      ])
+    ])
+  }, registry)).then(() => log.trace('saved commands'))
 }
 
 function loadTables (context) {
@@ -117,6 +137,7 @@ function loadTables (context) {
     context.db.model('commands', {
       name: { type: String, primary: true },
       caller: { type: String, notNullable: true },
+      handler: { type: String, notNullable: true },
       status: { type: Number, defaultTo: 0 },
       cooldown: { type: Number, defaultTo: 30 },
       permission: { type: Number, defaultTo: 5 },
@@ -142,13 +163,13 @@ function loadCommands (context) {
   return Promise.all([
     context.db.find('commands').then(commands => {
       commands.forEach(command => {
-        registerCommand(context, command.name, command)
+        registerCommand(context, command)
       })
     }),
 
     context.db.find('subcommands').then(subs => {
       subs.forEach(sub => {
-        registerSubcommand(context, sub.name, sub)
+        registerSubcommand(context, sub)
       })
     })
   ])
