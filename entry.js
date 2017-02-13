@@ -9,8 +9,8 @@ const log = require('./core/logger')
 const startup = require('./startup')
 const { paths } = require('./constants')
 
-process.on('uncaughtException', console.error)
-process.on('unhandledRejection', console.error)
+process.on('uncaughtException', errorHandler)
+process.on('unhandledRejection', errorHandler)
 
 module.exports = function initialize (options) {
   log.info('initializing...')
@@ -22,9 +22,6 @@ module.exports = function initialize (options) {
     'botName',
     'botAuth'
   ]
-
-  // TODO: decide on a name for this thing
-  let paths = getPaths(options.name, { suffix: '' })
 
   let defaultPath = resolve(paths.config, 'config.json')
   if (!isValidPath(options.configPath)) {
@@ -90,4 +87,10 @@ function getQuestions (required, current) {
       }
     })
     .filter(Boolean)
+}
+
+function errorHandler (err, promise) {
+  if (err.message !== `Cannot read property 'readyState' of undefined`) {
+    log.error(err)
+  }
 }
