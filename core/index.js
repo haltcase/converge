@@ -10,8 +10,9 @@ const defaults = require('stunsail/to/defaults')
 const log = require('./logger')
 const loadDatabase = require('./db')
 const { loadBot } = require('./bot')
-const { loadRegistry } = require('./registry')
 const { loadPlugins } = require('./plugins')
+const { loadRegistry, stageCommand } = require('./registry')
+
 const {
   loadHooks,
   exitHooks,
