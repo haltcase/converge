@@ -29,11 +29,11 @@ run(options).then(core => {
         break
       case 'say':
         // forward to chat as bot
-        console.log(words.slice(1).join(' '))
+        core.say(words.slice(1).join(' '))
         break
       case 'whisper':
         // whisper a user as bot
-        console.log(`to: ${words[1]}, msg: ${words.slice(2).join(' ')}`)
+        core.whisper(words[1], words.slice(2).join(' '))
         break
       default:
         console.log(`not sure how to handle '${line}'`)
