@@ -11,6 +11,7 @@ const log = require('./logger')
 const loadDatabase = require('./db')
 const { loadBot } = require('./bot')
 const { loadRegistry } = require('./registry')
+const { loadPlugins } = require('./plugins')
 const {
   loadHooks,
   exitHooks,
@@ -41,9 +42,8 @@ module.exports = class Core extends EventEmitter {
       .then(() => loadBot(this, config))
       .then(() => loadLibraries(this))
       .then(() => loadRegistry(this))
+      .then(() => loadPlugins(this))
       .then(() => {
-        // loadPlugins(this)
-
         log.info('ready')
         callHook('ready')
       })
