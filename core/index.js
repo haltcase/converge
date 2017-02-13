@@ -3,6 +3,7 @@
 const Promise = require('bluebird')
 const reqAll = require('req-all')
 const EventEmitter = require('eventemitter2')
+const each = require('stunsail/util/each')
 const isObject = require('stunsail/is/object')
 const defaults = require('stunsail/to/defaults')
 
@@ -76,9 +77,5 @@ function loadLibraries (context) {
   log.trace('loading libraries')
   let modules = reqAll('./lib')
 
-  Object.keys(modules).forEach(item => {
-    if (typeof item === 'function') {
-      item(context)
-    }
-  })
+  each(lib => lib(context), modules)
 }
