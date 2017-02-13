@@ -38,7 +38,7 @@
     "lodash": "^4.17.4",
     "req-all": "^1.0.0",
     "sqlite3": "^3.1.8",
-    "stunsail": "^1.0.0-alpha.2",
+    "stunsail": "^1.0.0-alpha.3",
     "tmi.js": "^1.1.2",
     "trilogy": "^1.0.0-alpha.3"
   },
