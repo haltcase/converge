@@ -2,7 +2,6 @@
 
 const { client: Client } = require('tmi.js')
 const once = require('stunsail/fn/once')
-const isObject = require('stunsail/is/object')
 
 const log = require('./logger')
 const { callHook } = require('./hooks')
@@ -99,23 +98,22 @@ function dispatcher (ctx, bot, prefix, type) {
     if (self) return
     if (type === 'action') return
 
-    let event = buildEvent(ctx, user, message, prefix, type === 'whisper')
+    return buildEvent(ctx, user, message, prefix, type === 'whisper')
+      .then(event => {
+        event.respond = createResponder(ctx, event)
+        event.prevent = createPrevent(event)
+        callHook('beforeMessage', event)
 
-    let prevent = createPrevent(event)
-    let extend = v => isObject(v) && Object.assign(event, v)
-    return callHook('beforeMessage', ctx, extend, prevent)
-      .then(() => {
-        if (!event.prevented && isCommand(message, prefix)) {
-          commandHandler(ctx, event, prevent)
+        if (!event.isPrevented && isCommand(message, prefix)) {
+          commandHandler(ctx, event)
         }
       })
   }
 }
 
-function commandHandler (ctx, event, prevent) {
-  let extend = v => isObject(v) && Object.assign(event, v)
-  return callHook('receivedCommand', ctx, extend, prevent)
-    .then(() => !event.prevented && ctx.runCommand(event, prevent))
+function commandHandler (ctx, event) {
+  callHook('receivedCommand', event)
+  !event.isPrevented && ctx.runCommand(event)
 }
 
 function buildEvent (ctx, user, message, prefix, whispered) {
@@ -129,7 +127,7 @@ function buildEvent (ctx, user, message, prefix, whispered) {
     command: getCommand(message, prefix),
     args: getCommandArgs(message),
     argString: getCommandArgString(message),
-    prevented: false
+    isPrevented: false
   }
 
   return ctx.db.updateOrCreate('users', {
@@ -142,7 +140,14 @@ function buildEvent (ctx, user, message, prefix, whispered) {
 
 function createPrevent (event) {
   // TODO: log where this was called from
-  event.prevented = false
-  return () => { event.prevented = true }
+  event.isPrevented = false
+  return () => { event.isPrevented = true }
 }
 
+function createResponder (context, event) {
+  let partial = event.whispered
+    ? message => context.whisper(event.sender, message)
+    : message => context.say(event.sender, message)
+
+  return message => partial(message)
+}
