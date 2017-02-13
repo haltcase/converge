@@ -1,13 +1,12 @@
 'use strict'
 
 const Trilogy = require('trilogy')
-const getPaths = require('env-paths')
 const { join } = require('path')
 const { readAsync } = require('fs-jetpack')
 
 const Core = require('./core')
+const { paths } = require('./constants')
 
-const paths = getPaths('singularity-bot', { suffix: '' })
 
 module.exports = function startup (options) {
   console.log('starting up...')

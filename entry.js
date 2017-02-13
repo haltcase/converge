@@ -1,4 +1,3 @@
-const getPaths = require('env-paths')
 'use strict'
 
 const isValidPath = require('is-valid-path')
@@ -7,6 +6,7 @@ const { includes, lowerCase } = require('lodash')
 const { resolve } = require('path')
 
 const startup = require('./startup')
+const { paths } = require('./constants')
 
 process.on('uncaughtException', console.error)
 process.on('unhandledRejection', console.error)
