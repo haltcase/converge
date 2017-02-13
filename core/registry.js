@@ -1,5 +1,6 @@
 'use strict'
 
+const Promise = require('bluebird')
 const callsites = require('callsites')
 const map = require('stunsail/util/map')
 

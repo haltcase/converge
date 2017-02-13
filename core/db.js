@@ -1,5 +1,7 @@
 'use strict'
 
+const Promise = require('bluebird')
+
 const log = require('./logger')
 
 module.exports = (context, db) => {

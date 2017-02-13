@@ -1,5 +1,6 @@
 'use strict'
 
+const Promise = require('bluebird')
 const exitHook = require('async-exit-hook')
 const once = require('stunsail/fn/once')
 const toArray = require('stunsail/to/array')

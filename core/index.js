@@ -1,5 +1,6 @@
 'use strict'
 
+const Promise = require('bluebird')
 const reqAll = require('req-all')
 const EventEmitter = require('eventemitter2')
 const isObject = require('stunsail/is/object')

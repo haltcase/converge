@@ -1,6 +1,7 @@
 'use strict'
 
 const { client: Client } = require('tmi.js')
+const Promise = require('bluebird')
 const once = require('stunsail/fn/once')
 
 const log = require('./logger')

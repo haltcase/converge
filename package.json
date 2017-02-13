@@ -30,6 +30,7 @@
   "dependencies": {
     "args": "^2.2.4",
     "async-exit-hook": "^1.1.1",
+    "bluebird": "^3.4.7",
     "callsites": "^2.0.0",
     "env-paths": "^1.0.0",
     "eventemitter2": "^3.0.0",
