@@ -64,15 +64,15 @@ function registerCommand (context, command) {
   if (registry[name]) {
     if (registry[name].caller === caller) return
 
-    console.log(`Duplicate command registration attempted by '${caller}'`)
-    console.log(`!${name} already registered to '${registry[name].caller}'`)
+    log.debug(`Duplicate command registration attempted by '${caller}'`)
+    log.debug(`!${name} already registered to '${registry[name].caller}'`)
 
     return
   }
 
   registry[name] = Object.assign({}, command, { subcommands: {} })
 
-  console.log(`\`- Command loaded:: '${name}' (${caller})`)
+  log.absurd(`\`- Command loaded:: '${name}' (${caller})`)
   return context
 }
 
@@ -82,7 +82,7 @@ function registerSubcommand (context, command, caller, parent) {
 }
 
 function save (context) {
-  console.log('saving commands')
+  log.trace('saving commands')
 
   return Promise.all(
     map(command => {
@@ -136,6 +136,8 @@ function loadTables (context) {
 }
 
 function loadCommands (context) {
+  log.trace('loading commands')
+
   return Promise.all([
     context.db.find('commands').then(commands => {
       commands.forEach(command => {

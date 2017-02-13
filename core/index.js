@@ -5,6 +5,7 @@ const EventEmitter = require('eventemitter2')
 const isObject = require('stunsail/is/object')
 const defaults = require('stunsail/to/defaults')
 
+const log = require('./logger')
 const loadDatabase = require('./db')
 const { loadBot } = require('./bot')
 const { loadRegistry } = require('./registry')
@@ -13,7 +14,7 @@ const { exitHooks } = require('./exit')
 
 module.exports = class Core extends EventEmitter {
   constructor (config, options) {
-    console.log('starting up core')
+    log.trace('starting up core')
 
     // initialize the emitter
     super({
@@ -34,9 +35,9 @@ module.exports = class Core extends EventEmitter {
       .then(() => {
         // loadPlugins(this)
 
-        console.log('ready')
         callHook('ready', this)
         exitHooks(this)
+        log.info('ready')
       })
   }
 
@@ -58,14 +59,14 @@ module.exports = class Core extends EventEmitter {
   shutdown () {
     if (this.shuttingDown) return Promise.resolve()
     this.shuttingDown = true
-    console.log('shutting down core...')
     return callHook('beforeShutdown', this)
+    log.info('shutting down')
       .then(() => this.emit('shutdown'))
   }
 }
 
 function loadLibraries (context) {
-  console.log('loading libraries')
+  log.trace('loading libraries')
   let modules = reqAll('./lib')
 
   Object.keys(modules).forEach(item => {

@@ -1,7 +1,9 @@
 'use strict'
 
+const log = require('./logger')
+
 module.exports = (context, db) => {
-  console.log('preparing database')
+  log.trace('preparing database')
 
   let data = db
 
