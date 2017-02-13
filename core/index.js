@@ -9,8 +9,12 @@ const log = require('./logger')
 const loadDatabase = require('./db')
 const { loadBot } = require('./bot')
 const { loadRegistry } = require('./registry')
-const { callHook } = require('./hooks')
-const { exitHooks } = require('./exit')
+const {
+  loadHooks,
+  exitHooks,
+  callHook,
+  callHookAndWait
+} = require('./hooks')
 
 module.exports = class Core extends EventEmitter {
   constructor (config, options) {
@@ -27,6 +31,9 @@ module.exports = class Core extends EventEmitter {
     this.ownerName = config.ownerName
     this.botName = config.botName
 
+    loadHooks(this)
+    exitHooks(this)
+
     loadDatabase(this, options.db)
       .then(db => { this.db = db })
       .then(() => loadBot(this, config))
@@ -35,9 +42,8 @@ module.exports = class Core extends EventEmitter {
       .then(() => {
         // loadPlugins(this)
 
-        callHook('ready', this)
-        exitHooks(this)
         log.info('ready')
+        callHook('ready')
       })
   }
 
@@ -59,8 +65,8 @@ module.exports = class Core extends EventEmitter {
   shutdown () {
     if (this.shuttingDown) return Promise.resolve()
     this.shuttingDown = true
-    return callHook('beforeShutdown', this)
     log.info('shutting down')
+    return callHookAndWait('beforeShutdown')
       .then(() => this.emit('shutdown'))
   }
 }
