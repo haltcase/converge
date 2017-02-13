@@ -24,8 +24,7 @@ run(options).then(core => {
     let words = line.split(' ')
     switch (words[0]) {
       case 'quit':
-        core.shutdown()
-        term.close()
+        core.shutdown().then(term.close)
         break
       case 'say':
         // forward to chat as bot
@@ -36,7 +35,7 @@ run(options).then(core => {
         core.whisper(words[1], words.slice(2).join(' '))
         break
       default:
-        console.log(`not sure how to handle '${line}'`)
+        console.log('\n', `not sure how to handle '${line}'`)
     }
 
     term.prompt()
@@ -46,12 +45,12 @@ run(options).then(core => {
   core.on('shutdown', quit)
   core.on('ready', () => term.prompt())
 }).catch(e => {
-  console.error(`bot > error: ${e.message || e}`)
+  console.error('\n', `error: ${e.message || e}`)
 })
 
 function quit (core) {
-  console.log('closing terminal')
-  if (core) core.shutdown()
+  console.log('\n', 'closing terminal')
+  if (core) core.shutdown().then(() => process.exit(0))
   process.exit(0)
 }
 
