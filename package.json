@@ -10,8 +10,7 @@
     "singularity": "./src/cli.js"
   },
   "scripts": {
-    "test": "ava",
-    "test:watch": "ava -w"
+    "dev": "node ./src/cli.js -l absurd"
   },
   "keywords": [
     "cli",
@@ -28,7 +27,7 @@
     "node": ">=6"
   },
   "dependencies": {
-    "args": "^2.2.4",
+    "args": "^2.3.0",
     "axios": "^0.15.3",
     "async-exit-hook": "^1.1.1",
     "babel-preset-env": "^1.1.8",
