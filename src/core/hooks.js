@@ -31,6 +31,7 @@ exports.callHook = name => {
   hooks[name] && hooks[name].forEach(fn => fn.apply(context, args))
 }
 
+// this needs a better name plz
 exports.callHookAndWait = name => {
   let context = getContext()
   let args = toArray(arguments, 1)

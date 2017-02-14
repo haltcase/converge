@@ -13,9 +13,9 @@ const {
   writeAsync
 } = require('fs-jetpack')
 
-const log = require('../logger')
+const log = require('../../logger')
 const { paths } = require('../../constants')
-const { name, version } = require('../../package.json')
+const { name, version } = require('../../../package.json')
 
 const directory = exports.directory = resolve(paths.data, 'plugins')
 const packagePath = resolve(directory, 'package.json')

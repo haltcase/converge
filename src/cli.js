@@ -7,11 +7,15 @@ const readline = require('readline')
 
 const flags = args
   .option('config', 'Path to configuration file, defaults to OS config directory.')
+  .option(['f', 'log-file'], `Control amount of log file output, defaults to 'error'.`)
+  .option(['l', 'log-console'], `Control amount of console output, defaults to 'error'`)
   .parse(process.argv, { name: 'singularity' })
 
 const options = {}
 
-if (flags.config) options.configPath = flags.config
+if (flags.c) options.configPath = flags.c
+if (flags.f) options.fileLevel = flags.f
+if (flags.l) options.consoleLevel = flags.l
 
 run(options).then(core => {
   let term = readline.createInterface({

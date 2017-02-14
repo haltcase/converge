@@ -5,7 +5,7 @@ const { join } = require('path')
 const { readAsync } = require('fs-jetpack')
 
 const Core = require('./core')
-const log = require('./core/logger')
+const log = require('./logger')
 const { paths } = require('./constants')
 
 

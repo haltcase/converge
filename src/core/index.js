@@ -7,7 +7,7 @@ const each = require('stunsail/util/each')
 const isObject = require('stunsail/is/object')
 const defaults = require('stunsail/to/defaults')
 
-const log = require('./logger')
+const log = require('../logger')
 const loadDatabase = require('./db')
 const { loadBot } = require('./bot')
 const { loadPlugins } = require('./plugins')

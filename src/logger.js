@@ -3,9 +3,7 @@
 const { join } = require('path')
 const { create } = require('logger-neue').default
 
-const { paths } = require('../constants')
-
-// const isDev = process.env.NODE_ENV === 'development'
+const { paths } = require('./constants')
 
 module.exports = create({
   file: {
@@ -13,7 +11,7 @@ module.exports = create({
     level: 'error'
   },
   console: {
-    level: /* isDev ? 'trace' : 'error' */ 'absurd',
+    level: 'error',
     fullColor: true
   },
   levels: {

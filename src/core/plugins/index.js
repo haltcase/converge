@@ -7,7 +7,7 @@ const { readAsync } = require('fs-jetpack')
 const { isAbsolute, resolve } = require('path')
 const getPackageProps = require('npm-package-arg')
 
-const log = require('../logger')
+const log = require('../../logger')
 const { getHooks, registerHook } = require('../hooks')
 
 const {

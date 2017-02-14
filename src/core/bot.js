@@ -4,7 +4,7 @@ const { client: Client } = require('tmi.js')
 const Promise = require('bluebird')
 const once = require('stunsail/fn/once')
 
-const log = require('./logger')
+const log = require('../logger')
 const { callHook } = require('./hooks')
 
 let getInstance = once(config => {

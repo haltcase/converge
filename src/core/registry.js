@@ -5,7 +5,7 @@ const callsites = require('callsites')
 const map = require('stunsail/util/map')
 const once = require('stunsail/fn/once')
 
-const log = require('./logger')
+const log = require('../logger')
 
 let registry = exports.registry = {}
 

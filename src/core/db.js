@@ -2,7 +2,7 @@
 
 const Promise = require('bluebird')
 
-const log = require('./logger')
+const log = require('../logger')
 
 module.exports = (context, db) => {
   log.trace('preparing database')

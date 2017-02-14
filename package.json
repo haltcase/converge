@@ -5,9 +5,9 @@
   "author": "Bo Lingen <thecitycide@gmail.com>",
   "license": "MIT",
   "repository": "citycide/singularity",
-  "main": "entry.js",
+  "main": "./src/entry.js",
   "bin": {
-    "singularity": "cli.js"
+    "singularity": "./src/cli.js"
   },
   "scripts": {
     "test": "ava",
