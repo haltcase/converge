@@ -67,7 +67,13 @@ exports.loadRegistry = once(context => {
 
   context.extend({
     addCommand,
-    addSubcommand
+    addSubcommand,
+
+    command: {
+      exists: commandExists,
+      getProperty: getCommandProperty,
+      isEnabled: (name, sub) => getCommandProperty(name, 'status', sub) > 0
+    }
   })
 
   context.on('beforeShutdown', save)
@@ -76,6 +82,34 @@ exports.loadRegistry = once(context => {
     .then(() => loadCommands(context))
     .then(() => registry)
 })
+  
+function getCommandProperty (command, property) {
+  let sub
+  if (arguments.length === 3) {
+    property = arguments[2]
+    sub = property
+  }
+
+  if (!commandExists(command, sub)) return
+
+  let options = [
+    'cooldown',
+    'permission',
+    'status',
+    'price'
+  ]
+
+  if (context.is.oneOf(options, property)) {
+    if (!sub) return registry[command][property]
+    return registry[command].subcommands[sub][property]
+  }
+}
+
+function commandExists (name, sub) {
+  let command = registry[name]
+  if (!command) return false
+  return sub ? !!command[sub] : true
+}
 
 function registerCommand (context, command) {
   let { name, caller } = command
