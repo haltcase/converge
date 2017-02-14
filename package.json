@@ -25,7 +25,7 @@
     "startup.js"
   ],
   "engines": {
-    "node": ">=4"
+    "node": ">=6"
   },
   "dependencies": {
     "args": "^2.2.4",
