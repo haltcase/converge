@@ -1,7 +1,7 @@
 'use strict'
 
 const { join } = require('path')
-const { create } = require('logger-neue').default
+const { create } = require('logger-neue')
 
 const { paths } = require('./constants')
 
