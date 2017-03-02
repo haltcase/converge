@@ -36,11 +36,10 @@ exports.loadPlugins = context => {
 
 function load (context, atPath) {
   readAsync(resolve(atPath, 'package.json'), 'json')
+  return readAsync(resolve(atPath, 'package.json'), 'json')
+    .then(pkg => validate(pkg, atPath))
     .then(pkg => {
-      if (!has(pkg, 'singularity.files')) {
-        log.error(`invalid plugin package (${atPath})`)
-        return
-      }
+      if (!pkg) return
 
       let { files } = pkg.singularity
 
@@ -83,6 +82,17 @@ function load (context, atPath) {
       // TODO: friendly messages for plugin failures
       log.error(e)
     })
+}
+
+function validate (pkg, atPath) {
+  if (!has('singularity.files', pkg)) {
+    log.error(`invalid plugin package (${atPath})`)
+    return
+  }
+
+  // TODO: other requirements like version compatibility
+
+  return pkg
 }
 
 function registerHooks (context, component) {
