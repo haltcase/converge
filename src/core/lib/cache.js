@@ -60,5 +60,5 @@ module.exports = context => {
 function getCaller (callsite) {
   let caller = callsite[1].getFileName()
   let parent = basename(dirname(caller))
-  return `${parent}/${basename(callsite[1].getFileName())}`
+  return `${parent}/${basename(caller)}`
 }
