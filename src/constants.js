@@ -1,6 +1,12 @@
 'use strict'
 
-const { name } = require('../package.json')
 const getPaths = require('env-paths')
+const { resolve } = require('path')
 
-exports.paths = getPaths(name, { suffix: '' })
+const { name } = require('../package.json')
+
+let paths = getPaths(name, { suffix: '' })
+paths.app = resolve(paths.data, '..')
+paths.content = resolve(paths.data, 'content')
+
+exports.paths = paths
