@@ -22,7 +22,7 @@ exports.registerHook = (name, fn) => {
   hooks[name].push(fn)
 }
 
-exports.callHook = name => {
+exports.callHook = function (name) {
   let context = getContext()
   let args = toArray(arguments, 1)
   args.unshift(context)
@@ -32,7 +32,7 @@ exports.callHook = name => {
 }
 
 // this needs a better name plz
-exports.callHookAndWait = name => {
+exports.callHookAndWait = function (name) {
   let context = getContext()
   let args = toArray(arguments, 1)
   args.unshift(context)
