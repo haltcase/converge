@@ -6,7 +6,10 @@ const { resolve } = require('path')
 const { paths } = require('../../constants')
 
 register({
-  only: resolve(paths.data, 'plugins', '**', '*.js'),
+  only: [
+    resolve(paths.data, 'plugins', '**', '*.js'),
+    resolve(__dirname, 'internal', '**', '*.js')
+  ],
   babelrc: false,
   presets: [
     [require('babel-preset-env'), {
