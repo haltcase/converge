@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 'use strict'
 
+const opn = require('opn')
 const args = require('args')
-const run = require('./entry')
 const readline = require('readline')
+const isOneOf = require('stunsail/is/one-of')
+
+const run = require('./entry')
+const { paths } = require('./constants')
 
 const flags = args
   .option('config', 'Path to configuration file, defaults to OS config directory.')
@@ -37,6 +41,18 @@ run(options).then(core => {
       case 'whisper':
         // whisper a user as bot
         core.whisper(words[1], words.slice(2).join(' '))
+        break
+      case 'open':
+        // open an app directory
+
+        let choices = Object.keys(paths)
+        if (isOneOf(choices, words[1])) {
+          opn(paths[words[1]])
+        } else {
+          let choiceString = choices.join(', ')
+          console.log('\n', `invalid option, choices: ${choiceString}`)
+        }
+
         break
       default:
         console.log('\n', `not sure how to handle '${line}'`)
