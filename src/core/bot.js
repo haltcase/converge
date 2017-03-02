@@ -2,7 +2,9 @@
 
 const { client: Client } = require('tmi.js')
 const Promise = require('bluebird')
+const callsites = require('callsites')
 const once = require('stunsail/fn/once')
+const { basename, dirname } = require('path')
 
 const log = require('../logger')
 const { callHook } = require('./hooks')
@@ -140,9 +142,14 @@ function buildEvent (ctx, user, message, prefix, whispered) {
 }
 
 function createPrevent (event) {
-  // TODO: log where this was called from
   event.isPrevented = false
-  return () => { event.isPrevented = true }
+  return () => {
+    let caller = getCaller(callsites())
+    log.debug(`command prevented by ${caller}`)
+
+    event.isPrevented = true
+    callHook('preventedCommand', event)
+  }
 }
 
 function createResponder (context, event) {
@@ -151,4 +158,10 @@ function createResponder (context, event) {
     : message => context.say(event.sender, message)
 
   return message => partial(message)
+}
+
+function getCaller (callsite) {
+  let caller = callsite[1].getFileName()
+  let parent = basename(dirname(caller))
+  return `${parent}/${basename(caller)}`
 }
