@@ -64,9 +64,22 @@ module.exports = class Core extends EventEmitter {
   }
 
   runCommand (event) {
-    let runner = stageCommand(event.command)
-    // TODO: event.subcommand
+    let { command, subcommand } = event
 
+    if (!this.command.exists(command)) {
+      return Promise.resolve()
+    }
+
+    let subcommandExists = this.command.exists(command, subcommand)
+    if (!event.subcommand || !subcommandExists) {
+      event.subcommand = undefined
+    }
+
+    callHook('beforeCommand', event)
+
+    if (event.isPrevented) return Promise.resolve()
+
+    let runner = stageCommand(command)
     return Promise.resolve(runner(this, event))
       .then(() => callHook('afterCommand', event))
   }

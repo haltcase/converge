@@ -120,6 +120,7 @@ function commandHandler (ctx, event) {
 }
 
 function buildEvent (ctx, user, message, prefix, whispered) {
+  let args = getCommandArgs(message)
   let event = {
     id: user['user-id'],
     sender: user['display-name'],
@@ -128,7 +129,8 @@ function buildEvent (ctx, user, message, prefix, whispered) {
     raw: message,
     whispered,
     command: getCommand(message, prefix),
-    args: getCommandArgs(message),
+    args,
+    subcommand: args[0],
     argString: getCommandArgString(message),
     isPrevented: false
   }
