@@ -75,7 +75,7 @@ function load (context, atPath, internal) {
         try {
           let location = resolve(atPath, files.module)
           let main = interopRequire(location)
-          main(context)
+          main.setup(context)
         } catch (e) {
           log.error(`error loading plugin module file (${atPath})`)
           log.error(e.message)
@@ -123,5 +123,5 @@ function resolvePluginPath (name) {
 
 function interopRequire (path) {
   let o = require(path)
-  return o && o.__esModule ? o.default : o
+  return o && o.__esModule && o.default ? o.default : o
 }
