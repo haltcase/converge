@@ -116,7 +116,7 @@ function readManifest () {
     .then(() => readAsync(manifestPath, 'json'))
     .catch(e => {
       log.error(e.message)
-      return { plugins: [] }
+      return { plugins: [], localPlugins: [] }
     })
 }
 
