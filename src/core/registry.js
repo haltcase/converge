@@ -2,7 +2,7 @@
 
 const Promise = require('bluebird')
 const callsites = require('callsites')
-const map = require('stunsail/util/map')
+const map = require('stunsail/col/map')
 const once = require('stunsail/fn/once')
 
 const log = require('../logger')
@@ -82,7 +82,7 @@ exports.loadRegistry = once(context => {
     .then(() => loadCommands(context))
     .then(() => registry)
 })
-  
+
 function getCommandProperty (command, property) {
   let sub
   if (arguments.length === 3) {

@@ -1,9 +1,9 @@
 'use strict'
 
 require('./compiler')
-const has = require('lodash/has')
 const Promise = require('bluebird')
 const { readAsync } = require('fs-jetpack')
+const has = require('stunsail/col/has')
 const { isAbsolute, resolve } = require('path')
 const getPackageProps = require('npm-package-arg')
 

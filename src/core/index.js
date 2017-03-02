@@ -3,9 +3,9 @@
 const Promise = require('bluebird')
 const reqAll = require('req-all')
 const EventEmitter = require('eventemitter2')
-const each = require('stunsail/util/each')
+const each = require('stunsail/col/each')
 const isObject = require('stunsail/is/object')
-const defaults = require('stunsail/to/defaults')
+const defaults = require('stunsail/col/defaults')
 
 const log = require('../logger')
 const loadDatabase = require('./db')
