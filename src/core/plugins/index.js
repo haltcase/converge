@@ -2,9 +2,9 @@
 
 require('./compiler')
 const Promise = require('bluebird')
-const { readAsync } = require('fs-jetpack')
 const has = require('stunsail/col/has')
 const { isAbsolute, resolve } = require('path')
+const { findAsync, readAsync } = require('fs-jetpack')
 const getPackageProps = require('npm-package-arg')
 
 const log = require('../../logger')
@@ -18,11 +18,13 @@ const {
 } = require('./manager')
 
 const modulePath = resolve(directory, 'node_modules')
+const internalPath = resolve(__dirname, 'internal')
 
 exports.loadPlugins = context => {
   log.trace('loading plugins...')
 
-  return update(context)
+  return loadInternalPlugins(context)
+    .then(() => update(context))
     .then(() => Promise.all([getPlugins(), getLocalPlugins()]))
     .then(([plugins, locals]) => {
       let all = plugins.concat(locals)
@@ -34,10 +36,15 @@ exports.loadPlugins = context => {
     .then(paths => paths.forEach(atPath => load(context, atPath)))
 }
 
-function load (context, atPath) {
-  readAsync(resolve(atPath, 'package.json'), 'json')
+function loadInternalPlugins (context) {
+  return Promise.resolve(findAsync(internalPath, { matching: 'package.json' }))
+    .map(atPath => resolve(atPath, '..'))
+    .each(atPath => load(context, atPath, true))
+}
+
+function load (context, atPath, internal) {
   return readAsync(resolve(atPath, 'package.json'), 'json')
-    .then(pkg => validate(pkg, atPath))
+    .then(pkg => validate(pkg, atPath, internal))
     .then(pkg => {
       if (!pkg) return
 
@@ -84,7 +91,9 @@ function load (context, atPath) {
     })
 }
 
-function validate (pkg, atPath) {
+function validate (pkg, atPath, internal) {
+  if (internal) return pkg
+
   if (!has('singularity.files', pkg)) {
     log.error(`invalid plugin package (${atPath})`)
     return
