@@ -121,11 +121,15 @@ function commandHandler (ctx, event) {
 }
 
 function buildEvent (ctx, user, message, prefix, whispered) {
+  let { 'display-name': name, 'user-type': type } = user
+  let mod = type === 'mod' || name === ctx.ownerName
+
   let args = getCommandArgs(message)
+
   let event = {
     id: user['user-id'],
-    sender: user['display-name'],
-    mod: user['user-type'] === 'mod',
+    sender: name,
+    mod: mod || ctx.user.isMod(user['user-id']),
     seen: new Date(),
     raw: message,
     whispered,
@@ -136,12 +140,16 @@ function buildEvent (ctx, user, message, prefix, whispered) {
     isPrevented: false
   }
 
-  return ctx.db.updateOrCreate('users', {
-    id: event.id,
-    name: event.sender,
-    mod: event.mod,
-    seen: event.seen
-  }).then(() => event)
+  return Promise.props(event)
+    .then(event => {
+      return ctx.db.updateOrCreate('users', {
+        id: event.id
+      }, {
+        name: event.sender,
+        mod: event.mod,
+        seen: event.seen
+      }).then(() => event)
+    })
 }
 
 function createPrevent (event) {
