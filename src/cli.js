@@ -4,7 +4,7 @@
 const opn = require('opn')
 const args = require('args')
 const readline = require('readline')
-const isOneOf = require('stunsail/is/one-of')
+const isOneOf = require('stunsail/is-one-of')
 
 const run = require('./entry')
 const { paths } = require('./constants')

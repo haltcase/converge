@@ -2,8 +2,8 @@
 
 const Promise = require('bluebird')
 const exitHook = require('async-exit-hook')
-const once = require('stunsail/fn/once')
-const toArray = require('stunsail/to/array')
+const once = require('stunsail/once')
+const toArray = require('stunsail/to-array')
 
 let hooks = {
   setup: [],

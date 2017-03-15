@@ -2,8 +2,9 @@
 
 const Promise = require('bluebird')
 const callsites = require('callsites')
-const map = require('stunsail/col/map')
-const once = require('stunsail/fn/once')
+const map = require('stunsail/map')
+const once = require('stunsail/once')
+const isOneOf = require('stunsail/is-one-of')
 
 const log = require('../logger')
 
@@ -99,7 +100,7 @@ function getCommandProperty (command, property) {
     'price'
   ]
 
-  if (context.is.oneOf(options, property)) {
+  if (isOneOf(options, property)) {
     if (!sub) return registry[command][property]
     return registry[command].subcommands[sub][property]
   }

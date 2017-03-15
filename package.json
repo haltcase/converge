@@ -47,7 +47,7 @@
     "req-all": "^1.0.0",
     "sqlite3": "^3.1.8",
     "strat": "^0.6.0",
-    "stunsail": "^1.0.0-alpha.5",
+    "stunsail": "next",
     "tmi.js": "^1.1.2",
     "trilogy": "^1.0.0-rc.5"
   },

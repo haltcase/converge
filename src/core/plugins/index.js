@@ -2,7 +2,7 @@
 
 require('./compiler')
 const Promise = require('bluebird')
-const has = require('stunsail/col/has')
+const has = require('stunsail/has')
 const { isAbsolute, resolve } = require('path')
 const { findAsync, readAsync } = require('fs-jetpack')
 const getPackageProps = require('npm-package-arg')
