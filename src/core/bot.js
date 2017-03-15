@@ -105,18 +105,19 @@ function dispatcher (ctx, bot, prefix, type) {
       .then(event => {
         event.respond = createResponder(ctx, event)
         event.prevent = createPrevent(event)
-        callHook('beforeMessage', event)
-
+        return callHookAndWait('beforeMessage', event).then(() => event)
+      })
+      .then(event => {
         if (!event.isPrevented && isCommand(message, prefix)) {
-          commandHandler(ctx, event)
+          return commandHandler(ctx, event)
         }
       })
   }
 }
 
 function commandHandler (ctx, event) {
-  callHook('receivedCommand', event)
-  !event.isPrevented && ctx.runCommand(event)
+  return callHookAndWait('receivedCommand', event)
+    .then(() => !event.isPrevented && ctx.runCommand(event))
 }
 
 function buildEvent (ctx, user, message, prefix, whispered) {
@@ -144,12 +145,10 @@ function buildEvent (ctx, user, message, prefix, whispered) {
 }
 
 function createPrevent (event) {
-  event.isPrevented = false
   return () => {
+    event.isPrevented = true
     let caller = getCaller(callsites())
     log.debug(`command prevented by ${caller}`)
-
-    event.isPrevented = true
     callHook('preventedCommand', event)
   }
 }
