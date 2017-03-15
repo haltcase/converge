@@ -10,3 +10,4 @@ paths.app = resolve(paths.data, '..')
 paths.content = resolve(paths.data, 'content')
 
 exports.paths = paths
+exports.clientID = 'ejigh97i4w638sdoild5cvile1ajwim'

@@ -3,11 +3,14 @@
 const Promise = require('bluebird')
 const reqAll = require('req-all')
 const EventEmitter = require('eventemitter2')
+const get = require('stunsail/get')
+const map = require('stunsail/map')
 const each = require('stunsail/each')
 const isObject = require('stunsail/is-object')
 const defaults = require('stunsail/defaults')
 
 const log = require('../logger')
+const getAPI = require('./api')
 const loadDatabase = require('./db')
 const { loadBot } = require('./bot')
 const { loadPlugins } = require('./plugins')
@@ -34,12 +37,14 @@ module.exports = class Core extends EventEmitter {
 
     this.ownerName = config.ownerName
     this.botName = config.botName
+    this.api = getAPI(config.ownerAuth)
 
     loadHooks(this)
     exitHooks(this)
 
     loadDatabase(this, options.db)
       .then(db => { this.db = db })
+      .then(() => loadOwnerInfo(this))
       .then(() => loadBot(this, config))
       .then(() => loadLibraries(this))
       .then(() => loadRegistry(this))
@@ -91,6 +96,56 @@ module.exports = class Core extends EventEmitter {
     return callHookAndWait('beforeShutdown')
       .then(() => this.emit('shutdown'))
   }
+}
+
+function loadOwnerInfo (context) {
+  let params = { login: [context.ownerName, context.botName] }
+  return context.api('users', { params })
+    .then(res => {
+      let [ownerID, botID] = map(get('_id'), res.users)
+      context.extend({ ownerID, botID })
+
+      return Promise.all([
+        context.db.updateOrCreate('usertypes', {
+          id: ownerID
+        }, {
+          name: context.ownerName,
+          admin: true,
+          mod: true
+        }),
+
+        context.db.updateOrCreate('usertypes', {
+          id: botID
+        }, {
+          name: context.botName,
+          admin: true,
+          mod: true
+        })
+      ])
+    })
+  /*
+  return context.api('')
+    .then(get('token.user_id'))
+    .then(id => context.extend({ ownerID: id }))
+
+  // TODO: also load the bot id here
+  let getID = get('token.user_id')
+
+  return Promise.all([
+    context.api('').then(getID)
+  ]).then(([id]) => {
+    context.extend({ ownerID: id })
+
+    return Promise.all([
+      context.db.updateOrCreate('usertypes', {
+        id,
+        name: context.ownerName,
+        admin: true,
+        mod: true
+      })
+    ])
+  })
+  */
 }
 
 function loadLibraries (context) {
