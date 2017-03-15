@@ -29,6 +29,7 @@ run(options).then(core => {
   })
 
   term.on('line', line => {
+    if (line.trim() === '') return term.prompt()
     let words = line.split(' ')
     switch (words[0]) {
       case 'quit':
@@ -62,14 +63,14 @@ run(options).then(core => {
   })
 
   term.on('close', () => quit(core))
-  core.on('shutdown', quit)
+  core.on('shutdown', () => quit())
   core.on('ready', () => term.prompt())
 }).catch(e => {
   console.error('\n', `error: ${e.message || e}`)
 })
 
 function quit (core) {
-  console.log('\n', 'closing terminal')
+  console.log('closing terminal')
   if (core) core.shutdown().then(() => process.exit(0))
   process.exit(0)
 }
