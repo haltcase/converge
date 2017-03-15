@@ -72,7 +72,7 @@ exports.loadRegistry = once(context => {
     command: {
       exists: commandExists,
       getProperty: getCommandProperty,
-      isEnabled: (name, sub) => getCommandProperty(name, 'status', sub) > 0
+      isEnabled: (name, sub) => getCommandProperty(name, sub, 'status') > 0
     }
   })
 
@@ -86,8 +86,8 @@ exports.loadRegistry = once(context => {
 function getCommandProperty (command, property) {
   let sub
   if (arguments.length === 3) {
-    property = arguments[2]
     sub = property
+    property = arguments[2]
   }
 
   if (!commandExists(command, sub)) return
