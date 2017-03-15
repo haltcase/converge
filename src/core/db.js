@@ -21,6 +21,22 @@ module.exports = (context, db) => {
     return db.findOrCreate('settings', { key }, { value })
   }
 
+  data.getExtConfig = (ext, defaultValue) => {
+    let [plugin, key] = ext.split('.', 2)
+    if (!plugin || !key) {
+      return Promise.reject(new Error('invalid database identifier'))
+    }
+    return db.get('plugin_settings', { key, plugin }, defaultValue)
+  }
+
+  data.setExtConfig = (ext, value) => {
+    let [plugin, key] = ext.split('.', 2)
+    if (!plugin || !key) {
+      return Promise.reject(new Error('invalid database identifier'))
+    }
+    return db.set('plugin_settings', { key, plugin }, value)
+  }
+
   context.extend({ db: data })
 
   return Promise.all([
@@ -32,8 +48,22 @@ module.exports = (context, db) => {
     db.model('users', {
       id: { type: Number, primary: true },
       name: { type: String, unique: true },
-      mod: Boolean,
+      mod: { type: Boolean, defaultTo: false },
       seen: Date
+    }),
+    db.model('usertypes', {
+      id: { type: Number, primary: true },
+      name: { type: String, unique: true },
+      admin: { type: Boolean, defaultTo: false },
+      mod: { type: Boolean, defaultTo: false }
+    }),
+    db.model('plugin_settings', {
+      plugin: String,
+      key: String,
+      value: String,
+      info: String
+    }, {
+      primary: ['plugin', 'key']
     })
   ]).then(() => data)
 }
