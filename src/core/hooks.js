@@ -6,6 +6,7 @@ const once = require('stunsail/fn/once')
 const toArray = require('stunsail/to/array')
 
 let hooks = {
+  setup: [],
   ready: [],
   beforeMessage: [],
   receivedCommand: [],
