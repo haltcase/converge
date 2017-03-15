@@ -7,7 +7,7 @@ const { client: Client } = require('tmi.js')
 const { basename, dirname } = require('path')
 
 const log = require('../logger')
-const { callHook } = require('./hooks')
+const { callHook, callHookAndWait } = require('./hooks')
 
 let getInstance = once(config => {
   return new Client({
