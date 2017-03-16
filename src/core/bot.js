@@ -129,6 +129,7 @@ function buildEvent (ctx, user, message, prefix, whispered) {
   let event = {
     id: user['user-id'],
     sender: name,
+    mention: `@${name}`,
     mod: mod || ctx.user.isMod(user['user-id']),
     seen: new Date(),
     raw: message,
