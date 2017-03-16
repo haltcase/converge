@@ -1,0 +1,27 @@
+{
+  "bot": {
+    "core": {
+      "settings": {
+        "whisper-mode": {
+          "enabled-success": "Whisper mode enabled.",
+          "disabled-success": "Whisper mode disabled."
+        }
+      },
+      "commands": {
+        "does-not-exist": "That command does not exist.",
+        "already-exists": "A command by that name already exists.",
+        "is-extension-command": "That command is from an installed extension.",
+        "add-success": "Custom command '{0}' added.",
+        "remove-success": "Custom command '{0}' removed.",
+        "edit-success": "Custom command '{0}' modified.",
+        "enable-success": "Command '{0}' enabled.",
+        "disable-success": "Command '{0}' disabled.",
+        "permission-success": "Permission level for '{0}' set to {1}"
+      },
+      "common-words": {
+        "enabled": "enabled",
+        "disabled": "disabled"
+      }
+    }
+  }
+}
