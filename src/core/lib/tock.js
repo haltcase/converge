@@ -6,6 +6,7 @@ class Tock {
   constructor () {
     this.timers = new Map()
     this.intervals = new Map()
+    this.ms = ms
   }
 
   setTimeout (name, fn, time) {
