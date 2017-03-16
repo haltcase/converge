@@ -51,7 +51,7 @@
     "strat": "^0.6.0",
     "stunsail": "next",
     "tmi.js": "^1.1.2",
-    "trilogy": "^1.0.0-rc.5"
+    "trilogy": "^1.0.0"
   },
   "devDependencies": {
     "ava": "^0.17.0",
