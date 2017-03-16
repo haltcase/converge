@@ -4,6 +4,7 @@ const Promise = require('bluebird')
 const callsites = require('callsites')
 const map = require('stunsail/map')
 const once = require('stunsail/once')
+const reduce = require('stunsail/reduce')
 const isOneOf = require('stunsail/is-one-of')
 
 const log = require('../logger')
@@ -109,7 +110,7 @@ function getCommandProperty (command, property) {
 function commandExists (name, sub) {
   let command = registry[name]
   if (!command) return false
-  return sub ? !!command[sub] : true
+  return sub ? !!command.subcommands[sub] : true
 }
 
 function registerCommand (context, command) {
@@ -125,12 +126,34 @@ function registerCommand (context, command) {
 
   registry[name] = Object.assign({}, command, { subcommands: {} })
 
-  log.absurd(`\`- Command loaded:: '${name}' (${caller})`)
+  log.absurd(`\`- Command loaded:: '!${name}' (${caller})`)
   return context
 }
 
-function registerSubcommand (context, command, caller, parent) {
-  // TODO
+function registerSubcommand (context, subcommand) {
+  let { name, caller, parent } = subcommand
+  let container = registry[parent]
+
+  if (!container) {
+    log.error(`Parent command '${parent}' does not exist. (${caller})`)
+    return
+  }
+
+  let pair = `${parent} ${name}`
+  let reference = container.subcommands[name]
+
+  if (reference) {
+    if (reference.parent === parent) return
+
+    log.debug(`Duplicate subcommand registration attempted by '${caller}'`)
+    log.debug(`!${pair} is already registered`)
+
+    return
+  }
+
+  registry[parent].subcommands[name] = Object.assign({}, subcommand)
+
+  log.absurd(`\`- Subcommand loaded:: '!${pair}' (${caller})`)
   return context
 }
 
@@ -148,22 +171,20 @@ function save (context) {
         cooldown: command.cooldown,
         permission: command.permission,
         price: command.price
-      }),
-
-      Promise.all([
-        map(sub => {
-          return context.db.updateOrCreate('subcommands', {
-            name: sub.name
-          }, {
-            parent: command.name,
-            status: sub.status,
-            cooldown: sub.cooldown,
-            permission: sub.permission,
-            price: sub.price
-          })
-        }, command.subcommands)
-      ])
-    ])
+      })
+    ].concat(
+      reduce((promises, sub) => {
+        return promises.concat(context.db.updateOrCreate('subcommands', {
+          name: sub.name
+        }, {
+          parent: command.name,
+          status: sub.status,
+          cooldown: sub.cooldown,
+          permission: sub.permission,
+          price: sub.price
+        }))
+      }, [], command.subcommands)
+    ))
   }, registry)).then(() => log.trace('saved commands'))
 }
 
