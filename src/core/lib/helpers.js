@@ -7,7 +7,7 @@ module.exports = context => {
   let to = {}
 
   stunsail.each(key => {
-    let token = key.slice(2)
+    let token = key.slice(2).toLowerCase()
     switch (key.slice(0, 2)) {
       case 'is':
         is[token] = stunsail[key]
@@ -27,7 +27,7 @@ module.exports = context => {
     if (isToMethod(key)) {
       to[key] = stunsail[key]
     }
-  })
+  }, Object.keys(stunsail))
 
   context.extend({
     is,
