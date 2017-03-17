@@ -8,7 +8,6 @@ const Core = require('./core')
 const log = require('./logger')
 const { paths } = require('./constants')
 
-
 module.exports = function startup (options) {
   log.trace('starting up...')
   options.db = new Trilogy(join(paths.data, 'bot.db'))

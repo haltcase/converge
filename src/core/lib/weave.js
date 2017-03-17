@@ -1,10 +1,16 @@
-const _ = require('lodash')
 const strat = require('strat')
 const callsites = require('callsites')
 const { sync: find } = require('find-up')
 const { sync: getLocale } = require('os-locale')
 const { dirname, resolve } = require('path')
 const { exists, read, write, copy } = require('fs-jetpack')
+
+const {
+  get,
+  set,
+  toPath,
+  isString
+} = require('lodash')
 
 const log = require('../../logger')
 const { paths } = require('../../constants')
@@ -40,28 +46,32 @@ let plugins = {}
 module.exports = context => {
   function weave (key /*, ...replacements */) {
     let replacements = context.to.array(arguments, 1)
-    let str = _.get(plugins, getKeyPath(callsites(), key))
+    let str = get(plugins, getKeyPath(callsites(), key))
     if (!str) return MISSING_STRING
-    if (!_.isString(str)) return INVALID_PATH
+    if (!isString(str)) return INVALID_PATH
     return strat(str, replacements)
   }
 
+  context.on('beforeMessage', () => {
+    console.log(plugins)
+  })
+
   weave.core = function (key /*, ...replacements */) {
     let replacements = context.to.array(arguments, 1)
-    let keyPath = _.toPath(key)
+    let keyPath = toPath(key)
     keyPath.unshift('bot', 'core')
-    let str = _.get(core, keyPath)
+    let str = get(core, keyPath)
     if (!str) return MISSING_STRING
-    if (!_.isString(str)) return INVALID_PATH
+    if (!isString(str)) return INVALID_PATH
     return strat(str, replacements)
   }
 
   weave.set = function (key, str) {
-    if (arguments.length < 2 || !_.isString(key) || !_.isString(str)) {
+    if (arguments.length < 2 || !isString(key) || !isString(str)) {
       return false
     }
 
-    _.set(plugins, getKeyPath(callsites(), key), str)
+    set(plugins, getKeyPath(callsites(), key), str)
     return true
   }
 
@@ -93,7 +103,7 @@ function getKeyPath (callsite, key) {
   let caller = callsite[1].getFileName()
   let manifest = find('package.json', { cwd: dirname(caller) })
   let { name } = read(manifest, 'json') || { name: '' }
-  let keyPath = _.toPath(key)
+  let keyPath = toPath(key)
   keyPath.unshift(name)
   return keyPath
 }
@@ -118,13 +128,13 @@ function getPath () {
 }
 
 function getConfig (key, defaultValue) {
-  let keyPath = _.toPath(key)
-  return _.get(readConfig(), keyPath, defaultValue)
+  let keyPath = toPath(key)
+  return get(readConfig(), keyPath, defaultValue)
 }
 
 function setConfig (key, value) {
-  let keyPath = _.toPath(key)
-  let updated = _.set(readConfig(), keyPath, value)
+  let keyPath = toPath(key)
+  let updated = set(readConfig(), keyPath, value)
   writeConfig(updated)
   return updated
 }

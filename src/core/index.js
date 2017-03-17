@@ -77,7 +77,6 @@ module.exports = class Core extends EventEmitter {
 
     let isSubcommand = () => this.command.exists(command, subcommand)
     if (!event.subcommand || !isSubcommand()) {
-      console.log('not a subcommand', subcommand)
       event.subcommand = undefined
     }
 
