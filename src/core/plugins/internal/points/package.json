@@ -1,0 +1,19 @@
+{
+  "name": "singularity-plugin-points",
+  "version": "1.0.0",
+  "author": "citycide <thecitycide@gmail.com>",
+  "homepage": "github.com/citycide/singularity",
+  "keywords": [
+    "singularity-plugin",
+    "currency",
+    "points"
+  ],
+  "singularity": {
+    "engine": ">=1.0.0-alpha.1",
+    "files": {
+      "module": "./module.js",
+      "component": "./component.js",
+      "language": "./lang.js"
+    }
+  }
+}
