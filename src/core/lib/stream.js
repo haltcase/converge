@@ -1,5 +1,5 @@
-const { fmt } = require('human-duration')
 const reduce = require('stunsail/reduce')
+const duration = require('../util/duration')
 
 module.exports = context => {
   function getStreamInfo (id) {
@@ -63,11 +63,12 @@ function pollStreamInfo (context, getter) {
         created = 0
       } else {
         ;({ game, created_at: created } = data.stream)
-        created = new Date(data.stream.created_at).valueOf()
+        ;({ status } = data.stream.channel)
+        created = new Date(created).valueOf()
       }
 
       let since = Date.now() - created
-      let uptime = isLive ? fmt(since).toString() : 'offline'
+      let uptime = isLive ? duration(since) : 'offline'
 
       Object.assign(context.stream, {
         isLive,

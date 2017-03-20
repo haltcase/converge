@@ -1,20 +1,24 @@
 'use strict'
 
 const stunsail = require('stunsail')
+const { camelCase } = require('lodash')
 
 module.exports = context => {
   let is = stunsail.isEqual
   let to = {}
 
   stunsail.each(key => {
-    let token = key.slice(2).toLowerCase()
-    switch (key.slice(0, 2)) {
-      case 'is':
-        is[token] = stunsail[key]
-        return
-      case 'to':
-        to[token] = stunsail[key]
-        return
+    let prefix = key.slice(0, 2)
+    let token = camelCase(key.slice(2))
+
+    if (prefix === 'is') {
+      is[token] = stunsail[key]
+      return
+    }
+
+    if (prefix === 'to') {
+      to[token] = stunsail[key]
+      return
     }
 
     let isToMethod = stunsail.isOneOf([
