@@ -19,9 +19,7 @@
     "bot"
   ],
   "files": [
-    "main.js",
-    "cli.js",
-    "startup.js"
+    "src"
   ],
   "engines": {
     "node": ">=6"
@@ -39,19 +37,18 @@
     "eventemitter2": "^3.0.2",
     "find-up": "^2.1.0",
     "fs-jetpack": "^0.13.1",
-    "human-duration": "^1.0.1",
     "is-valid-path": "^0.1.1",
     "lodash": "^4.17.4",
     "logger-neue": "^0.6.0",
-    "ms": "^0.7.3",
+    "ms": "^1.0.0",
     "npm-package-arg": "^4.2.1",
     "opn": "^4.0.2",
     "os-locale": "^2.0.0",
     "pnpm": "^0.45.1",
     "req-all": "^1.0.0",
     "sqlite3": "^3.1.8",
-    "strat": "^0.6.0",
-    "stunsail": "next",
+    "strat": "^1.0.0-alpha.1",
+    "stunsail": "^1.0.0-alpha.11",
     "tmi.js": "^1.1.2",
     "trilogy": "^1.0.0"
   },
