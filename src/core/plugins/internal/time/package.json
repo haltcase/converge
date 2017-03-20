@@ -1,0 +1,19 @@
+{
+  "name": "singularity-plugin-time",
+  "version": "1.0.0",
+  "author": "citycide <thecitycide@gmail.com>",
+  "homepage": "github.com/citycide/singularity",
+  "keywords": [
+    "singularity-plugin",
+    "tracking",
+    "time"
+  ],
+  "singularity": {
+    "engine": ">=1.0.0-alpha.1",
+    "files": {
+      "module": "",
+      "component": "./component.js",
+      "language": ""
+    }
+  }
+}
