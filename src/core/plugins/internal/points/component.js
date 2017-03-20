@@ -140,48 +140,35 @@ async function run (lastPayout, lastUserList) {
   }, interval)
 }
 
-async function handlePayouts (lastPayout = 0, lastUserList = []) {
+async function handlePayouts (lastPayout = Date.now(), lastUserList = []) {
   let payout = 0
   let now = Date.now()
+  let { isLive } = $.stream
   let userList = $.user.list
-  let deferred = [now, userList]
 
-  if ($.stream.isLive) {
-    let [liveInt, liveAmt] = await Promise.all([
-      getPayoutInterval(),
-      getPayoutAmount()
-    ])
+  let [interval, amount] = await Promise.all([
+    getPayoutInterval(!isLive),
+    getPayoutAmount(!isLive)
+  ])
 
-    let nextLivePayout = lastPayout + (liveInt * 60 * 1000)
+  let nextPayout = lastPayout + interval
 
-    if (liveAmt > 0 && liveInt > 0) {
-      if (nextLivePayout >= now) return deferred
-      payout = liveAmt
-    }
+  if (amount > 0 && interval > 0) {
+    if (nextPayout >= now) return [now, userList]
+    payout = amount
   } else {
-    let [offInt, offAmt] = await Promise.all([
-      getPayoutInterval(true),
-      getPayoutAmount(true)
-    ])
-
-    let nextOfflinePayout = lastPayout + (offInt * 60 * 1000)
-
-    if (offAmt > 0 && offInt > 0) {
-      if (nextOfflinePayout >= now) return deferred
-      payout = offAmt
-    } else {
-      return deferred
-    }
+    return [now, userList]
   }
 
   await Promise.all(map(async user => {
     if (user === $.botName) return
     if (!$.is.oneOf(lastUserList, user)) return
 
+    await $.db.create('points', { name: user })
     return $.db.incr('points.value', { name: user }, payout)
   }, userList))
 
-  return deferred
+  return [now, userList]
 }
 
 export default {
