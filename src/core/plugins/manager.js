@@ -60,9 +60,7 @@ exports.addPlugin = (context, title) => {
   return Promise.all([isPackage(name), exports.getPlugins()])
     .then((exists, current) => {
       if (!exists) return false
-      let index = current.indexOf(name)
-      if (index >= 0) return false
-      return true
+      return !current.includes(name)
     })
     .then(shouldAdd => {
       if (!shouldAdd) return
