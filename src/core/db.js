@@ -14,7 +14,7 @@ module.exports = (context, db) => {
   }
 
   data.setConfig = (key, value) => {
-    return db.set('settings.value', { key }, value)
+    return db.updateOrCreate('settings', { key }, { value })
   }
 
   data.confirmConfig = (key, value) => {
@@ -34,7 +34,7 @@ module.exports = (context, db) => {
     if (!plugin || !key || typeof value === 'undefined') {
       return Promise.reject(new Error('invalid database identifier'))
     }
-    return db.set('plugin_settings.value', { key, plugin }, value)
+    return db.updateOrCreate('plugin_settings', { key, plugin }, { value })
   }
 
   context.extend({ db: data })
