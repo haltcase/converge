@@ -13,6 +13,14 @@ let registry = exports.registry = {}
 
 exports.stageCommand = name => {
   let { caller, handler } = registry[name]
+
+  if (caller === 'custom') {
+    return function (context, event) {
+      return context.params(event, handler)
+        .then(event.respond)
+    }
+  }
+
   delete require.cache[caller]
   return require(caller)[handler]
 }
@@ -53,6 +61,23 @@ exports.addSubcommand = (context, name, parent, options) => {
   return registerSubcommand(context, object)
 }
 
+exports.addCustomCommand = (context, name, options) => {
+  if (!name) return
+
+  let object = Object.assign({
+    cooldown: 30,
+    permission: 5,
+    status: 1,
+    price: 0
+  }, options, {
+    name: name.toLowerCase(),
+    caller: 'custom',
+    handler: options.response || options.handler
+  })
+
+  return registerCustomCommand(context, object)
+}
+
 exports.getCommand = name => registry[name]
 exports.getSubcommand = (parent, name) => registry[parent][name]
 
@@ -67,9 +92,14 @@ exports.loadRegistry = once(context => {
     return exports.addSubcommand(context, name, parent, options)
   }
 
+  function addCustomCommand (name, options) {
+    return exports.addCustomCommand(context, name, options)
+  }
+
   context.extend({
     addCommand,
     addSubcommand,
+    addCustomCommand,
 
     command: {
       exists: commandExists,
@@ -157,6 +187,24 @@ function registerSubcommand (context, subcommand) {
   return context
 }
 
+function registerCustomCommand (context, command) {
+  let { name } = command
+
+  if (registry[name]) {
+    log.debug(`'${name}' already in use. Custom command not added.`)
+    return context
+  }
+
+  let flags = {
+    caller: 'custom',
+    subcommands: {}
+  }
+
+  registry[name] = Object.assign({}, command, flags)
+  log.absurd(`\`- Command loaded:: '!${name}' (custom)`)
+  return context
+}
+
 function save (context) {
   log.trace('saving commands')
 
@@ -219,6 +267,11 @@ function loadCommands (context) {
   return Promise.all([
     context.db.find('commands').then(commands => {
       commands.forEach(command => {
+        if (command.caller === 'custom') {
+          registerCustomCommand(context, command)
+          return
+        }
+
         registerCommand(context, command)
       })
     }),
