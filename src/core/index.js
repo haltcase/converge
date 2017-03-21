@@ -72,7 +72,7 @@ module.exports = class Core extends EventEmitter {
     let { command, subcommand } = event
 
     if (!this.command.exists(command)) {
-      return Promise.resolve()
+      return Promise.resolve(false)
     }
 
     let isSubcommand = () => this.command.exists(command, subcommand)
