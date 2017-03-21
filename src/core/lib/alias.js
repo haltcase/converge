@@ -16,17 +16,16 @@ module.exports = context => {
         return context.db.remove('alias', { name })
           .then(count => count === 1)
       }
-      
-      function isAlias (name) {
-        return context.db.findOne('alias', { name })
-          .then(alias => alias && alias.original)
+
+      function getAlias (name) {
+        return context.db.findOne('alias.original', { name })
       }
 
       context.extend({
         command: {
           addAlias,
           removeAlias,
-          isAlias
+          getAlias
         }
       })
     })
