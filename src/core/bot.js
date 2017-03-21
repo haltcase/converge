@@ -163,6 +163,7 @@ function buildEvent (ctx, user, message, prefix, whispered) {
     whispered,
     command: getCommand(message, prefix),
     args,
+    subArgs: args.slice(1),
     subcommand: args[0],
     argString: getCommandArgString(message),
     subArgString: getCommandSubArgString(message),
