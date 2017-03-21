@@ -1,7 +1,7 @@
 'use strict'
 
 module.exports = context => {
-  return db.model('alias', { name: String, original: String })
+  return context.db.model('alias', { name: String, original: String })
     .then(() => {
       function addAlias (name, original) {
         let command = String(original).split(' ', 1)[0]
@@ -24,7 +24,7 @@ module.exports = context => {
 
       context.extend({
         command: {
-          addAlias
+          addAlias,
           removeAlias,
           isAlias
         }
