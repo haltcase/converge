@@ -3,7 +3,6 @@
 const Promise = require('bluebird')
 const exitHook = require('async-exit-hook')
 const once = require('stunsail/once')
-const toArray = require('stunsail/to-array')
 
 let hooks = {
   setup: [],
@@ -23,19 +22,16 @@ exports.registerHook = (name, fn) => {
   hooks[name].push(fn)
 }
 
-exports.callHook = function (name) {
+exports.callHook = (name, ...args) => {
   let context = getContext()
-  let args = toArray(arguments, 1)
   args.unshift(context)
 
   context.emit(name, ...args)
   hooks[name] && hooks[name].forEach(fn => fn.apply(context, args))
 }
 
-// this needs a better name plz
-exports.callHookAndWait = function (name) {
+exports.callHookAndWait = (name, ...args) => {
   let context = getContext()
-  let args = toArray(arguments, 1)
   args.unshift(context)
 
   return Promise.all([
