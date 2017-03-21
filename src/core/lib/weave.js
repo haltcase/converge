@@ -52,10 +52,6 @@ module.exports = context => {
     return strat(str, replacements)
   }
 
-  context.on('beforeMessage', () => {
-    console.log(plugins)
-  })
-
   weave.core = function (key /*, ...replacements */) {
     let replacements = context.to.array(arguments, 1)
     let keyPath = toPath(key)
