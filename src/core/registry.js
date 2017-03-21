@@ -219,10 +219,10 @@ function save (context) {
         cooldown: command.cooldown,
         permission: command.permission,
         price: command.price
-      })
-    ].concat(
-      reduce((promises, sub) => {
-        return promises.concat(context.db.updateOrCreate('subcommands', {
+      }),
+
+      ...reduce((promises, sub) => {
+        return [context.db.updateOrCreate('subcommands', {
           name: sub.name
         }, {
           parent: command.name,
@@ -230,9 +230,9 @@ function save (context) {
           cooldown: sub.cooldown,
           permission: sub.permission,
           price: sub.price
-        }))
+        }), ...promises]
       }, [], command.subcommands)
-    ))
+    ])
   }, registry)).then(() => log.trace('saved commands'))
 }
 

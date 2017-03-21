@@ -28,7 +28,7 @@ exports.callHook = function (name) {
   let args = toArray(arguments, 1)
   args.unshift(context)
 
-  context.emit.apply(context, [name].concat(args))
+  context.emit(name, ...args)
   hooks[name] && hooks[name].forEach(fn => fn.apply(context, args))
 }
 
@@ -39,7 +39,7 @@ exports.callHookAndWait = function (name) {
   args.unshift(context)
 
   return Promise.all([
-    context.emitAsync.apply(context, [name].concat(args)),
+    context.emitAsync(name, ...args),
     hooks[name] && hooks[name].map(fn => fn.apply(context, args))
   ]).then(([events, hooks]) => { /* TODO: return something? */ })
 }

@@ -27,7 +27,7 @@ exports.loadPlugins = context => {
     .then(() => update(context))
     .then(() => Promise.all([getPlugins(), getLocalPlugins()]))
     .then(([plugins, locals]) => {
-      let all = plugins.concat(locals)
+      let all = [...plugins, ...locals]
       return all.map(plugin => {
         let { name } = getPackageProps(plugin)
         return resolvePluginPath(name)

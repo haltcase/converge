@@ -86,7 +86,7 @@ function pollStreamInfo (context, getter) {
 function parseChatterList (context, chatters) {
   return reduce((acc, group) => {
     acc.count += group.length
-    acc.list = acc.list.concat(group)
+    acc.list = [...acc.list, ...group]
     return acc
   }, { count: 0, list: [] }, chatters)
 }
