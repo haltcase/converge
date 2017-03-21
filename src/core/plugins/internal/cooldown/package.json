@@ -1,0 +1,14 @@
+{
+  "name": "singularity-plugin-cooldown",
+  "version": "1.0.0",
+  "author": "citycide <thecitycide@gmail.com>",
+  "homepage": "github.com/citycide/singularity",
+  "singularity": {
+    "engine": ">=1.0.0-alpha.1",
+    "files": {
+      "module": "./module.js",
+      "component": "./component.js",
+      "language": "./lang.js"
+    }
+  }
+}
