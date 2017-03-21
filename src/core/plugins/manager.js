@@ -70,7 +70,7 @@ exports.addPlugin = (context, title) => {
       manifest = Object.assign({ plugins: [] }, manifest)
 
       let i = manifest.plugins.findIndex(v => {
-        return v.split('@', 2)[0] === name
+        return v.split('@', 1)[0] === name
       })
 
       if (i >= 0) {

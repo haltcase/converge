@@ -125,29 +125,6 @@ function loadOwnerInfo (context) {
         })
       ])
     })
-  /*
-  return context.api('')
-    .then(get('token.user_id'))
-    .then(id => context.extend({ ownerID: id }))
-
-  // TODO: also load the bot id here
-  let getID = get('token.user_id')
-
-  return Promise.all([
-    context.api('').then(getID)
-  ]).then(([id]) => {
-    context.extend({ ownerID: id })
-
-    return Promise.all([
-      context.db.updateOrCreate('usertypes', {
-        id,
-        name: context.ownerName,
-        admin: true,
-        mod: true
-      })
-    ])
-  })
-  */
 }
 
 function loadLibraries (context) {
