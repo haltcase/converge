@@ -88,7 +88,8 @@ module.exports = class Core extends EventEmitter {
         let runner = stageCommand(command)
         return runner(this, event)
       })
-      .then(() => callHook('afterCommand', event))
+      .catch(e => log.error(`failed to run '${command}' :: ${e.message}`))
+      .then(() => callHookAndWait('afterCommand', event))
   }
 
   shutdown () {
