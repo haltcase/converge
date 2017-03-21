@@ -26,15 +26,15 @@ module.exports = (context, db) => {
     if (!plugin || !key) {
       return Promise.reject(new Error('invalid database identifier'))
     }
-    return db.get('plugin_settings', { key, plugin }, defaultValue)
+    return db.get('plugin_settings.value', { key, plugin }, defaultValue)
   }
 
   data.setExtConfig = (ext, value) => {
     let [plugin, key] = ext.split('.', 2)
-    if (!plugin || !key) {
+    if (!plugin || !key || typeof value === 'undefined') {
       return Promise.reject(new Error('invalid database identifier'))
     }
-    return db.set('plugin_settings', { key, plugin }, value)
+    return db.set('plugin_settings.value', { key, plugin }, value)
   }
 
   context.extend({ db: data })
