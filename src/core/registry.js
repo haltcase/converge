@@ -188,7 +188,7 @@ function registerSubcommand (context, subcommand) {
 }
 
 function registerCustomCommand (context, command) {
-  let { name, handler } = command
+  let { name } = command
 
   if (registry[name]) {
     log.debug(`'${name}' already in use. Custom command not added.`)
@@ -201,7 +201,7 @@ function registerCustomCommand (context, command) {
   }
 
   registry[name] = Object.assign({}, command, flags)
-  log.absurd(`\`- Command loaded:: '!${name}' (${caller})`)
+  log.absurd(`\`- Command loaded:: '!${name}' (custom)`)
   return context
 }
 
