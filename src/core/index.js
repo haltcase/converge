@@ -78,6 +78,8 @@ module.exports = class Core extends EventEmitter {
     let isSubcommand = () => this.command.exists(command, subcommand)
     if (!event.subcommand || !isSubcommand()) {
       event.subcommand = undefined
+      event.subArgs = undefined
+      event.subArgString = undefined
     }
 
     return callHookAndWait('beforeCommand', event)
