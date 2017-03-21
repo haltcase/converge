@@ -87,6 +87,7 @@ function getCommand (message, prefix) {
 
 const getCommandArgs = message => message.split(' ').slice(1)
 const getCommandArgString = message => getCommandArgs(message).join(' ')
+const getCommandSubArgString = message => getCommandArgs(message).slice(1).join(' ')
 
 function setupListeners (ctx, bot, prefix) {
   log.trace('registering chat listeners')
@@ -108,7 +109,8 @@ function dispatcher (ctx, bot, prefix, type) {
         return callHookAndWait('beforeMessage', event).then(() => event)
       })
       .then(event => {
-        if (!event.isPrevented && isCommand(message, prefix)) {
+        if (event.isPrevented) return
+        if (isCommand(message, prefix)) {
           return commandHandler(ctx, event)
         }
       })
@@ -118,6 +120,31 @@ function dispatcher (ctx, bot, prefix, type) {
 function commandHandler (ctx, event) {
   return callHookAndWait('receivedCommand', event)
     .then(() => !event.isPrevented && ctx.runCommand(event))
+    .then(commandFound => commandFound === false && aliasHandler(ctx, event))
+}
+
+function aliasHandler (ctx, event) {
+  return ctx.command.getAlias(event.command)
+    .then(original => {
+      if (!original) return
+      let [command, subcommand, ...rest] = original.split(' ')
+      if (!ctx.command.exists(command)) return
+
+      let args = [subcommand, ...rest, ...event.args]
+      let argString = args.join(' ')
+      let subArgs = [...rest, ...event.args]
+      Object.assign(event, {
+        command,
+        subcommand,
+        args,
+        argString,
+        subArgs,
+        subArgString: subArgs.join(' '),
+        raw: `${command} ${argString}`
+      })
+
+      return commandHandler(ctx, event)
+    })
 }
 
 function buildEvent (ctx, user, message, prefix, whispered) {
@@ -138,6 +165,7 @@ function buildEvent (ctx, user, message, prefix, whispered) {
     args,
     subcommand: args[0],
     argString: getCommandArgString(message),
+    subArgString: getCommandSubArgString(message),
     isPrevented: false
   }
 
