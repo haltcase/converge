@@ -40,7 +40,7 @@ exports.callHookAndWait = function (name) {
 
   return Promise.all([
     context.emitAsync(name, ...args),
-    hooks[name] && hooks[name].map(fn => fn.apply(context, args))
+    ...hooks[name].map(fn => fn.apply(context, args))
   ]).then(([events, hooks]) => { /* TODO: return something? */ })
 }
 
