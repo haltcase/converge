@@ -87,6 +87,7 @@ function getCommand (message, prefix) {
 
 const getCommandArgs = message => message.split(' ').slice(1)
 const getCommandArgString = message => getCommandArgs(message).join(' ')
+const getCommandSubArgString = message => getCommandArgs(message).slice(1).join(' ')
 
 function setupListeners (ctx, bot, prefix) {
   log.trace('registering chat listeners')
@@ -138,6 +139,7 @@ function buildEvent (ctx, user, message, prefix, whispered) {
     args,
     subcommand: args[0],
     argString: getCommandArgString(message),
+    subArgString: getCommandSubArgString(message),
     isPrevented: false
   }
 
