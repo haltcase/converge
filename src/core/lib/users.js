@@ -1,93 +1,91 @@
-const strat = require('strat')
-const getOr = require('stunsail/get-or')
+import { _, it } from 'param.macro'
+
+import FP from 'functional-promises'
+import strat from 'strat'
+import { getOr } from 'stunsail'
 
 const follower = strat('users/{}/follows/channels/{}')
 const subscriber = strat('channels/{}/subscriptions/{}')
 
-module.exports = context => {
-  function isAdmin (id) {
-    return context.db.get('usertypes.admin', { id })
-      .then(context.is(true))
-  }
+export default context => {
+  const isAdmin = id =>
+    context.db.get('usertypes.admin', { id })
 
-  function isMod (id) {
-    return context.db.get('usertypes.mod', { id })
-      .then(context.is(true))
-  }
+  const isMod = id =>
+    context.db.get('usertypes.mod', { id })
 
-  function isFollower (id) {
-    return context.api(follower([id, context.ownerID]))
-      .then(res => res && !res.error)
+  const isFollower = id =>
+    context.api(follower([id, context.ownerID]))
+      .then(it && !it.error)
       .catch(e => false)
-  }
 
-  function isSubscriber (id) {
-    return context.api(subscriber([context.ownerID, id]))
-      .then(res => res && !res.error)
+  const isSubscriber = id =>
+    context.api(subscriber([context.ownerID, id]))
+      .then(it && !it.error)
       .catch(e => false)
-  }
 
-  function resolveID (name) {
-    return context.api('users', {
+  const resolveID = name =>
+    context.api('users', {
       params: { login: encodeURIComponent(name) }
-    }).then(getOr(false, 'users.0._id'))
-  }
+    }).then(getOr(_, 'users.0._id', false))
 
-  function resolveIDList (list) {
+  const resolveIDList = list => {
     if (!Array.isArray(list)) return
 
     list = list.join(',')
-    return Promise.resolve(
+    return FP.resolve(
       context.api('users', {
         params: { login: encodeURIComponent(list) }
       })
     )
-    .then(getOr([], 'users'))
-    .map(getOr(false, '_id'))
+      .then(getOr(_, 'users', []))
+      .map(getOr(_, '_id', false))
   }
 
-  function resolveUser (id) {
-    return context.api('users/' + id)
-      .then(getOr(false, 'display_name'))
-  }
+  const resolveUser = id =>
+    context.api('users/' + id)
+      .then(getOr(_, 'display_name', false))
 
-  function resolveUserObject (id) {
-    return context.api('users/' + id)
-  }
+  const resolveUserObject = id =>
+    context.api('users/' + id)
 
-  function getID (name) {
-    return context.db.get('users.id', { name })
-  }
+  const getID = name =>
+    context.db.get('users.id', { name })
 
-  function getName (id) {
-    return context.db.get('users.name', { id })
-  }
+  const getName = id =>
+    context.db.get('users.name', { id })
 
-  function setAdmin (id, status) {
+  const setAdmin = (id, status) => {
     status = context.toBoolean(status)
     return getName(id)
-      .then(name => {
-        return context.db.updateOrCreate('usertypes', { id }, {
-          name,
+      .then(
+        context.db.updateOrCreate('usertypes', { id }, {
+          name: _,
           admin: status
         })
-      })
+      )
   }
 
-  function setMod (id, status) {
+  const setMod = (id, status) => {
     status = context.toBoolean(status)
     return getName(id)
-      .then(name => {
-        return context.db.updateOrCreate('usertypes', { id }, {
-          name,
+      .then(
+        context.db.updateOrCreate('usertypes', { id }, {
+          name: _,
           mod: status
         })
-      })
+      )
   }
+
+  const existsById = id =>
+    context.db.exists('users', { id })
+
+  const existsByName = name =>
+    context.db.exists('users', { name })
 
   /*
   context.on('beforeMessage', ($, e) => {
-    Promise.all([
+    FP.all([
       e.mod,
       isAdmin(e.id),
       isMod(e.id),
@@ -122,7 +120,9 @@ module.exports = context => {
       isFollower,
       isSubscriber,
       setAdmin,
-      setMod
+      setMod,
+      exists: existsByName,
+      existsById
     }
   })
 }

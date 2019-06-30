@@ -1,29 +1,83 @@
-'use strict'
+import { _, it } from 'param.macro'
+import importAll from 'import-all.macro'
 
-const Promise = require('bluebird')
-const reqAll = require('req-all')
-const EventEmitter = require('eventemitter2')
-const get = require('stunsail/get')
-const map = require('stunsail/map')
-const each = require('stunsail/each')
-const isObject = require('stunsail/is-object')
-const defaults = require('stunsail/defaults')
+import EventEmitter from 'eventemitter2'
+import FP from 'functional-promises'
 
-const log = require('../logger')
-const getAPI = require('./api')
-const loadDatabase = require('./db')
-const { loadBot } = require('./bot')
-const { loadPlugins } = require('./plugins')
-const { loadRegistry, stageCommand } = require('./registry')
+import {
+  defaults,
+  each,
+  isObject,
+  map
+} from 'stunsail'
 
-const {
+import log from '../logger'
+import getApi from './api'
+import loadDatabase from './db'
+import { loadBot } from './bot'
+import { loadPlugins } from './plugins'
+import { loadRegistry, stageCommand } from './registry'
+
+import {
   loadHooks,
   exitHooks,
   callHook,
   callHookAndWait
-} = require('./hooks')
+} from './hooks'
 
-module.exports = class Core extends EventEmitter {
+const loadOwnerInfo = async context => {
+  const params = { login: [context.ownerName, context.botName] }
+  const { users } = await context.api('users', { params }, { users: [] })
+  const [ownerID, botID] = map(users, it._id)
+  context.extend({ ownerID, botID })
+
+  return FP.all([
+    context.db.updateOrCreate('usertypes', {
+      id: ownerID
+    }, {
+      name: context.ownerName,
+      admin: true,
+      mod: true
+    }),
+
+    context.db.updateOrCreate('usertypes', {
+      id: botID
+    }, {
+      name: context.botName,
+      admin: true,
+      mod: true
+    })
+  ])
+}
+
+const loadLibraries = context => {
+  log.trace('loading libraries')
+  return importAll('./lib/*.js')
+    .then(each(_, it.default(context)))
+}
+/**
+ * The core functionality of the bot
+ *
+ * @export
+ * @class Core
+ * @extends {EventEmitter}
+ * @property {string} ownerName
+ * @property {string} botName
+ */
+export default class Core extends EventEmitter {
+  /**
+   * Creates an instance of the bot's core
+   *
+   * @param {object} config
+   * @param {string} config.ownerName
+   * @param {string} config.ownerAuth
+   * @param {string} config.botName
+   * @param {string} config.botAuth
+   * @param {object} options
+   * @param {string} options.configPath
+   * @param {import('trilogy').Trilogy} options.db
+   * @memberof Core
+   */
   constructor (config, options) {
     log.trace('starting up core')
 
@@ -37,7 +91,7 @@ module.exports = class Core extends EventEmitter {
 
     this.ownerName = config.ownerName
     this.botName = config.botName
-    this.api = getAPI(config.ownerAuth)
+    this.api = getApi(config.ownerAuth)
 
     loadHooks(this)
     exitHooks(this)
@@ -68,69 +122,46 @@ module.exports = class Core extends EventEmitter {
     super.on(channel, fn)
   }
 
-  runCommand (event) {
-    let { command, subcommand } = event
+  callHook (name, ...args) {
+    return callHook(name, ...args)
+  }
+
+  callHookAndWait (name, ...args) {
+    return callHookAndWait(name, ...args)
+  }
+
+  async runCommand (event) {
+    const { command, subcommand } = event
 
     if (!this.command.exists(command)) {
-      return Promise.resolve(false)
+      return false
     }
 
-    let isSubcommand = () => this.command.exists(command, subcommand)
+    const isSubcommand = () => this.command.exists(command, subcommand)
     if (!event.subcommand || !isSubcommand()) {
       event.subcommand = undefined
       event.subArgs = undefined
       event.subArgString = undefined
     }
 
-    return callHookAndWait('beforeCommand', event)
-      .then(() => {
-        if (event.isPrevented) return
-        let runner = stageCommand(command)
-        return runner(this, event)
-      })
-      .catch(e => log.error(`failed to run '${command}' :: ${e.message}`))
-      .then(() => callHookAndWait('afterCommand', event))
+    await callHookAndWait('beforeCommand', event)
+    if (event.isPrevented) return
+    const runner = stageCommand(command)
+
+    try {
+      await runner(this, event)
+      return callHookAndWait('afterCommand', event)
+    } catch (e) {
+      log.error(`failed to run command '${command}': ${e.message}`)
+      log.debug(e.stack)
+    }
   }
 
-  shutdown () {
-    if (this.shuttingDown) return Promise.resolve()
+  async shutdown () {
+    if (this.shuttingDown) return
     this.shuttingDown = true
     log.info('shutting down')
-    return callHookAndWait('beforeShutdown')
-      .then(() => this.emit('shutdown'))
+    await callHookAndWait('beforeShutdown')
+    return this.emit('shutdown')
   }
-}
-
-function loadOwnerInfo (context) {
-  let params = { login: [context.ownerName, context.botName] }
-  return context.api('users', { params })
-    .then(res => {
-      let [ownerID, botID] = map(get('_id'), res.users)
-      context.extend({ ownerID, botID })
-
-      return Promise.all([
-        context.db.updateOrCreate('usertypes', {
-          id: ownerID
-        }, {
-          name: context.ownerName,
-          admin: true,
-          mod: true
-        }),
-
-        context.db.updateOrCreate('usertypes', {
-          id: botID
-        }, {
-          name: context.botName,
-          admin: true,
-          mod: true
-        })
-      ])
-    })
-}
-
-function loadLibraries (context) {
-  log.trace('loading libraries')
-  let modules = reqAll('./lib')
-
-  each(lib => lib(context), modules)
 }

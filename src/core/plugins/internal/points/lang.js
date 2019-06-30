@@ -1,4 +1,4 @@
-export default function ($) {
+export default $ => {
   $.weave.set('response.default', '{0} has {1}.')
   $.weave.set('response.not-found', '{0} has not visited the chat yet.')
 
@@ -11,4 +11,9 @@ export default function ($) {
   $.weave.set('gift.success.sender', 'You gave {0} to {1} » {2} remaining')
   $.weave.set('gift.success.recipient', '{0} gave you {1} » you now have {2}')
   $.weave.set('gift.success.shout', '{0} gave {1} to {2} » {3} remaining')
+
+  $.weave.set(
+    'command.not-enough-points',
+    'You don\'t have enough points to use !{}. » costs {}, you have {}'
+  )
 }

@@ -1,4 +1,4 @@
-export default function ($) {
+export default $ => {
   $.weave.set('usage', 'Usage: !cooldown (get | set)')
 
   $.weave.set('get.usage', 'Usage: !cooldown get (command) [subcommand]')

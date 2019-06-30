@@ -10,7 +10,7 @@
       "commands": {
         "does-not-exist": "That command does not exist.",
         "already-exists": "A command by that name already exists.",
-        "is-extension-command": "That command is from an installed extension.",
+        "is-plugin-command": "That command is from an installed plugin.",
         "add-success": "Custom command '{0}' added.",
         "remove-success": "Custom command '{0}' removed.",
         "edit-success": "Custom command '{0}' modified.",

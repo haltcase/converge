@@ -1,73 +1,87 @@
-'use strict'
+import { _ } from 'param.macro'
 
-const { EOL } = require('os')
-const { resolve, normalize, isAbsolute } = require('path')
-const isValidPath = require('is-valid-path')
+import { EOL } from 'os'
+import { isAbsolute, resolve } from 'path'
 
-const {
+import {
+  exists,
   readAsync,
   writeAsync,
-  appendAsync,
-  existsAsync
-} = require('fs-jetpack')
+  appendAsync
+} from 'fs-jetpack'
 
-const { paths } = require('../../constants')
+import strat from 'strat'
+import { isObject, isArrayLike, toArray, isPrimitive } from 'stunsail'
 
-module.exports = context => {
+import isSubdirectory from '../util/is-subdirectory'
+import log from '../../logger'
+import { paths } from '../../constants'
+
+const chatLogFormat = strat('[{ts}] {sender} -> {message}')
+
+const pathExists = exists(_) === 'file'
+
+const sanitize = async path => {
+  if (isAbsolute(path)) {
+    if (!path || !isSubdirectory(path, paths.content)) {
+      const message =
+        `File paths must be within the bot's content directory ` +
+        `(${paths.content})`
+
+      log.error(message)
+      throw new Error(message)
+    }
+  }
+
+  return resolve(paths.content, path)
+}
+
+const serialize = data => {
+  if (typeof data === 'string') {
+    return data
+  }
+
+  if (isObject(data)) {
+    return JSON.stringify(data, null, 2)
+  }
+
+  if (isArrayLike(data)) {
+    return data |> toArray |> JSON.stringify(_, null, 2)
+  }
+
+  return isPrimitive(data) ? String(data) : data
+}
+
+const read = (path, { json = false } = {}) =>
+  sanitize(path).then(p => readAsync(p, json ? 'json' : undefined))
+
+const write = (path, data, { append = false } = {}) =>
+  sanitize(path).then(cleanPath => {
+    const writeable = `${serialize(data)}${append ? EOL : ''}`
+
+    return append
+      ? appendAsync(cleanPath, writeable)
+      : writeAsync(cleanPath, writeable)
+  })
+
+export default async context => {
   context.extend({
     file: {
       read,
       write,
-      exists
+      exists: pathExists
     }
   })
 
-  /*
-  context.on('beforeMessage', ($, e) => {
-    let now = new Date().toISOString()
-    return write('chat.txt', `${now} :: ${e.sender} -> ${e.raw}`, true)
+  context.on('beforeMessage', async ($, e) => {
+    if (!await $.db.getConfig('enableChatLog', false)) return
+
+    const line = chatLogFormat({
+      ts: new Date().toISOString(),
+      sender: e.sender,
+      message: e.raw
+    })
+
+    return write('chat.txt', line, { append: true })
   })
-  */
-}
-
-function read (path, json) {
-  if (!path || !isValidPath(path)) {
-    let err = new Error('invalid file path')
-    return Promise.reject(err)
-  }
-
-  return readAsync(sanitize(path), json ? 'json' : undefined)
-}
-
-function write (path, data, append) {
-  if (!path || !isValidPath(path)) {
-    let err = new Error('invalid file path')
-    return Promise.reject(err)
-  }
-
-  if (append) {
-    let writeable = String(data) + EOL
-    return appendAsync(sanitize(path), writeable)
-  } else {
-    return writeAsync(sanitize(path), data)
-  }
-}
-
-function exists (path) {
-  if (!path || !isValidPath(path)) {
-    let err = new Error('invalid file path')
-    return Promise.reject(err)
-  }
-
-  return existsAsync(path).then(type => type === 'file')
-}
-
-function sanitize (path) {
-  if (isAbsolute(path)) {
-    let input = normalize(path)
-    let target = normalize(paths.content)
-    if (!input.startsWith(target)) return
-  }
-
-  return resolve(paths.content, path)
 }

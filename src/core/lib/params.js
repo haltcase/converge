@@ -1,31 +1,43 @@
-const strat = require('strat')
-const Promise = require('bluebird')
-const map = require('stunsail/map')
-const isObject = require('stunsail/is-object')
-const toObject = require('stunsail/to-object')
-const { escapeRegExp } = require('lodash')
+import { _, it } from 'param.macro'
 
-module.exports = context => {
-  function params (event, text, tags) {
-    if (!isObject(event) || !hasTags(text)) return Promise.resolve(text)
+import FP from 'functional-promises'
+import escapeRegExp from 'lodash.escaperegexp'
+import strat from 'strat'
+import { map, isObject, toObject } from 'stunsail'
 
-    let tagMap = Object.assign({}, toObject(getTags(text)), event, tags)
-    return getReplacements(context, tagMap)
-      .then(strat(text))
-  }
+const tagList = [
+  `{age}`,
+  `{cmdprefix}`,
+  `{sender}`,
+  `{@sender}`,
+  `{random}`,
+  `{count}`,
+  `{pointname}`,
+  `{price}`,
+  `{#}`,
+  `{uptime}`,
+  `{followers}`,
+  `{game}`,
+  `{status}`,
+  `{target}`,
+  `{@target}`,
+  `{echo}`,
+  `{readfile `
+]
 
-  context.extend({
-    params
-  })
-}
+const rgxTags = tagList.map(it |> escapeRegExp |> RegExp)
+const getTags = str => str.match(/[^{}]+(?=})/g)
+const hasTags = str => rgxTags.some(it.test(str))
 
-function getReplacements (context, tags) {
-  return Promise.props(map(tag => {
+const getReplacements = (context, tags) => {
+  return FP.all(map(tags, (value, tag) => {
     switch (tag) {
+      case 'cmdprefix':
+        return context.command.getPrefix()
       case 'sender':
         return tags.sender
       case '@sender':
-        return '@' + tags.sender
+        return tags.mention
       case 'random':
         return context.to.random(context.user.list) || context.ownerName
       case 'pointname':
@@ -44,40 +56,35 @@ function getReplacements (context, tags) {
         return context.command.getPrice(tags.command, tags.subcommand)
       case 'target':
         return tags.target
+      case '@target':
+        return '@' + tags.target
       case 'readfile':
-        return file => context.file.read(file)
+        return context.file.read(_)
       case 'count':
       case 'followers':
-      default:
-        return
+        console.log('TODO: handle count & follower params')
+        break
+      default: {
+        // probably either a bad tag (typo) or not meant to be a tag
+        // doing nothing means it silently drops out of the message
+        // `return tag` places the content of the `{}` in the message
+        return `{${tag}}`
+      }
     }
-  }, tags))
+  }))
 }
 
-const tagList = [
-  `{age}`,
-  `{sender}`,
-  `{@sender}`,
-  `{random}`,
-  `{count}`,
-  `{pointname}`,
-  `{price}`,
-  `{#}`,
-  `{uptime}`,
-  `{followers}`,
-  `{game}`,
-  `{status}`,
-  `{target}`,
-  `{echo}`,
-  `{readfile `
-]
+export default context => {
+  const params = async (event, text, tags) => {
+    if (!isObject(event) || !hasTags(text)) return text
 
-const escapedTags = tagList.map(escapeRegExp)
+    const tagObj = text |> getTags |> toObject
+    const tagMap = Object.assign({}, tagObj, event, tags)
+    return getReplacements(context, tagMap)
+      .then(strat(text))
+  }
 
-function getTags (str) {
-  return str.match(/[^{}]+(?=})/g)
-}
-
-function hasTags (str) {
-  return escapedTags.some(v => v.test(str))
+  context.extend({
+    params
+  })
 }

@@ -1,48 +1,68 @@
-'use strict'
+import { _, it } from 'param.macro'
 
-const Promise = require('bluebird')
-const exitHook = require('async-exit-hook')
-const once = require('stunsail/once')
+import exitHook from 'async-exit-hook'
+import FP from 'functional-promises'
+import { once, getOr, has, set } from 'stunsail'
 
-let hooks = {
-  setup: [],
-  ready: [],
-  beforeMessage: [],
-  receivedCommand: [],
-  beforeCommand: [],
-  afterCommand: [],
-  beforeShutdown: []
-}
+export const builtinHooks = new Set([
+  'setup',
+  'ready',
+  'beforeMessage',
+  'receivedCommand',
+  'beforeCommand',
+  'afterCommand',
+  'beforeShutdown'
+])
 
-let getContext = exports.loadHooks = once(context => context)
+const hooks = [...builtinHooks.values()].reduce((final, current) => {
+  final[current] = []
+  return final
+}, {})
 
-exports.getHooks = () => Object.keys(hooks)
+export const loadHooks = once(context => context)
 
-exports.registerHook = (name, fn) => {
+export const getHooks = () => Object.keys(hooks)
+
+export const registerHook = (name, fn) => {
   hooks[name].push(fn)
 }
 
-exports.callHook = (name, ...args) => {
-  let context = getContext()
+export const registerPluginHook = (plugin, name, fn) => {
+  if (!has(hooks, [plugin, name]) || !Array.isArray(hooks[plugin][name])) {
+    set(hooks, [plugin, name], [])
+  }
+
+  hooks[plugin][name].push(fn)
+}
+
+export const callHook = (name, ...args) => {
+  const context = loadHooks()
   args.unshift(context)
 
   context.emit(name, ...args)
-  hooks[name] && hooks[name].forEach(fn => fn.apply(context, args))
+  hooks[name] && hooks[name].forEach(it.apply(context, args))
 }
 
-exports.callHookAndWait = (name, ...args) => {
-  let context = getContext()
+export const callHookAndWait = (name, ...args) => {
+  const hookList = getOr(hooks, name, [])
+  if (!hookList.length) return
+
+  const context = loadHooks()
   args.unshift(context)
 
-  return Promise.all([
+  return FP.all([
     context.emitAsync(name, ...args),
-    ...hooks[name].map(fn => fn.apply(context, args))
+    ...hookList.map(it.apply(context, args))
   ]).then(([events, hooks]) => { /* TODO: return something? */ })
 }
 
-exports.exitHooks = context => {
-  exitHook(done => context.shutdown().then(done))
-  exitHook.uncaughtExceptionHandler((e, done) => {
+export const exitHooks = context => {
+  exitHook(context.shutdown().then(_))
+
+  const uncaughtHandler = (e, done) => {
     return context.shutdown().then(done)
-  })
+  }
+
+  exitHook.uncaughtExceptionHandler(uncaughtHandler)
+  exitHook.unhandledRejectionHandler(uncaughtHandler)
 }

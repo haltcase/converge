@@ -1,10 +1,16 @@
 {
-  "name": "singularity-plugin-cooldown",
+  "name": "@converge/plugin-cooldown",
   "version": "1.0.0",
-  "author": "citycide <thecitycide@gmail.com>",
-  "homepage": "github.com/citycide/singularity",
-  "singularity": {
-    "engine": ">=1.0.0-alpha.1",
+  "author": "Bo Lingen <lingenbw@gmail.com>",
+  "homepage": "https://github.com/citycide/converge",
+  "keywords": [
+    "converge-plugin",
+    "cooldown"
+  ],
+  "engines": {
+    "converge": ">=1.0.0-alpha.1"
+  },
+  "converge": {
     "files": {
       "module": "./module.js",
       "component": "./component.js",

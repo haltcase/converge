@@ -1,127 +1,147 @@
-'use strict'
+import { _, it } from 'param.macro'
+import codegen from 'codegen.macro'
 
-require('./compiler')
-const Promise = require('bluebird')
-const has = require('stunsail/has')
-const { isAbsolute, resolve } = require('path')
-const { findAsync, readAsync } = require('fs-jetpack')
-const getPackageProps = require('npm-package-arg')
+import { isAbsolute, resolve } from 'path'
 
-const log = require('../../logger')
-const { getHooks, registerHook } = require('../hooks')
+import FP from 'functional-promises'
+import getPackageProps from 'npm-package-arg'
+import { each, has, isFunction, partition, isObject, getType } from 'stunsail'
 
-const {
+import './compiler'
+import { pluginPackageKey } from '../../constants'
+import { builtinHooks, registerHook, registerPluginHook } from '../hooks'
+import log from '../../logger'
+
+import {
   directory,
-  update,
+  install,
   getPlugins,
   getLocalPlugins
-} = require('./manager')
+} from './manager'
 
 const modulePath = resolve(directory, 'node_modules')
-const internalPath = resolve(__dirname, 'internal')
+export const internalPluginDirectory = resolve(__dirname, 'internal')
+export { directory as externalPluginDirectory }
 
-exports.loadPlugins = context => {
-  log.trace('loading plugins...')
+const internalPackages = codegen.require('./internal-packages')
 
-  return loadInternalPlugins(context)
-    .then(() => update(context))
-    .then(() => Promise.all([getPlugins(), getLocalPlugins()]))
-    .then(([plugins, locals]) => {
-      let all = [...plugins, ...locals]
-      return all.map(plugin => {
-        let { name } = getPackageProps(plugin)
-        return resolvePluginPath(name)
-      })
-    })
-    .then(paths => paths.forEach(atPath => load(context, atPath)))
+const interopRequire = path => {
+  const o = require(path)
+  return (o.__esModule && o.default) || o
 }
 
-function loadInternalPlugins (context) {
-  return Promise.resolve(findAsync(internalPath, { matching: 'package.json' }))
-    .map(atPath => resolve(atPath, '..'))
-    .each(atPath => load(context, atPath, true))
-}
+const loadInternalPlugins = context =>
+  internalPackages.map(load(context, _, true))
 
-function load (context, atPath, internal) {
-  return readAsync(resolve(atPath, 'package.json'), 'json')
-    .then(pkg => validate(pkg, atPath, internal))
-    .then(pkg => {
-      if (!pkg) return
+const loadFile = (atPath, file, load) =>
+  resolve(atPath, file) |> interopRequire |> load
 
-      let { files } = pkg.singularity
-
-      if (files.language) {
-        try {
-          let location = resolve(atPath, files.language)
-          let main = interopRequire(location)
-          main(context)
-        } catch (e) {
-          log.error(`error loading plugin language file (${atPath})`)
-        }
-      }
-
-      if (files.component) {
-        try {
-          let location = resolve(atPath, files.component)
-          let main = interopRequire(location)
-          registerHooks(context, main)
-        } catch (e) {
-          log.error(`error loading plugin component file (${atPath})`)
-          log.error(e.message)
-        }
-      }
-
-      if (files.module) {
-        try {
-          let location = resolve(atPath, files.module)
-          let main = interopRequire(location)
-          main.setup(context)
-        } catch (e) {
-          log.error(`error loading plugin module file (${atPath})`)
-          log.error(e.message)
-        }
-      }
-
-      log.debug(`plugin loaded: '${pkg.name} (v${pkg.version})'`)
-    })
-    .catch(e => {
-      // if (e.code === 'ENOENT') return null
-      // TODO: friendly messages for plugin failures
-      log.error(e)
-    })
-}
-
-function validate (pkg, atPath, internal) {
+const validate = (pkg, atPath, internal) => {
   if (internal) return pkg
 
-  if (!has('singularity.files', pkg)) {
-    log.error(`invalid plugin package (${atPath})`)
+  if (!has(pkg, [pluginPackageKey, 'files'])) {
+    log.error(`Invalid plugin package (${atPath})`)
     return
   }
-
-  // TODO: other requirements like version compatibility
 
   return pkg
 }
 
-function registerHooks (context, component) {
-  getHooks().forEach(hook => {
-    let method = component[hook]
-    if (method && typeof method === 'function') {
-      if (hook === 'setup') {
-        method.call(context, context)
-      }
+const registerHooks = (context, component) => {
+  const [builtins, plugins] = partition(component, (value, key) => {
+    return builtinHooks.has(key)
+  })
 
-      registerHook(hook, method)
+  each(builtins, (method, hook) => {
+    if (!isFunction(method)) {
+      context.log.error(
+        'Hooks must be known methods or objects for plugins, but ' +
+        `${hook} was of type ${getType(method)}`
+      )
+
+      return
     }
+
+    if (hook === 'setup') {
+      method.call(context, context)
+    }
+
+    registerHook(hook, method)
+  })
+
+  each(plugins, (pluginHooks, plugin) => {
+    if (!isObject(pluginHooks)) {
+      context.log.error(
+        'Hooks must be known methods or objects for plugins, but ' +
+        `${plugin} was of type ${getType(pluginHooks)}`
+      )
+    }
+
+    each(pluginHooks, (method, hook) => {
+      registerPluginHook(plugin, hook, method)
+    })
   })
 }
 
-function resolvePluginPath (name) {
-  return isAbsolute(name) ? name : resolve(modulePath, name)
+const resolvePluginPath = name =>
+  isAbsolute(name) ? name : resolve(modulePath, name)
+
+const loadError = (e, atPath, type) => {
+  log.error(`Error loading plugin ${type} file (${atPath})`)
+  log.error(e.message, e.stack)
 }
 
-function interopRequire (path) {
-  let o = require(path)
-  return o && o.__esModule && o.default ? o.default : o
+const load = async (context, atPath, internal) => {
+  let pkg
+  try {
+    pkg = require(resolve(atPath, 'package.json'))
+  } catch (e) {
+    log.error(e.message)
+  }
+
+  if (!validate(pkg, atPath, internal)) return
+
+  const { files } = pkg[pluginPackageKey]
+
+  if (files.language) {
+    try {
+      loadFile(atPath, files.language, it(context))
+    } catch (e) {
+      loadError(e, atPath, 'language')
+    }
+  }
+
+  if (files.component) {
+    try {
+      loadFile(atPath, files.component, registerHooks(context, _))
+    } catch (e) {
+      loadError(e, atPath, 'component')
+    }
+  }
+
+  if (files.module) {
+    try {
+      loadFile(atPath, files.module, it.setup(context))
+    } catch (e) {
+      loadError(e, atPath, 'module')
+    }
+  }
+
+  log.debug(`plugin loaded: '${pkg.name} (v${pkg.version})'`)
+}
+
+export const loadPlugins = async context => {
+  log.trace('loading plugins...')
+
+  await FP.all(loadInternalPlugins(context))
+  await install(context)
+
+  const [plugins, locals] = await FP.all([
+    getPlugins(),
+    getLocalPlugins()
+  ])
+
+  const all = [...plugins, ...locals]
+  const paths = all.map(getPackageProps(_).name |> resolvePluginPath)
+  await FP.all(paths.map(load(context, _)))
 }

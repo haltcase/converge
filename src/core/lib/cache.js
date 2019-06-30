@@ -1,64 +1,66 @@
-'use strict'
+import S from 'stunsail'
+import callsites from 'callsites'
+import { basename, dirname } from 'path'
 
-const _ = require('lodash')
-const callsites = require('callsites')
-const { basename, dirname } = require('path')
+const getCaller = callsite => {
+  const caller = callsite[1].getFileName()
+  const parent = caller |> dirname |> basename
+  return `${parent}/${basename(caller)}`
+}
 
-module.exports = context => {
-  let cache = {
+export default context => {
+  const cache = {
     storage: {},
 
     get (key, defaultValue) {
-      let space = getCaller(callsites())
+      const space = getCaller(callsites())
       return this.getSpace(space, key, defaultValue)
     },
 
     set (key, value) {
-      let space = getCaller(callsites())
+      const space = getCaller(callsites())
       return this.setSpace(space, key, value)
     },
 
     push (target, value) {
-      let space = getCaller(callsites())
+      const space = getCaller(callsites())
       return this.pushSpace(space, target, value)
     },
 
     has (key) {
-      let space = getCaller(callsites())
+      const space = getCaller(callsites())
       return this.hasSpace(space, key)
     },
 
     getSpace (space, key, defaultValue) {
-      let path = _.toPath(key)
-      let value = _.get(this.storage, [space, ...path])
-      return _.isNil(value) ? defaultValue : value
+      const links = S.pathLinks(key)
+      const path = S.pathDots([space, ...links])
+      const value = S.get(this.storage, path)
+      return S.isNil(value) ? defaultValue : value
     },
 
     setSpace (space, key, value) {
-      let path = _.toPath(key)
-      _.set(this.storage, [space, ...path], value)
-      return _.get(this.storage, [space, ...path])
+      const links = S.pathLinks(key)
+      const path = S.pathDots([space, ...links])
+      S.set(this.storage, path, value)
+      return S.get(this.storage, path)
     },
 
     pushSpace (space, target, value) {
-      let path = _.toPath(target)
-      let arr = _.get(this.storage, [space, ...path], [])
+      const links = S.pathLinks(target)
+      const path = S.pathDots([space, ...links])
+      const arr = S.getOr(this.storage, path, [])
       arr.push(value)
-      _.set(this.storage, [space, ...path], arr)
-      return _.get(this.storage, [space, ...path])
+      S.set(this.storage, path, arr)
+      return S.get(this.storage, path)
     },
 
     hasSpace (space, key) {
-      let path = _.toPath(key)
-      return _.has(this.storage, [space, ...path])
+      const links = S.pathLinks(key)
+      const path = S.pathDots([space, ...links])
+      return S.has(this.storage, path)
     }
   }
 
   context.extend({ cache })
-}
-
-function getCaller (callsite) {
-  let caller = callsite[1].getFileName()
-  let parent = basename(dirname(caller))
-  return `${parent}/${basename(caller)}`
 }

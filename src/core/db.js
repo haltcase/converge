@@ -1,13 +1,27 @@
-'use strict'
+import FP from 'functional-promises'
 
-const Promise = require('bluebird')
+import log from '../logger'
 
-const log = require('../logger')
-
-module.exports = (context, db) => {
+export default async (context, db) => {
   log.trace('preparing database')
 
-  let data = db
+  const data = db
+
+  data.addTable = (name, keyed = false) => {
+    const keyType = keyed
+      ? { type: 'increments' }
+      : { type: String, primary: true }
+
+    return db.model(name, {
+      key: keyType,
+      value: String,
+      info: String
+    })
+  }
+
+  data.addTableCustom = (name, schema) => {
+    return db.model(name, schema)
+  }
 
   data.getConfig = (key, defaultValue) => {
     return db.get('settings.value', { key }, defaultValue)
@@ -21,25 +35,35 @@ module.exports = (context, db) => {
     return db.findOrCreate('settings', { key }, { value })
   }
 
-  data.getExtConfig = (ext, defaultValue) => {
-    let [plugin, key] = ext.split('.', 2)
+  data.getExtConfig = async (ext, defaultValue) => {
+    const [plugin, key] = ext.split('.', 2)
     if (!plugin || !key) {
-      return Promise.reject(new Error('invalid database identifier'))
+      throw new Error('invalid database identifier')
     }
+
     return db.get('plugin_settings.value', { key, plugin }, defaultValue)
   }
 
-  data.setExtConfig = (ext, value) => {
-    let [plugin, key] = ext.split('.', 2)
+  data.setExtConfig = async (ext, value) => {
+    const [plugin, key] = ext.split('.', 2)
     if (!plugin || !key || typeof value === 'undefined') {
-      return Promise.reject(new Error('invalid database identifier'))
+      throw new Error('invalid database identifier')
     }
+
     return db.updateOrCreate('plugin_settings', { key, plugin }, { value })
+  }
+
+  data.getRandomRow = (table, where = {}) => {
+    return db.findOne(table, where, { random: true })
+  }
+
+  data.exists = (...args) => {
+    return db.findOne(...args).then(Boolean)
   }
 
   context.extend({ db: data })
 
-  return Promise.all([
+  await FP.all([
     db.model('settings', {
       key: { type: String, primary: true },
       value: String,
@@ -65,5 +89,10 @@ module.exports = (context, db) => {
     }, {
       primary: ['plugin', 'key']
     })
-  ]).then(() => data)
+  ]).catch(e => {
+    log.error(e)
+    context.shutdown()
+  })
+
+  return data
 }

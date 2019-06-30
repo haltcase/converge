@@ -1,12 +1,11 @@
 {
-  "name": "@converge/plugin-time",
+  "name": "@converge/plugin-ranks",
   "version": "1.0.0",
   "author": "Bo Lingen <lingenbw@gmail.com>",
   "homepage": "https://github.com/citycide/converge",
   "keywords": [
     "converge-plugin",
-    "tracking",
-    "time"
+    "ranks"
   ],
   "engines": {
     "converge": ">=1.0.0-alpha.1"

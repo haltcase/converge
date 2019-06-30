@@ -1,15 +1,17 @@
 {
-  "name": "singularity-plugin-points",
+  "name": "@converge/plugin-points",
   "version": "1.0.0",
-  "author": "citycide <thecitycide@gmail.com>",
-  "homepage": "github.com/citycide/singularity",
+  "author": "Bo Lingen <lingenbw@gmail.com>",
+  "homepage": "https://github.com/citycide/converge",
   "keywords": [
-    "singularity-plugin",
+    "converge-plugin",
     "currency",
     "points"
   ],
-  "singularity": {
-    "engine": ">=1.0.0-alpha.1",
+  "engines": {
+    "converge": ">=1.0.0-alpha.1"
+  },
+  "converge": {
     "files": {
       "module": "./module.js",
       "component": "./component.js",

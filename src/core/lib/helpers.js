@@ -1,15 +1,21 @@
-'use strict'
+import { _ } from 'param.macro'
 
-const stunsail = require('stunsail')
-const { camelCase } = require('lodash')
+import stunsail from 'stunsail'
 
-module.exports = context => {
-  let is = stunsail.isEqual
-  let to = {}
+const isToMethod = stunsail.includes([
+  'clamp',
+  'range',
+  'random',
+  'defaults'
+], _)
 
-  stunsail.each(key => {
-    let prefix = key.slice(0, 2)
-    let token = camelCase(key.slice(2))
+export default context => {
+  const is = stunsail.isEqual
+  const to = {}
+
+  stunsail.each(Object.keys(stunsail), key => {
+    const prefix = key.slice(0, 2)
+    const token = key.slice(2) |> stunsail.camelCase
 
     if (prefix === 'is') {
       is[token] = stunsail[key]
@@ -21,17 +27,10 @@ module.exports = context => {
       return
     }
 
-    let isToMethod = stunsail.isOneOf([
-      'clamp',
-      'range',
-      'random',
-      'defaults'
-    ])
-
     if (isToMethod(key)) {
       to[key] = stunsail[key]
     }
-  }, Object.keys(stunsail))
+  })
 
   context.extend({
     is,

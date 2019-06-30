@@ -1,145 +1,154 @@
-'use strict'
+import { _, it } from 'param.macro'
 
-const axios = require('axios')
-const Promise = require('bluebird')
-const { resolve } = require('path')
-const { install, prune } = require('pnpm')
-const getPackageProps = require('npm-package-arg')
+import { join, resolve } from 'path'
+import { extract, manifest } from 'pacote'
+import getPackageProps from 'npm-package-arg'
+import { satisfies } from 'semver'
 
-const {
-  existsAsync,
-  fileAsync,
+import {
+  exists,
   readAsync,
+  removeAsync,
   writeAsync
-} = require('fs-jetpack')
+} from 'fs-jetpack'
 
-const log = require('../../logger')
-const { paths } = require('../../constants')
-const { name, version } = require('../../../package.json')
+import log from '../../logger'
+import { paths, pluginPackageKey } from '../../constants'
+import { name as appName, version as appVersion } from '../../../package.json'
 
-const directory = exports.directory = resolve(paths.data, 'plugins')
-const packagePath = resolve(directory, 'package.json')
+export const directory = resolve(paths.data, 'plugins')
+const modulesPath = resolve(directory, 'node_modules')
 const manifestPath = resolve(directory, 'manifest.json')
 
-let updating = false
+const defaultManifest = Object.freeze({
+  plugins: [],
+  localPlugins: []
+})
 
-exports.getPlugins = () => {
-  return readManifest().then(({ plugins }) => plugins)
-}
+const manifestParseError =
+  `Failed to parse plugin manifest file as JSON, ${_.message}`
 
-exports.getLocalPlugins = () => {
-  return readManifest().then(({ localPlugins }) => localPlugins)
-}
+const localPluginNotFoundError =
+  `Local plugin '${_}' is specified but wasn't found`
 
-exports.update = context => {
-  if (updating) {
-    log.trace('plugin update already in progress')
-    return Promise.resolve()
+const pluginNotFoundError =
+  `Could not fetch '${_.pkgid}' from npm, does the package exist?`
+
+const readManifest = () =>
+  readAsync(manifestPath, 'json')
+    .then(it || { ...defaultManifest })
+    .catch(e => log.error(manifestParseError(e)), { ...defaultManifest })
+
+export const getPlugins = () =>
+  readManifest().then(it.plugins)
+
+export const getLocalPlugins = () =>
+  readManifest().then(it.localPlugins)
+
+const toPackageName = getPackageProps(_).name
+
+export const install = async context => {
+  context.emit('plugins:install:start')
+
+  const manifest = await readManifest()
+
+  for (const plugin of manifest.plugins) {
+    await installPlugin(context, plugin)
   }
 
-  updating = true
-  context.emit('plugins:update:start')
+  for (const plugin of manifest.localPlugins) {
+    if (!(plugin |> toPackageName |> join(modulesPath, _) |> exists)) {
+      plugin |> localPluginNotFoundError |> log.warn
+    } else {
+      await installPlugin(context, plugin, { isLocal: true })
+    }
+  }
 
-  return makePackage()
-    .then(() => prune({ cwd: directory }))
-    .then(() => install({ cwd: directory }))
-    .then(() => {
-      updating = false
-      context.emit('plugins:update:done')
-    })
-    .catch(e => {
-      updating = false
-      // if (e.code === 'ENOENT') return null
-      log.error(e)
-    })
+  context.emit('plugins:install:done')
 }
 
-exports.addPlugin = (context, title) => {
-  let { name, version } = getPackageProps(title)
+const handlePluginFetchError = error => {
+  if (error.code === 'E404') {
+    error |> pluginNotFoundError |> log.error
+  } else if (error.code === 'ETARGET') {
+    error.message.split('\n')[0] |> log.error
+  }
 
-  return Promise.all([isPackage(name), exports.getPlugins()])
-    .then((exists, current) => {
-      if (!exists) return false
-      return !current.includes(name)
-    })
-    .then(shouldAdd => {
-      if (!shouldAdd) return
-      return readAsync(manifestPath, 'json')
-    })
-    .then(manifest => {
-      manifest = Object.assign({ plugins: [] }, manifest)
+  return {}
+}
 
-      let i = manifest.plugins.findIndex(v => {
-        return v.split('@', 1)[0] === name
-      })
+const getDependencies =
+  _ |> toPackageName |> join(modulesPath, _, 'package.json') |>
+    readAsync(_, 'json').then(it.dependencies || {})
+
+const isCompatible = range =>
+  satisfies(appVersion, range, { includePrerelease: true })
+
+export const installPlugin = async (context, spec, {
+  isTransitive = false,
+  installPath = modulesPath,
+  isLocal = false
+} = {}) => {
+  const {
+    name,
+    dependencies,
+    _resolved,
+    engines
+  } = isLocal
+    ? { name: toPackageName(spec), dependencies: await getDependencies(spec) }
+    : await manifest(spec).catch(handlePluginFetchError)
+
+  const pkgRoot = join(installPath, name)
+
+  if (!isLocal && !exists(pkgRoot)) {
+    ;(isTransitive ? 'dependency' : 'plugin') |>
+      log.trace(`installing ${_} ${name} from npm`)
+
+    if (!_resolved) return false
+
+    if (!isTransitive) {
+      if (!isCompatible(engines?.[pluginPackageKey])) {
+        log.error(`'${name}' does not support ${appName} v${appVersion}`)
+        return
+      }
+
+      const manifestFile = await readManifest()
+      const i = manifestFile.plugins.findIndex(toPackageName(_) === name)
+      const { version } = getPackageProps(spec)
+      const versionRange = version ? '@' + version : ''
 
       if (i >= 0) {
-        manifest.plugins[i] = `${name}@${version}`
+        manifestFile.plugins[i] = name + versionRange
       } else {
-        manifest.plugins.push(`${name}@${version}`)
+        manifestFile.plugins.push(name + versionRange)
       }
 
-      return writeAsync(manifestPath, manifest)
-    })
-    .then(() => exports.update(context))
-}
-
-function makePackage () {
-  return exports.getPlugins()
-    .then(plugins => {
-      return {
-        name,
-        version,
-        description: 'Automatically generated by singularity-bot',
-        private: true,
-        license: 'MIT',
-        repository: 'citycide/singularity',
-        homepage: 'https://github.com/citycide/singularity',
-        dependencies: makeDependencies(plugins)
-      }
-    })
-    .then(pkg => writeAsync(packagePath, pkg))
-}
-
-function readManifest () {
-  return existsAsync(manifestPath)
-    .then(exists => {
-      if (!exists) {
-        return fileAsync(
-          manifestPath,
-          { content: { plugins: [], localPlugins: [] } }
-        )
-      }
-    })
-    .then(() => readAsync(manifestPath, 'json'))
-    .catch(e => {
-      log.error(e.message)
-      return { plugins: [], localPlugins: [] }
-    })
-}
-
-function makeDependencies (plugins) {
-  return plugins.reduce((acc, plugin) => {
-    try {
-      let { name, spec } = getPackageProps(plugin)
-      return Object.assign(acc, { [name]: spec })
-    } catch (e) {
-      log.error(`Invalid plugin ${plugin}`)
-      return acc
+      await writeAsync(manifestPath, manifestFile)
     }
-  }, {})
-}
 
-function isPackage (name) {
-  if (!name || typeof name !== 'string') {
-    return Promise.reject(new Error('invalid package name'))
+    await extract(_resolved, pkgRoot)
   }
 
-  let query = name.toLowerCase()
-  return axios.head(`https://registry.npmjs.org/${query}`)
-    .then(() => true)
-    .catch(e => {
-      if (e.response.status === 404) return false
-      throw e
+  // recursively install dependencies
+  for (const [name, version] of Object.entries(dependencies)) {
+    const pkgModules = join(pkgRoot, 'node_modules')
+    await installPlugin(context, name + '@' + version, {
+      isTransitive: true,
+      installPath: pkgModules
     })
+  }
+
+  return true
+}
+
+export const uninstallPlugin = async (context, name) => {
+  const manifest = await readManifest()
+  const i = manifest.plugins.findIndex(toPackageName(_) === name)
+
+  if (i >= 0) {
+    manifest.plugins.splice(i, 1)
+    await writeAsync(manifestPath, manifest)
+  }
+
+  await removeAsync(join(modulesPath, name))
 }

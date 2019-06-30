@@ -1,51 +1,55 @@
-# srtbt &middot; [![Version](https://img.shields.io/npm/v/twitch-bot.svg?style=flat-square&maxAge=3600)](https://www.npmjs.com/package/twitch-bot) [![License](https://img.shields.io/npm/l/twitch-bot.svg?style=flat-square&maxAge=3600)](https://www.npmjs.com/package/twitch-bot) [![JavaScript Standard Style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat-square&maxAge=3600)](https://standardjs.com)
+# converge
 
-> Experimental bot thing.
+> Extensible command-line Twitch bot.
 
-**NOTE**:This entire readme is a placeholder. None of this will make any sense or apply to what's actually here.
+**NOTE**: This project is in flux and is intermittently maintained
+at the time, so this readme will be minimal for the time being.
 
 ## features
 
-## installation
+* command-line interaction
+* plugins
 
-```console
-$ npm i twitch-bot
-```
+  Many features are implemented as built-in plugins:
+
+  * administration
+  * cooldowns
+  * groups
+  * notices
+  * points
+  * ranks
+  * time tracking
+
+  Plugins are just node modules, so they can have their own dependencies.
+  They are also hot-loaded so that changes can be made while the bot is
+  already running.
 
 ## usage
 
-```js
-const twitchBot = require('twitch-bot')
+To clone & use `converge` from source:
 
-twitchBot('universe')
-//=> 'hello universe'
-
-twitchBot('universe', { exclaim: true })
-//=> 'hello universe!'
+```sh
+git clone https://github.com/citycide/converge
+cd converge
+yarn && yarn dev
 ```
 
-## api
+On first startup you'll be prompted to provide the required configuration,
+like the owner & bot names, and OAuth tokens for each. This is then stored
+in the OS config directory and used on future runs, for example on Windows:
 
-### twitchBot(input, [options])
+`C:\Users\{user}\AppData\Local\converge\Config\config.json`
 
-> **Arguments**
+```json
+{
+  "ownerName": "...",
+  "ownerAuth": "oauth:...",
+  "botName": "...",
+  "botAuth": "oauth:..."
+}
+```
 
-- `{string} input`
-- `{Object} [options = {}]`
-
-| key       | type      | default | description                  |
-| :-------: | :-------: | :-----: | ---------------------------- |
-| `exclaim` | `boolean` | `false` | Add an exclamation point.    |
-
-> **Returns**
-
-`string`: some greeting thing
-
-
-
-## contributing
-
-PRs accepted. Check out the [issues](https://github.com/citycide/twitch-bot/issues)!
+You could also create this file manually.
 
 ## license
 

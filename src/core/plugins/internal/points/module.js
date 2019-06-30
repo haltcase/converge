@@ -1,6 +1,6 @@
-export async function points ($, e) {
-  let [action, target, amount] = e.args
-  let parsedAmount = $.to.number(amount, true)
+export const points = async ($, e) => {
+  const [action, target, amount] = e.args
+  const parsedAmount = $.to.number(amount, true)
 
   if (!action) {
     return e.respond($.weave(
@@ -8,7 +8,7 @@ export async function points ($, e) {
     ))
   }
 
-  if ($.is(e.subcommand, 'add')) {
+  if (e.subcommand === 'add') {
     if (e.args.length < 3 || !$.is.number(parsedAmount)) {
       return e.respond($.weave('add.usage'))
     }
@@ -19,7 +19,7 @@ export async function points ($, e) {
     ))
   }
 
-  if ($.is(e.subcommand, 'remove')) {
+  if (e.subcommand === 'remove') {
     if (e.args.length < 3 || !$.is.number(parsedAmount)) {
       return e.respond($.weave('remove.usage'))
     }
@@ -30,7 +30,7 @@ export async function points ($, e) {
     ))
   }
 
-  if ($.is(e.subcommand, 'gift')) {
+  if (e.subcommand === 'gift') {
     if (e.args.length < 3 || !$.is.number(parsedAmount)) {
       return e.respond($.weave('gift.usage'))
     }
@@ -44,7 +44,7 @@ export async function points ($, e) {
     await $.points.sub(e.sender, amount)
     await $.points.add(target, amount)
 
-    let str = $.points.str(amount)
+    const str = $.points.str(amount)
     if ($.db.getConfig('whisperMode', false)) {
       $.whisper(e.sender, $.weave(
         'gift.success.sender', str, target, await $.points.get(e.sender, true)
@@ -61,7 +61,7 @@ export async function points ($, e) {
     return
   }
 
-  let user = await $.db.findOne('points', { name: action })
+  const user = await $.db.findOne('points', { name: action })
   if (user) {
     return e.respond($.weave(
       'response.default', action, await $.points.str(user.value)
@@ -71,8 +71,9 @@ export async function points ($, e) {
   }
 }
 
-export function setup ($) {
+export const setup = $ => {
   $.addCommand('points')
   $.addSubcommand('add', 'points', { permission: 1 })
   $.addSubcommand('remove', 'points', { permission: 1 })
+  $.addSubcommand('gift', 'points')
 }

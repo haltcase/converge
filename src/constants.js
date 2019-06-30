@@ -1,13 +1,16 @@
-'use strict'
+import { resolve } from 'path'
 
-const getPaths = require('env-paths')
-const { resolve } = require('path')
+import getPaths from 'env-paths'
+import getPackageProps from 'npm-package-arg'
 
-const { name } = require('../package.json')
+import { name as pkgName } from '../package.json'
 
-let paths = getPaths(name, { suffix: '' })
+export const name = getPackageProps(pkgName).scope.substring(1)
+
+export const paths = getPaths(name, { suffix: '' })
 paths.app = resolve(paths.data, '..')
 paths.content = resolve(paths.data, 'content')
+paths.logs = resolve(paths.data, 'logs')
 
-exports.paths = paths
-exports.clientID = 'ejigh97i4w638sdoild5cvile1ajwim'
+export const pluginPackageKey = name
+export const clientID = 'ejigh97i4w638sdoild5cvile1ajwim'

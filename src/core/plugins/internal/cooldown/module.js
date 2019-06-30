@@ -1,4 +1,4 @@
-export async function cooldown ($, e) {
+export const cooldown = async ($, e) => {
   switch (e.subcommand) {
     case 'get': return get($, e)
     case 'set': return set($, e)
@@ -7,25 +7,25 @@ export async function cooldown ($, e) {
   }
 }
 
-async function get ($, e) {
-  let [cmd, sub] = e.subArgs
-  let subStr = sub ? ` ${sub}` : ''
+const get = async ($, e) => {
+  const [cmd, sub] = e.subArgs
+  const subStr = sub ? ` ${sub}` : ''
 
   if (!cmd) {
     return e.respond($.weave('get.usage'))
   }
 
-  let cool = await $.command.getCooldown(cmd, sub)
+  const cool = await $.command.getCooldown(cmd, sub)
 
   if (!$.is.number(cool)) {
-    return e.respond(`'!${cmd}${subStr}' has no cooldown.`)
+    return e.respond($.weave('get.no-cooldown', cmd, subStr))
   }
 
   return e.respond($.weave('get.response', cmd, sub, cool))
 }
 
-async function set ($, e) {
-  let [cmd, sub, val] = e.subArgs
+const set = async ($, e) => {
+  const [cmd, sub, val] = e.subArgs
 
   if (!cmd) {
     return e.respond($.weave('set.usage'))
@@ -34,7 +34,7 @@ async function set ($, e) {
   switch (e.subArgs.length) {
     case 2:
       // provided a command and cooldown value only
-      let num = parseInt(sub)
+      const num = parseInt(sub)
 
       if ($.is.number(num)) {
         return e.respond($.weave('set.usage'))
@@ -48,7 +48,7 @@ async function set ($, e) {
       return e.respond($.weave('set.success', cmd, num))
     case 3:
       // provided a command, subcommand, and cooldown value
-      let subNum = parseInt(val)
+      const subNum = parseInt(val)
 
       if (!$.is.number(subNum)) {
         return e.respond($.weave('set.usage'))
@@ -65,19 +65,19 @@ async function set ($, e) {
   }
 }
 
-async function admin ($, e) {
-  let [status] = e.subArgs
+const admin = async ($, e) => {
+  const [status] = e.subArgs
 
   if (!$.is.oneOf(['enabled', 'disabled'], status)) {
     return e.respond($.weave('admin.usage'))
   }
 
-  let bool = $.is(status, 'enabled')
+  const bool = $.is(status, 'enabled')
   await $.db.setExtConfig('cooldown.includeAdmins', bool)
   e.respond($.weave('admin.response', bool ? 'enabled' : 'disabled'))
 }
 
-export function setup ($) {
+export const setup = $ => {
   $.addCommand('cooldown', { permission: 1 })
   $.addSubcommand('get', 'cooldown')
   $.addSubcommand('set', 'cooldown')

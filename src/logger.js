@@ -1,17 +1,15 @@
-'use strict'
+import { join } from 'path'
+import loggerNeue from 'logger-neue'
 
-const { join } = require('path')
-const { create } = require('logger-neue')
+import { paths } from './constants'
 
-const { paths } = require('./constants')
-
-module.exports = create({
+export default loggerNeue({
   file: {
     path: join(paths.log, 'app.log'),
     level: 'error'
   },
   console: {
-    level: 'error',
+    level: 'info',
     fullColor: true
   },
   levels: {

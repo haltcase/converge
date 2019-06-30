@@ -1,35 +1,55 @@
-const axios = require('axios')
-const get = require('stunsail/get')
-const once = require('stunsail/once')
+import { _ } from 'param.macro'
 
-const log = require('../logger')
-const { clientID } = require('../constants')
+import axios from 'axios'
+import {
+  any,
+  isInRange,
+  isOneOf,
+  once
+} from 'stunsail'
 
-module.exports = once(token => {
+import log from '../logger'
+import { clientID } from '../constants'
+
+export default once(token => {
   token = token.startsWith('oauth:') ? token.slice(6) : token
 
-  let instance = axios.create({
+  const instance = axios.create({
     baseURL: 'https://api.twitch.tv/kraken/',
     headers: {
       'Accept': 'application/vnd.twitchtv.v5+json',
       // 'Authorization': `OAuth ${token}`,
       'Client-ID': clientID
     },
-    validateStatus (status) {
-      // 404 can be assumed to mean not a follower, user doesn't exist, etc.
-      // 503s are fairly common with Twitch and it's probably safe to drop it
-      if (status === 404 || status === 503) return true
-      return status >= 200 && status < 300
-    }
+    // 404 can be assumed to mean not a follower, user doesn't exist, etc.
+    // 503s are fairly common with Twitch and it's probably safe to drop it
+    validateStatus: status => any([
+      isOneOf(status, [404, 503]),
+      isInRange(status, 200, 299)
+    ])
   })
 
-  return function api (endpoint, opts) {
-    return instance(Object.assign({ url: endpoint }, opts))
-      .then(get('data'))
-      .catch(e => {
-        let msg = get('response.data.message', e)
-        log.error(`twitch-api  ${msg || 'Unknown error'}`)
-        throw e
-      })
+  return async (endpoint, opts, defaultValue) => {
+    let data
+    try {
+      ;({ data } = await instance(Object.assign({ url: endpoint }, opts)))
+    } catch (e) {
+      if (e.code === 'ENOTFOUND') {
+        log.trace(`twitch-api: ignoring generic error (${e.message})`)
+        return defaultValue
+      }
+
+      if (e.code === 'ETIMEDOUT') {
+        log.trace(`twitch-api: connection timed out`)
+        return defaultValue
+      }
+
+      e.response?.data?.message || 'Unknown Error' |>
+        log.error(`twitch-api :: ${_}`)
+
+      throw e
+    }
+
+    return data ?? defaultValue
   }
 })

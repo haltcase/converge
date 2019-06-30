@@ -1,12 +1,12 @@
-const strat = require('strat')
-const filter = require('stunsail/filter')
+import strat from 'strat'
+import { filter } from 'stunsail'
 
 const second = 1000
 const minute = second * 60
 const hour = minute * 60
 const day = hour * 24
 
-let parse = ms => {
+const parse = ms => {
   ms = Math.abs(ms) | 0
 
   return {
@@ -18,14 +18,14 @@ let parse = ms => {
   }
 }
 
-let defaultTemplate = [
+const defaultTemplate = [
   '{days}{daysLabel}',
   '{hours}{hoursLabel}',
   '{minutes}{minutesLabel}',
   '{seconds}{secondsLabel}'
 ].join(' ')
 
-let defaultLabels = {
+const defaultLabels = {
   days: 'd',
   hours: 'h',
   minutes: 'm',
@@ -33,7 +33,7 @@ let defaultLabels = {
   milliseconds: 'ms'
 }
 
-let verboseLabels = {
+const verboseLabels = {
   days: 'days',
   hours: 'hours',
   minutes: 'minutes',
@@ -41,7 +41,7 @@ let verboseLabels = {
   milliseconds: 'milliseconds'
 }
 
-let defaultOptions = {
+const defaultOptions = {
   labels: defaultLabels,
   includeMilliseconds: false,
   removeZeroes: true,
@@ -49,7 +49,7 @@ let defaultOptions = {
   minimal: false
 }
 
-let duration = (duration, options) => {
+const duration = (duration, options) => {
   options = Object.assign(defaultOptions, options)
 
   let parsed = parse(duration)
@@ -64,13 +64,13 @@ let duration = (duration, options) => {
   }
 
   if (options.removeZeroes) {
-    parsed = filter((val, unit) => {
-      let shouldKeep = val > 0
+    parsed = filter(parsed, (val, unit) => {
+      const shouldKeep = val > 0
       if (!shouldKeep) {
         options.labels[unit] = ''
       }
       return shouldKeep
-    }, parsed)
+    })
   }
 
   return strat(template, Object.assign(parsed, {
@@ -90,4 +90,4 @@ Object.assign(duration, {
   second
 })
 
-module.exports = duration
+export default duration

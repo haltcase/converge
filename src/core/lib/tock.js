@@ -1,16 +1,19 @@
-const ms = require('ms')
-const apply = require('stunsail/apply')
-const toArray = require('stunsail/to-array')
+import ms from 'ms'
 
-class Tock {
+const normalizeTime = time =>
+  typeof time === 'string'
+    ? ms(time)
+    : parseInt(time)
+
+export class Tock {
   constructor () {
     this.timers = new Map()
     this.intervals = new Map()
     this.ms = ms
   }
 
-  setTimeout (name, fn, time) {
-    if (arguments.length < 3) {
+  setTimeout (name, fn, time, ...args) {
+    if (!name && !fn && time == null) {
       throw new Error('invalid arguments')
     }
 
@@ -22,20 +25,17 @@ class Tock {
       time = normalizeTime(time)
     }
 
-    let kind = typeof fn
+    const kind = typeof fn
     if (kind !== 'function') {
       throw new TypeError(`Expected function, got ${kind}`)
     }
 
-    let args = toArray(arguments, 3)
-
     if (!name) {
-      return apply(setTimeout, [fn, time].concat(args))
+      return setTimeout(fn, time, ...args)
     } else {
       this.clearTimeout(name)
-
-      let id = apply(setTimeout,
-        [this._wrapper.bind(this), time, fn, name].concat(args)
+      const id = setTimeout(
+        this._wrapper.bind(this), time, fn, name, ...args
       )
       this.timers.set(name, id)
       return this.timers.get(name)
@@ -49,8 +49,8 @@ class Tock {
     this.timers.delete(name)
   }
 
-  setInterval (name, fn, interval) {
-    if (arguments.length < 2) {
+  setInterval (name, fn, interval, ...args) {
+    if (!name && !fn) {
       throw new Error('invalid arguments')
     }
 
@@ -62,20 +62,17 @@ class Tock {
       interval = normalizeTime(interval) || 1000
     }
 
-    let kind = typeof fn
+    const kind = typeof fn
     if (kind !== 'function') {
       throw new TypeError(`Expected function, got ${kind}`)
     }
 
-    let args = toArray(arguments, 3)
-
     if (!name) {
-      return apply(setInterval, [fn, interval].concat(args))
+      return setInterval(fn, interval, ...args)
     } else {
       this.clearInterval(name)
 
-
-      let id = apply(setInterval, [fn, interval].concat(args))
+      const id = setInterval(fn, interval, ...args)
       this.intervals.set(name, id)
       return this.intervals.get(name)
     }
@@ -88,19 +85,12 @@ class Tock {
     this.intervals.delete(name)
   }
 
-  _wrapper (fn, name) {
-    apply(fn, toArray(arguments, 2))
+  _wrapper (fn, name, ...args) {
+    fn(...args.slice(2))
     this.timers.delete(name)
   }
 }
 
-function normalizeTime (time) {
-  return typeof time === 'string'
-    ? ms(time) : parseInt(time)
-}
-
-module.exports = context => {
+export default context => {
   context.extend({ tick: new Tock() })
 }
-
-module.exports.Tock = Tock

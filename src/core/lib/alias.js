@@ -1,32 +1,28 @@
-'use strict'
+import { it } from 'param.macro'
 
-module.exports = context => {
-  return context.db.model('alias', { name: String, original: String })
-    .then(() => {
-      function addAlias (name, original) {
-        let command = String(original).split(' ', 1)[0]
-        if (context.command.exists(name)) return false
-        if (!context.command.exists(command)) return false
+export default async context => {
+  await context.db.model('alias', { name: String, original: String })
 
-        return context.db.create('alias', { name, original })
-          .then(count => count === 1)
-      }
+  const addAlias = (name, original) => {
+    const command = String(original).split(' ', 1)[0]
+    if (context.command.exists(name)) return false
+    if (!context.command.exists(command)) return false
 
-      function removeAlias (name) {
-        return context.db.remove('alias', { name })
-          .then(count => count === 1)
-      }
+    return context.db.create('alias', { name, original })
+      .then(Boolean)
+  }
 
-      function getAlias (name) {
-        return context.db.findOne('alias.original', { name })
-      }
+  const removeAlias = name =>
+    context.db.remove('alias', { name }).then(it === 1)
 
-      context.extend({
-        command: {
-          addAlias,
-          removeAlias,
-          getAlias
-        }
-      })
-    })
+  const getAlias = name =>
+    context.db.findOne('alias.original', { name })
+
+  context.extend({
+    command: {
+      addAlias,
+      removeAlias,
+      getAlias
+    }
+  })
 }
