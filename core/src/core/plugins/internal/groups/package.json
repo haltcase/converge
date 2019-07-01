@@ -1,0 +1,20 @@
+{
+  "name": "@converge/plugin-groups",
+  "version": "1.0.0",
+  "author": "Bo Lingen <lingenbw@gmail.com>",
+  "homepage": "https://github.com/citycide/converge",
+  "keywords": [
+    "converge-plugin",
+    "groups"
+  ],
+  "engines": {
+    "converge": ">=1.0.0-alpha.1"
+  },
+  "converge": {
+    "files": {
+      "module": "",
+      "component": "./component.js",
+      "language": ""
+    }
+  }
+}

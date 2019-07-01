@@ -1,0 +1,21 @@
+{
+  "name": "@converge/plugin-points",
+  "version": "1.0.0",
+  "author": "Bo Lingen <lingenbw@gmail.com>",
+  "homepage": "https://github.com/citycide/converge",
+  "keywords": [
+    "converge-plugin",
+    "currency",
+    "points"
+  ],
+  "engines": {
+    "converge": ">=1.0.0-alpha.1"
+  },
+  "converge": {
+    "files": {
+      "module": "./module.js",
+      "component": "./component.js",
+      "language": "./lang.js"
+    }
+  }
+}

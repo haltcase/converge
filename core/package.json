@@ -1,0 +1,85 @@
+{
+  "name": "@converge/core",
+  "version": "1.0.0-alpha.1",
+  "description": "Extensible command-line Twitch bot.",
+  "author": "Bo Lingen <lingenbw@gmail.com> (https://github.com/citycide)",
+  "license": "MIT",
+  "repository": "https://github.com/citycide/converge",
+  "main": "./dist/entry.js",
+  "bin": {
+    "converge": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "babel src -d dist -D",
+    "start": "node -r esm ./dist/cli.js -l absurd",
+    "dev": "yarn build && yarn start",
+    "lint": "eslint src/**/*.js"
+  },
+  "keywords": [
+    "cli",
+    "cli-app",
+    "twitch",
+    "bot"
+  ],
+  "files": [
+    "src"
+  ],
+  "engines": {
+    "node": ">=12"
+  },
+  "dependencies": {
+    "@babel/core": "^7.4.5",
+    "@babel/plugin-proposal-do-expressions": "^7.2.0",
+    "@babel/plugin-proposal-function-bind": "^7.2.0",
+    "@babel/plugin-proposal-nullish-coalescing-operator": "^7.4.4",
+    "@babel/plugin-proposal-numeric-separator": "^7.2.0",
+    "@babel/plugin-proposal-optional-chaining": "^7.2.0",
+    "@babel/plugin-proposal-pipeline-operator": "^7.3.2",
+    "@babel/plugin-proposal-throw-expressions": "^7.2.0",
+    "@babel/preset-env": "^7.4.5",
+    "@babel/register": "^7.4.4",
+    "@iarna/toml": "^2.2.3",
+    "args": "^5.0.1",
+    "async-exit-hook": "^2.0.1",
+    "axios": "^0.19.0",
+    "callsites": "^3.1.0",
+    "date-fns": "^1.30.1",
+    "env-paths": "^2.2.0",
+    "esm": "3.2.14",
+    "eventemitter2": "^5.0.1",
+    "find-up": "^4.1.0",
+    "fs-jetpack": "^2.2.2",
+    "functional-promises": "^1.7.94",
+    "inquirer": "^6.4.1",
+    "is-valid-path": "^0.1.1",
+    "lodash.escaperegexp": "^4.1.2",
+    "logger-neue": "^3.0.0",
+    "ms": "^2.1.2",
+    "npm-package-arg": "^6.1.0",
+    "open": "^6.3.0",
+    "os-locale": "^4.0.0",
+    "p-throttle": "^3.1.0",
+    "pacote": "^9.5.1",
+    "semver": "^6.1.2",
+    "sqlite3": "^4.0.9",
+    "strat": "^1.2.0",
+    "stunsail": "^1.0.0-rc.2",
+    "trilogy": "^2.0.2",
+    "twitch-js": "^1.2.17"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.4.4",
+    "babel-eslint": "^10.0.2",
+    "babel-plugin-dynamic-import-node": "^2.3.0",
+    "babel-plugin-macros": "^2.6.1",
+    "codegen.macro": "^3.0.0",
+    "eslint": "^6.0.1",
+    "eslint-config-standard": "^12.0.0",
+    "eslint-plugin-import": "^2.18.0",
+    "eslint-plugin-node": "^9.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-standard": "^4.0.0",
+    "import-all.macro": "^2.0.3",
+    "param.macro": "^3.2.0"
+  }
+}
