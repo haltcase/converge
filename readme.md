@@ -40,13 +40,11 @@ in the OS config directory and used on future runs, for example on Windows:
 
 `C:\Users\{user}\AppData\Roaming\converge\Config\config.toml`
 
-```json
-{
-  "ownerName": "...",
-  "ownerAuth": "oauth:...",
-  "botName": "...",
-  "botAuth": "oauth:..."
-}
+```toml
+ownerName = '...',
+ownerAuth = 'oauth:...',
+botName = '...',
+botAuth = 'oauth:...'
 ```
 
 You could also create this file manually.
