@@ -6,5 +6,9 @@
   "workspaces": [
     "core",
     "plugins/*"
-  ]
+  ],
+  "scripts": {
+    "dev": "cd core && yarn dev",
+    "start": "cd core && yarn start"
+  }
 }
