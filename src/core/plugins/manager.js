@@ -4,6 +4,7 @@ import { join, resolve } from 'path'
 import { extract, manifest } from 'pacote'
 import getPackageProps from 'npm-package-arg'
 import { satisfies } from 'semver'
+import TOML from '@iarna/toml'
 
 import {
   exists,
@@ -18,7 +19,7 @@ import { name as appName, version as appVersion } from '../../../package.json'
 
 export const directory = resolve(paths.data, 'plugins')
 const modulesPath = resolve(directory, 'node_modules')
-const manifestPath = resolve(directory, 'manifest.json')
+const manifestPath = resolve(directory, 'manifest.toml')
 
 const defaultManifest = Object.freeze({
   plugins: [],
@@ -35,7 +36,8 @@ const pluginNotFoundError =
   `Could not fetch '${_.pkgid}' from npm, does the package exist?`
 
 const readManifest = () =>
-  readAsync(manifestPath, 'json')
+  readAsync(manifestPath)
+    .then(TOML.parse(_))
     .then(it || { ...defaultManifest })
     .catch(e => log.error(manifestParseError(e)), { ...defaultManifest })
 
@@ -123,7 +125,7 @@ export const installPlugin = async (context, spec, {
         manifestFile.plugins.push(name + versionRange)
       }
 
-      await writeAsync(manifestPath, manifestFile)
+      await writeAsync(manifestPath, TOML.stringify(manifestFile))
     }
 
     await extract(_resolved, pkgRoot)
@@ -147,7 +149,7 @@ export const uninstallPlugin = async (context, name) => {
 
   if (i >= 0) {
     manifest.plugins.splice(i, 1)
-    await writeAsync(manifestPath, manifest)
+    await writeAsync(manifestPath, TOML.stringify(manifest))
   }
 
   await removeAsync(join(modulesPath, name))

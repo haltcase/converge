@@ -4,6 +4,7 @@ import isValidPath from 'is-valid-path'
 import { isOneOf, textCase } from 'stunsail'
 import { read, writeAsync } from 'fs-jetpack'
 import { resolve } from 'path'
+import TOML from '@iarna/toml'
 
 import log from './logger'
 import startup from './startup'
@@ -60,7 +61,7 @@ const promptOrStart = async (questions, currentConfig, options) => {
   const inquirer = require('inquirer')
   const answers = await inquirer.prompt(questions, currentConfig, options)
   const newConfig = Object.assign({}, currentConfig, answers)
-  await writeAsync(options.configPath, newConfig)
+  await writeAsync(options.configPath, TOML.stringify(newConfig))
   return startup(options)
 }
 
@@ -82,12 +83,12 @@ export default options => {
     'botAuth'
   ]
 
-  const defaultPath = resolve(paths.config, 'config.json')
+  const defaultPath = resolve(paths.config, 'config.toml')
   if (!isValidPath(options.configPath)) {
     options.configPath = defaultPath
   }
 
-  const currentConfig = Object.assign({}, read(options.configPath, 'json'))
+  const currentConfig = Object.assign({}, read(options.configPath) |> TOML.parse)
 
   if (options.skipPrompt) {
     return promptOrStart([], currentConfig, options)
