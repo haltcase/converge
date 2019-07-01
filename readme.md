@@ -38,7 +38,7 @@ On first startup you'll be prompted to provide the required configuration,
 like the owner & bot names, and OAuth tokens for each. This is then stored
 in the OS config directory and used on future runs, for example on Windows:
 
-`C:\Users\{user}\AppData\Local\converge\Config\config.json`
+`C:\Users\{user}\AppData\Roaming\converge\Config\config.toml`
 
 ```json
 {

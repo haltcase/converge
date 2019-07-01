@@ -9,7 +9,7 @@ package-lock.json
 yarn.lock
 
 # built files
-/build
-/dist
+build/
+dist/
 
-node_modules
+node_modules/
