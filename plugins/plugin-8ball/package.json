@@ -1,0 +1,23 @@
+{
+  "name": "@converge/plugin-8ball",
+  "version": "1.0.0",
+  "description": "Snarky 8ball plugin for the converge Twitch bot.",
+  "author": "Bo Lingen <lingenbw@gmail.com> (https://github.com/citycide)",
+  "license": "MIT",
+  "repository": "https://github.com/citycide/converge",
+  "homepage": "https://github.com/citycide/converge/tree/master/plugins/plugin-8ball",
+  "keywords": [
+    "converge-plugin",
+    "8ball"
+  ],
+  "engines": {
+    "converge": ">=1.0.0-alpha.1"
+  },
+  "converge": {
+    "files": {
+      "module": "./module.js",
+      "component": "",
+      "language": "./lang.js"
+    }
+  }
+}

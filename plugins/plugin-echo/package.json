@@ -1,0 +1,23 @@
+{
+  "name": "@converge/plugin-echo",
+  "version": "1.0.0",
+  "description": "Simple example plugin for the converge Twitch bot.",
+  "author": "Bo Lingen <lingenbw@gmail.com> (https://github.com/citycide)",
+  "license": "MIT",
+  "repository": "https://github.com/citycide/converge",
+  "homepage": "https://github.com/citycide/converge/tree/master/plugins/plugin-echo",
+  "keywords": [
+    "converge-plugin",
+    "echo",
+    "repeat",
+    "example"
+  ],
+  "converge": {
+    "engine": ">=1.0.0-alpha.1",
+    "files": {
+      "module": "./module.js",
+      "component": "./component.js",
+      "language": ""
+    }
+  }
+}

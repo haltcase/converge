@@ -1,0 +1,24 @@
+{
+  "name": "@converge/plugin-five",
+  "version": "1.0.0",
+  "description": "High-five plugin for the converge Twitch bot.",
+  "author": "Bo Lingen <lingenbw@gmail.com> (https://github.com/citycide)",
+  "license": "MIT",
+  "repository": "https://github.com/citycide/converge",
+  "homepage": "https://github.com/citycide/converge/tree/master/plugins/plugin-five",
+  "keywords": [
+    "converge-plugin",
+    "high",
+    "five"
+  ],
+  "engines": {
+    "converge": ">=1.0.0-alpha.1"
+  },
+  "converge": {
+    "files": {
+      "module": "./module.js",
+      "component": "",
+      "language": "./lang.js"
+    }
+  }
+}
