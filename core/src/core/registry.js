@@ -211,12 +211,16 @@ const isCommandType = (caller, kind) =>
   caller.split(sep)[0] === kind
 
 const isInternalCommand = caller =>
-  !isAbsolute(caller) && isCommandType(caller, 'internal')
+  isCommandType(caller, 'internal')
 
 const isExternalCommand = caller =>
-  !isAbsolute(caller) && isCommandType(caller, 'plugins')
+  isCommandType(caller, 'plugins')
 
 const deserializePath = caller => {
+  if (isAbsolute(caller)) {
+    return caller
+  }
+
   if (isInternalCommand(caller)) {
     return join(internalPluginDirectory, '..', caller)
   }
