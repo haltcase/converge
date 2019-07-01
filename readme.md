@@ -41,9 +41,9 @@ in the OS config directory and used on future runs, for example on Windows:
 `C:\Users\{user}\AppData\Roaming\converge\Config\config.toml`
 
 ```toml
-ownerName = '...',
-ownerAuth = 'oauth:...',
-botName = '...',
+ownerName = '...'
+ownerAuth = 'oauth:...'
+botName = '...'
 botAuth = 'oauth:...'
 ```
 
