@@ -49,6 +49,21 @@ botAuth = 'oauth:...'
 
 You could also create this file manually.
 
+## development
+
+converge uses [Yarn workspaces][workspace-docs] to manage all the sources
+as a monorepo, so make sure you've got [Yarn][yarn] installed.
+
+1. Clone the repo: `git clone https://github.com/citycide/converge.git`
+2. Move into the new directory: `cd converge`
+3. Install dependencies: `yarn`
+4. Build the source: `yarn dev`
+
+To run without a rebuild, use `yarn start`.
+
 ## license
 
-MIT © [citycide](https://github.com/citycide)
+MIT © [Bo Lingen / citycide](https://github.com/citycide)
+
+[yarn]: https://yarnpkg.com
+[workspace-docs]: https://yarnpkg.com/docs/workspaces
