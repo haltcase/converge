@@ -89,7 +89,7 @@ export const five = async ($, e) => {
     }
   }
 
-  if (!$.is.oneOf($.user.list, target)) {
+  if (!$.is.oneOf(target, $.user.list)) {
     e.respond($.weave('target-not-present', e.sender, target))
     return
   }

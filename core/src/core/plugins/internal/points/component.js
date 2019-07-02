@@ -156,7 +156,7 @@ const handlePayouts = async (lastPayout = Date.now(), lastUserList = []) => {
 
   await Promise.all(map(userList, async user => {
     if (user === $.botName) return
-    if (!$.is.oneOf(lastUserList, user)) return
+    if (!$.is.oneOf(user, lastUserList)) return
 
     await $.db.create('points', { name: user })
 

@@ -68,7 +68,7 @@ const set = async ($, e) => {
 const admin = async ($, e) => {
   const [status] = e.subArgs
 
-  if (!$.is.oneOf(['enabled', 'disabled'], status)) {
+  if (!$.is.oneOf(status, ['enabled', 'disabled'])) {
     return e.respond($.weave('admin.usage'))
   }
 
