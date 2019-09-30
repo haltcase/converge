@@ -2,6 +2,9 @@ import FP from 'functional-promises'
 
 import log from '../logger'
 
+/**
+ * @param {import('@converge/types/index').Core} context
+ */
 export default async (context, db) => {
   log.trace('preparing database')
 
@@ -91,7 +94,7 @@ export default async (context, db) => {
     })
   ]).catch(e => {
     log.error(e)
-    context.shutdown()
+    return context.shutdown()
   })
 
   return data

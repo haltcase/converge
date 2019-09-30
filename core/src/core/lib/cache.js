@@ -8,6 +8,9 @@ const getCaller = callsite => {
   return `${parent}/${basename(caller)}`
 }
 
+/**
+ * @param {import('@converge/types/index').Core} context
+ */
 export default context => {
   const cache = {
     storage: {},

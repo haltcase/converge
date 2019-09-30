@@ -1,30 +1,72 @@
-import { _ } from 'param.macro'
-
 import { basename, dirname } from 'path'
 
 import callsites from 'callsites'
+import { writeAsync } from 'fs-jetpack'
 import FP from 'functional-promises'
 import { once } from 'stunsail'
-import { Client } from 'twitch-js'
+import TwitchClient from 'twitch'
+import ChatClient from 'twitch-chat-client'
+import PubSubClient from 'twitch-pubsub-client'
+import Webhooks from 'twitch-webhooks'
+import TOML from '@iarna/toml'
 
 import log from '../logger'
 import { callHook, callHookAndWait } from './hooks'
 
-const getInstance = once(config =>
-  new Client({
-    options: {
-      debug: false
-    },
-    connection: {
-      reconnect: true
-    },
-    identity: {
-      username: config.botName,
-      password: config.botAuth
-    },
-    channels: ['#' + config.ownerName]
+/**
+ * @typedef {import('@converge/types/index').Bot} Bot
+ * @typedef {import('@converge/types/index').Core} Core
+ */
+
+const getTwitchClient = async (config, options, isBot) => {
+  const data = isBot ? config.bot : config.owner
+
+  return TwitchClient.withCredentials(config.clientId, data.auth, undefined, {
+    clientSecret: config.clientSecret,
+    refreshToken: data.refreshToken,
+    expiry: data.expiration === null ? null : new Date(data.expiration),
+    onRefresh: async ({ accessToken, refreshToken, expiryDate }) => {
+      data.auth = accessToken
+      data.refreshToken = refreshToken
+      data.expiration = expiryDate?.getTime() ?? 0
+
+      if (isBot) {
+        config.bot = data
+      } else {
+        config.owner = data
+      }
+
+      await writeAsync(options.configPath, config |> TOML.stringify)
+    }
   })
-)
+}
+
+/**
+ * @type {() => Promise<Bot>}
+ */
+export const getInstance = once(async (config, options) => {
+  const [client, botClient] = await FP.all([
+    getTwitchClient(config, options),
+    getTwitchClient(config, options, true)
+  ])
+
+  const [owner, bot] = await FP.all([
+    ChatClient.forTwitchClient(client),
+    ChatClient.forTwitchClient(botClient)
+  ])
+
+  await owner.connect()
+  await owner.waitForRegistration()
+  await bot.connect()
+  await bot.waitForRegistration()
+
+  const pubsub = new PubSubClient()
+  await pubsub.registerUserListener(client)
+  const webhooks = await Webhooks.create(client, { port: 9090 })
+  webhooks.listen()
+
+  return { client, botClient, bot, owner, pubsub, webhooks }
+})
 
 const isCommand = (message, prefix) =>
   message.substr(0, prefix.length) === prefix &&
@@ -54,7 +96,7 @@ const createResponder = (context, event) => {
     ? message => context.whisper(event.sender, message)
     : message => context.say(event.sender, message)
 
-  return partial(_)
+  return partial
 }
 
 const createPrevent = event => () => {
@@ -64,33 +106,36 @@ const createPrevent = event => () => {
   callHook('preventedCommand', event)
 }
 
-const dispatcher = (ctx, bot, prefix, type) => {
-  log.trace(`attaching ${type} event dispatcher`)
-  return async (source, user, message, self) => {
-    if (self) return
-    if (type === 'action') return
+const dispatcher = async (ctx, bot, prefix, type, user, message, rawMessage) => {
+  if (type === 'action') return
 
-    const event = await buildEvent(
-      ctx, user, message, prefix, type === 'whisper'
-    )
+  const event = await buildEvent(
+    ctx, rawMessage, prefix, type === 'whisper'
+  )
 
-    event.respond = createResponder(ctx, event)
-    event.prevent = createPrevent(event)
-    await callHookAndWait('beforeMessage', event)
+  await callHookAndWait('beforeMessage', event)
 
-    if (event.isPrevented) return
+  if (event.isPrevented) return
 
-    if (isCommand(message, prefix)) {
-      return commandHandler(ctx, event)
-    }
+  if (isCommand(message, prefix)) {
+    return commandHandler(ctx, event)
   }
 }
 
 const setupListeners = (ctx, bot, prefix) => {
   log.trace('registering chat listeners')
-  bot.on('chat', dispatcher(ctx, bot, prefix, 'chat'))
-  bot.on('whisper', dispatcher(ctx, bot, prefix, 'whisper'))
-  bot.on('action', dispatcher(ctx, bot, prefix, 'action'))
+
+  bot.onPrivmsg((source, ...args) =>
+    dispatcher(ctx, bot, prefix, 'chat', ...args)
+  )
+
+  bot.onAction((source, ...args) =>
+    dispatcher(ctx, bot, prefix, 'action', ...args)
+  )
+
+  bot.onWhisper((...args) =>
+    dispatcher(ctx, bot, prefix, 'whisper', ...args)
+  )
 }
 
 const aliasHandler = async (ctx, event) => {
@@ -98,7 +143,7 @@ const aliasHandler = async (ctx, event) => {
   try {
     original = await ctx.command.getAlias(event.command)
   } catch (e) {
-    log.error(e.message)
+    log.error(`Failed to retrieve aliased command: ${e.message}`)
   }
 
   if (!original) return
@@ -128,15 +173,37 @@ const commandHandler = async (ctx, event) => {
   }
 }
 
-const buildEvent = async (ctx, user, message, prefix, whispered) => {
-  const { 'display-name': name, 'user-type': type } = user
-  const mod = type === 'mod' || name === ctx.ownerName
+const updateChatUser = async (ctx, event) => {
+  try {
+    await ctx.db.updateOrCreate('users', {
+      id: event.id
+    }, {
+      name: event.sender,
+      mod: event.mod,
+      seen: event.seen
+    })
+  } catch (e) {
+    log.error(`Failed to update chat user: ${e.message}`, event)
+  }
+}
+
+/**
+ * @param {Core} ctx
+ * @param {import('twitch-chat-client/lib/index').PrivateMessage} messageEvent
+ * @param {string} prefix
+ * @param {boolean} whispered
+ */
+const buildEvent = async (ctx, messageEvent, prefix, whispered) => {
+  const { displayName, isMod, userId } = messageEvent.userInfo
+  const message = messageEvent.message.value
+  const mod = isMod || displayName === ctx.ownerName
   const args = getCommandArgs(message)
+
   const event = {
-    id: user['user-id'],
-    sender: name,
-    mention: `@${name}`,
-    mod: mod || await ctx.user.isMod(user['user-id']),
+    id: messageEvent.userInfo.userId,
+    sender: displayName,
+    mention: `@${displayName}`,
+    mod: mod || await ctx.user.isMod(userId),
     seen: new Date(),
     raw: message,
     whispered,
@@ -149,23 +216,48 @@ const buildEvent = async (ctx, user, message, prefix, whispered) => {
     isPrevented: false
   }
 
-  await ctx.db.updateOrCreate('users', {
-    id: event.id
-  }, {
-    name: event.sender,
-    mod: event.mod,
-    seen: event.seen
-  })
+  event.prevent = createPrevent(event)
+  event.respond = createResponder(ctx, event)
 
+  await updateChatUser(ctx, event)
   return event
 }
 
-export const loadBot = async (context, config) => {
+/**
+ * @param {Core} ctx
+ * @returns {Core['createChatEvent']}
+ */
+const buildEventPublic = ctx => async (message = '', userInfo = {}, whispered = false) => {
+  const messageEvent = {
+    userInfo: {
+      displayName: ctx.botName,
+      isMod: true,
+      userId: ctx.botId,
+      ...userInfo
+    },
+    message: {
+      value: message
+    }
+  }
+
+  return buildEvent(ctx, messageEvent, await ctx.command.getPrefix(), whispered)
+}
+
+/**
+ * @param {Core} context
+ * @param {import('@converge/types/index').CoreConfig} config
+ * @param {import('@converge/types/index').CoreOptions} options
+ */
+export const loadBot = async (context, config, options) => {
   log.trace('starting up bot instance')
-  const bot = getInstance(config)
+  const { bot } = await getInstance(config, options)
 
   const shout = message => bot.say(context.ownerName, message)
-  const whisper = (user, message) => bot.whisper(user, message)
+
+  const whisper = (user, message) => {
+    log.debug('note: outgoing whispers are currently unreliable or broken (thanks twitch)')
+    bot.whisper(user, message)
+  }
 
   const say = async (user, ...args) => {
     if (!args.length) return shout(user)
@@ -192,14 +284,16 @@ export const loadBot = async (context, config) => {
     shout,
     whisper,
 
+    createChatEvent: buildEventPublic(context),
+
     command: {
       getPrefix
     }
   })
 
-  context.on('beforeShutdown', () => bot.disconnect())
+  context.on('beforeShutdown', () => bot.quit())
 
-  await bot.connect()
+  await bot.join(context.ownerName)
   const prefix = await getPrefix()
   await setupListeners(context, bot, prefix)
 

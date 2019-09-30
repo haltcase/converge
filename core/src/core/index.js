@@ -1,18 +1,24 @@
+/**
+ * @typedef {import('trilogy/dist/index').Trilogy} Trilogy
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').CoreConfig} CoreConfig
+ * @typedef {import('@converge/types/index').CoreOptions} CoreOptions
+ */
+
 import { _, it } from 'param.macro'
 import importAll from 'import-all.macro'
 
 import EventEmitter from 'eventemitter2'
 import FP from 'functional-promises'
+import TwitchClient from 'twitch'
 
 import {
   defaults,
   each,
-  isObject,
-  map
+  isObject
 } from 'stunsail'
 
 import log from '../logger'
-import getApi from './api'
 import loadDatabase from './db'
 import { loadBot } from './bot'
 import { loadPlugins } from './plugins'
@@ -25,15 +31,15 @@ import {
   callHookAndWait
 } from './hooks'
 
-const loadOwnerInfo = async context => {
-  const params = { login: [context.ownerName, context.botName] }
-  const { users } = await context.api('users', { params }, { users: [] })
-  const [ownerID, botID] = map(users, it._id)
-  context.extend({ ownerID, botID })
+const loadOwnerInfo = async (context, config) => {
+  context.extend({
+    ownerId: config.owner.id,
+    botId: config.bot.id
+  })
 
   return FP.all([
     context.db.updateOrCreate('usertypes', {
-      id: ownerID
+      id: config.owner.id
     }, {
       name: context.ownerName,
       admin: true,
@@ -41,7 +47,7 @@ const loadOwnerInfo = async context => {
     }),
 
     context.db.updateOrCreate('usertypes', {
-      id: botID
+      id: config.bot.id
     }, {
       name: context.botName,
       admin: true,
@@ -55,28 +61,21 @@ const loadLibraries = context => {
   return importAll('./lib/*.js')
     .then(each(_, it.default(context)))
 }
+
 /**
  * The core functionality of the bot
  *
  * @export
  * @class Core
  * @extends {EventEmitter}
- * @property {string} ownerName
- * @property {string} botName
+ * @type {Core}
  */
 export default class Core extends EventEmitter {
   /**
    * Creates an instance of the bot's core
    *
-   * @param {object} config
-   * @param {string} config.ownerName
-   * @param {string} config.ownerAuth
-   * @param {string} config.botName
-   * @param {string} config.botAuth
-   * @param {object} options
-   * @param {string} options.configPath
-   * @param {import('trilogy').Trilogy} options.db
-   * @memberof Core
+   * @param {CoreConfig} config
+   * @param {CoreOptions} options
    */
   constructor (config, options) {
     log.trace('starting up core')
@@ -89,17 +88,16 @@ export default class Core extends EventEmitter {
       maxListeners: 30
     })
 
-    this.ownerName = config.ownerName
-    this.botName = config.botName
-    this.api = getApi(config.ownerAuth)
+    this.ownerName = config.owner.name
+    this.botName = config.bot.name
 
     loadHooks(this)
     exitHooks(this)
 
     loadDatabase(this, options.db)
       .then(db => { this.db = db })
-      .then(() => loadOwnerInfo(this))
-      .then(() => loadBot(this, config))
+      .then(() => loadOwnerInfo(this, config))
+      .then(() => loadBot(this, config, options))
       .then(() => loadLibraries(this))
       .then(() => loadRegistry(this))
       .then(() => loadPlugins(this))
@@ -120,6 +118,7 @@ export default class Core extends EventEmitter {
   on (channel, fn, duplicates) {
     if (!duplicates) this.off(channel, fn)
     super.on(channel, fn)
+    return this
   }
 
   callHook (name, ...args) {

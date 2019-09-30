@@ -9,6 +9,9 @@ const isToMethod = stunsail.includes([
   'defaults'
 ], _)
 
+/**
+ * @param {import('@converge/types/index').Core} context
+ */
 export default context => {
   const is = stunsail.isEqual
   const to = {}

@@ -1,3 +1,6 @@
+/**
+ * @param {import('@converge/types/index').Core} $
+ */
 export default $ => {
   $.weave.set('usage', 'Usage: !rekt (add | remove | edit)')
   $.weave.set('not-found', 'There is no !rekt response with ID #{0}.')

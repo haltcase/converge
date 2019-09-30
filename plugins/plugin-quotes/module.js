@@ -1,8 +1,10 @@
 /**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
+/**
  * quotes - add & manage quotes
- *
- * @command quote
- * @usage !quote [subcommands]
  *
  * @source stock module
  * @author citycide
@@ -11,6 +13,13 @@
 const creditRegex = /~(\w+)/g
 const doubleQuoteRegex = /"/g
 
+/**
+ * @command quote
+ * @usage !quote [add|remove|edit|help] (...)
+ *
+ * @param {Core} $
+ * @param {ChatEvent} e
+ */
 export const quote = async ($, e) => {
   const [param1] = e.args
   const parsed = $.to.int(param1)
@@ -104,6 +113,9 @@ export const quote = async ($, e) => {
   }
 }
 
+/**
+ * @param {Core} $
+ */
 export const setup = $ => {
   $.addCommand('quote', { cooldown: 60 })
 

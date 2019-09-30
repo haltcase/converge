@@ -78,7 +78,7 @@ const registerCommand = (context, command) => {
     return
   }
 
-  registry[name] = Object.assign({}, command, { subcommands: {} })
+  registry[name] = { ...command, ...{ subcommands: {} } }
 
   log.absurd(`command loaded: '!${name}' (${caller})`)
   return context
@@ -100,7 +100,7 @@ const registerSubcommand = (context, subcommand) => {
   if (reference) {
     if (reference.parent === parent) return context
 
-    log.debug(`Duplicate subcommand registration attempted`)
+    log.debug('Duplicate subcommand registration attempted')
     log.debug(`!${pair} is already registered`)
 
     return context
@@ -125,40 +125,50 @@ const registerCustomCommand = (context, command) => {
     subcommands: {}
   }
 
-  registry[name] = Object.assign({}, command, flags)
+  registry[name] = { ...command, ...flags }
   log.absurd(`command loaded: '!${name}' (custom)`)
   return context
 }
 
+const updateCommand = async (context, command) =>
+  context.db.updateOrCreate('commands', {
+    name: command.name
+  }, {
+    handler: command.handler,
+    caller: command.caller,
+    status: command.status,
+    cooldown: command.cooldown,
+    permission: command.permission,
+    price: command.price
+  })
+
+const updateSubcommand = async (context, parent, subcommand) =>
+  context.db.updateOrCreate('subcommands', {
+    name: subcommand.name,
+    parent
+  }, {
+    status: subcommand.status,
+    cooldown: subcommand.cooldown,
+    permission: subcommand.permission,
+    price: subcommand.price
+  })
+
 const save = throttle(async context => {
   log.trace('saving commands')
 
-  await registry |> map(_, command => {
-    return FP.all([
-      context.db.updateOrCreate('commands', {
-        name: command.name
-      }, {
-        handler: command.handler,
-        caller: command.caller,
-        status: command.status,
-        cooldown: command.cooldown,
-        permission: command.permission,
-        price: command.price
-      }),
-
-      ...reduce(command.subcommands, (promises, sub) => {
-        return [context.db.updateOrCreate('subcommands', {
-          name: sub.name,
-          parent: command.name
-        }, {
-          status: sub.status,
-          cooldown: sub.cooldown,
-          permission: sub.permission,
-          price: sub.price
-        }), ...promises]
-      }, [])
+  registry
+  |> map(_, command =>
+    FP.all([
+      updateCommand(context, command),
+      ...(
+        command.subcommands
+        |> Object.values
+        |> map(_, updateSubcommand(context, command.name, _))
+      )
     ])
-  }) |> FP.all
+  )
+  |> FP.all
+  |> await
 
   log.trace('saved commands')
 }, 1, 10_000)
@@ -234,12 +244,9 @@ export const stageCommand = name => {
   const { caller, handler } = registry[name]
 
   if (caller === 'custom') {
-    return (context, event) => {
-      return context.params(event, handler)
-        // TODO: this should whisper if necessary ie. `event.respond`,
-        // but manually built events don't have that method
+    return (context, event) =>
+      context.params(event, handler)
         .then(context.say)
-    }
   }
 
   const callerPath = deserializePath(caller)
@@ -252,70 +259,68 @@ export const stageCommand = name => {
 
 const serializePath = caller => {
   if (isSubdirectory(caller, internalPluginDirectory)) {
-    return relative(internalPluginDirectory, caller) |>
-      join('internal', _)
+    return relative(internalPluginDirectory, caller)
+      |> join('internal', _)
   }
 
   if (isSubdirectory(caller, externalPluginDirectory)) {
-    return relative(externalPluginDirectory, caller) |>
-      join('plugins', _)
+    return relative(externalPluginDirectory, caller)
+      |> join('plugins', _)
   }
 
   return caller
 }
 
-export const addCommand = (context, name, options) => {
+export const addCommand = (context, name, options = {}) => {
   if (!name) return
 
   const caller = serializePath(callsites()[2].getFileName())
 
-  const object = Object.assign({
+  const object = {
     handler: name,
     cooldown: 30,
     permission: 5,
     status: 1,
-    price: 0
-  }, options, {
+    price: 0,
+    ...options,
     name: name.toLowerCase(),
     caller
-  })
+  }
 
   return registerCommand(context, object)
 }
 
-export const addSubcommand = (context, name, parent, options) => {
+export const addSubcommand = (context, name, parent, options = {}) => {
   if (!name || !parent || !registry[parent]) return
 
   const caller = callsites()[2].getFileName()
-  const object = Object.assign({
+  const object = {
     cooldown: -1,
     permission: -1,
     status: -1,
-    price: -1
-  }, options, {
+    price: -1,
+    ...options,
     name: name.toLowerCase(),
     caller,
     parent
-  })
+  }
 
   return registerSubcommand(context, object)
 }
 
-export const addCustomCommand = (context, name, options) => {
+export const addCustomCommand = (context, name, options = {}) => {
   if (!name) return
 
-  options = Object.assign({}, options)
-
-  const object = Object.assign({
+  const object = {
     cooldown: 30,
     permission: 5,
     status: 1,
-    price: 0
-  }, options, {
+    price: 0,
+    ...options,
     name: name.toLowerCase(),
     caller: 'custom',
     handler: options.response || options.handler
-  })
+  }
 
   return registerCustomCommand(context, object)
 }
@@ -336,15 +341,18 @@ const getProperty = (command, ...args) => {
 }
 
 const setProperty = context => (command, ...args) => {
+  if (args.length !== 2 && args.length !== 3) return
+
   let sub
   let property = args[0]
-  if (args.length === 2) {
-    ;[sub, property] = args
+  let value = args[1]
+  if (args.length === 3) {
+    ;[sub, property, value] = args
   }
 
   const result = sub
-    ? setSubcommandProperty(command, sub, property)
-    : setCommandProperty(command, property)
+    ? setSubcommandProperty(command, sub, property, value)
+    : setCommandProperty(command, property, value)
 
   save(context)
 
@@ -357,6 +365,7 @@ export const loadRegistry = once(async context => {
   const _addCommand = addCommand(context, _, _)
   const _addSubcommand = addSubcommand(context, _, _, _)
   const _addCustomCommand = addCustomCommand(context, _, _)
+  const _setProperty = setProperty(context)
 
   context.extend({
     addCommand: _addCommand,
@@ -366,7 +375,11 @@ export const loadRegistry = once(async context => {
     command: {
       exists: commandExists,
       getProperty: getProperty,
-      setProperty: setProperty,
+      setProperty: _setProperty,
+      enable: (name, sub) =>
+        _setProperty(name, sub, 'status', 1),
+      disable: (name, sub) =>
+        _setProperty(name, sub, 'status', 0),
       isEnabled: (name, sub) =>
         getProperty(name, sub, 'status') > 0,
       getPermLevel: (name, sub) =>
@@ -374,7 +387,7 @@ export const loadRegistry = once(async context => {
     }
   })
 
-  context.on('beforeShutdown', save)
+  context.on('beforeShutdown', () => save(context))
 
   await loadTables(context)
   await loadCommands(context)

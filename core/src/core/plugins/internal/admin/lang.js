@@ -1,3 +1,6 @@
+/**
+ * @param {import('@converge/types/index').Core} $
+ */
 export default $ => {
   $.weave.set('command.usage', 'Usage: !command (add | remove | edit | enable | disable | permission)')
   $.weave.set('command.enable-usage', 'Usage: !command enable (command name)')
@@ -10,5 +13,5 @@ export default $ => {
   $.weave.set('whisper-mode.usage', 'Usage: !whispermode (enable | disable) » currently {0}')
   $.weave.set('last-seen.usage', 'Usage: !lastseen (user)')
   $.weave.set('last-seen.response', '{0} was last seen {1} ago.')
-  $.weave.set('last-seen.not-seen', `We haven't seen {0} in chat yet.`)
+  $.weave.set('last-seen.not-seen', 'We haven\'t seen {0} in chat yet.')
 }

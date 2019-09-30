@@ -1,3 +1,6 @@
+/**
+ * @param {import('@converge/types/index').Core} $
+ */
 export default $ => {
   $.weave.set('usage', 'Usage: !quote (add | remove | edit | help)')
 
@@ -13,7 +16,7 @@ export default $ => {
   $.weave.set('edit.success', 'Quote #{0} modified.')
   $.weave.set('edit.failure', 'Failed to edit quote #{0}.')
 
-  $.weave.set('response', `"{0}" - {1} ({2}{3})`)
+  $.weave.set('response', '"{0}" - {1} ({2}{3})')
   $.weave.set('response.not-found', 'Quote #{0} does not exist.')
 
   $.weave.set('help',

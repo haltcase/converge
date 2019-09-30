@@ -1,4 +1,9 @@
 /**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
+/**
  * echo - the bot will simply repeat whatever follows the command
  *
  * @source stock module
@@ -8,6 +13,9 @@
 /**
  * @command echo
  * @usage !echo [loudly|twice] (message)
+ *
+ * @param {Core} $
+ * @param {ChatEvent} e
  */
 export const echo = ($, e) => {
   if (!e.argString) return
@@ -25,6 +33,8 @@ export const echo = ($, e) => {
 
 /**
  * Register the module & its commands with the core
+ *
+ * @param {Core} $
  */
 export const setup = $ => {
   /**

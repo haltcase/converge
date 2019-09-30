@@ -1,3 +1,8 @@
+/**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
 const getName = $ => level =>
   $.db.get('ranks.name', { level })
 
@@ -8,10 +13,10 @@ const getBonus = $ => level =>
   $.db.get('ranks.bonus', { level }, 0)
 
 const getUserRank = $ => async user => {
-  const username = $.is.string(user) ? user : user['display-name']
+  const username = $.is.string(user) ? user : user?.displayName
 
-  const _rankID = await $.db.get('user_ranks.value', { key: username })
-  if (_rankID >= 1) return _rankID
+  const rankId = await $.db.get('user_ranks.value', { key: username })
+  if (rankId >= 1) return rankId
 
   $.log.debug('ranks',
     `getUserRank: assigning default rank to ${username} (level 1)`
@@ -83,6 +88,9 @@ const initRanks = async $ => {
 }
 
 export default {
+  /**
+   * @param {Core} $
+   */
   async setup ($) {
     $.extend({
       user: {
@@ -101,6 +109,10 @@ export default {
     return initRanks($)
   },
 
+  /**
+   * @param {Core} $
+   * @param {ChatEvent} e
+   */
   async beforeMessage ($, e) {
     // extend the event object with the user's rank
     const userRank = await $.user.getRank(e.sender)
@@ -108,6 +120,10 @@ export default {
   },
 
   points: {
+    /**
+     * @param {Core} $
+     * @param {ChatEvent} e
+     */
     async beforePayout ($, e) {
       handleBonuses($, e)
     }

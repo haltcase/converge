@@ -1,5 +1,13 @@
+/**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
 import map from 'stunsail/map'
 
+/**
+ * @param {Core} $
+ */
 let $ = null
 
 const toInt = n => $.to.number(n, true)
@@ -170,6 +178,9 @@ const handlePayouts = async (lastPayout = Date.now(), lastUserList = []) => {
 }
 
 export default {
+  /**
+   * @param {Core} context
+   */
   async setup (context) {
     $ = context
 
@@ -208,6 +219,10 @@ export default {
     return run()
   },
 
+  /**
+   * @param {Core} $
+   * @param {ChatEvent} e
+   */
   async beforeCommand ($, e) {
     if (!await $.db.getExtConfig('points.enabled', true)) return
 
@@ -224,6 +239,10 @@ export default {
     e.prevent()
   },
 
+  /**
+   * @param {Core} $
+   * @param {ChatEvent} e
+   */
   async afterCommand ($, e) {
     const charge = await getCommandPrice(e.command, e.subcommand)
     return sub(e.sender, charge)

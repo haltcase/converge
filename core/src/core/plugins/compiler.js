@@ -4,7 +4,7 @@ import register from '@babel/register'
 import isSubdirectory from '../util/is-subdirectory'
 import { paths } from '../../constants'
 
-import appConfig from '../../../babel.config.js'
+import appConfig from '../../../../babel.config.js'
 
 // TODO?: add to stunsail
 const count = (str, search, maxOccurrences) => {

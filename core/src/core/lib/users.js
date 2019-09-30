@@ -1,127 +1,122 @@
 import { _, it } from 'param.macro'
 
 import FP from 'functional-promises'
-import strat from 'strat'
-import { getOr } from 'stunsail'
 
-const follower = strat('users/{}/follows/channels/{}')
-const subscriber = strat('channels/{}/subscriptions/{}')
+import { getInstance } from '../bot'
 
-export default context => {
-  const isAdmin = id =>
+/**
+ * @param {import('@converge/types/index').Core} context
+ */
+export default async context => {
+  const { client } = await getInstance()
+
+  const isAdmin = async id =>
     context.db.get('usertypes.admin', { id })
 
-  const isMod = id =>
+  const isMod = async id =>
     context.db.get('usertypes.mod', { id })
 
-  const isFollower = id =>
-    context.api(follower([id, context.ownerID]))
-      .then(it && !it.error)
-      .catch(e => false)
+  const isFollower = async id =>
+    String(id)
+    |> client.helix.users.getUserById(_).then(it?.follows(context.ownerId))
 
-  const isSubscriber = id =>
-    context.api(subscriber([context.ownerID, id]))
-      .then(it && !it.error)
-      .catch(e => false)
+  const isSubscriber = async id =>
+    String(id)
+    |> client.helix.users.getUserById(_).then(it?.isSubscribedTo(context.ownerId))
 
-  const resolveID = name =>
-    context.api('users', {
-      params: { login: encodeURIComponent(name) }
-    }).then(getOr(_, 'users.0._id', false))
+  const resolveIdByName = async name =>
+    client.helix.users.getUserByName(name).then(it?.id)
 
-  const resolveIDList = list => {
-    if (!Array.isArray(list)) return
+  const resolveIdList = async names => {
+    if (!Array.isArray(names)) {
+      context.log.error(`resolveIdList expected array, got ${typeof names}`)
+      return []
+    }
 
-    list = list.join(',')
-    return FP.resolve(
-      context.api('users', {
-        params: { login: encodeURIComponent(list) }
-      })
-    )
-      .then(getOr(_, 'users', []))
-      .map(getOr(_, '_id', false))
+    const resolved = await client.helix.users.getUsersByNames(names)
+
+    const result = {}
+    for (const user of resolved) {
+      result[user.name] = user
+    }
+
+    return result
   }
 
-  const resolveUser = id =>
-    context.api('users/' + id)
-      .then(getOr(_, 'display_name', false))
+  const resolveNameById = async id =>
+    String(id) |> client.helix.users.getUserById(_).then(it?.displayName)
 
-  const resolveUserObject = id =>
-    context.api('users/' + id)
+  const resolveUserById = async id =>
+    String(id) |> client.helix.users.getUserById
 
-  const getID = name =>
+  const getIdByName = async name =>
     context.db.get('users.id', { name })
 
-  const getName = id =>
+  const getNameById = async id =>
     context.db.get('users.name', { id })
 
-  const setAdmin = (id, status) => {
-    status = context.toBoolean(status)
+  const setAdmin = async (id, status) => {
     return getName(id)
       .then(
         context.db.updateOrCreate('usertypes', { id }, {
           name: _,
-          admin: status
+          admin: status |> context.toBoolean
         })
       )
   }
 
-  const setMod = (id, status) => {
-    status = context.toBoolean(status)
-    return getName(id)
-      .then(
-        context.db.updateOrCreate('usertypes', { id }, {
-          name: _,
-          mod: status
-        })
-      )
-  }
+  const setMod = async (id, status) =>
+    getName(id).then(
+      context.db.updateOrCreate('usertypes', { id }, {
+        name: _,
+        mod: status |> context.toBoolean
+      })
+    )
 
-  const existsById = id =>
+  const existsById = async id =>
     context.db.exists('users', { id })
 
-  const existsByName = name =>
+  const existsByName = async name =>
     context.db.exists('users', { name })
 
-  /*
-  context.on('beforeMessage', ($, e) => {
-    FP.all([
-      e.mod,
-      isAdmin(e.id),
-      isMod(e.id),
-      resolveUser(e.id),
-      resolveID(e.sender),
-      resolveUserObject(e.id),
-      isFollower(82115229),
-      isFollower(44322889)
-    ]).then(([a, b, c, d, e, f, g, h]) => {
-      console.log('TEMPORARY LOGS FROM lib/users.js')
-      console.log('event.mod   : ', a)
-      console.log('isAdmin     : ', b)
-      console.log('isMod       : ', c)
-      console.log('resolveUser : ', d)
-      console.log('resolveID   : ', e)
-      console.log('resolveObj  : ', f)
-      console.log('isFollower  : ', g)
-      console.log('isFollower  : ', h)
-    })
-  })
-  */
+  // context.on('beforeMessage', ($, e) => {
+  //   console.log(e.id)
+  //   FP.all([
+  //     e.mod,
+  //     isAdmin(e.id),
+  //     isMod(e.id),
+  //     resolveNameById(e.id),
+  //     resolveIdByName(e.sender),
+  //     resolveUserById(e.id),
+  //     isFollower(82115229),
+  //     isFollower(44322889)
+  //   ]).then(([a, b, c, d, e, f, g, h]) => {
+  //     console.log('TEMPORARY LOGS FROM lib/users.js')
+  //     console.log('event.mod       : ', a)
+  //     console.log('isAdmin         : ', b)
+  //     console.log('isMod           : ', c)
+  //     console.log('resolveNameById : ', d)
+  //     console.log('resolveIdByName : ', e)
+  //     console.log('resolveUserById : ', f)
+  //     console.log('isFollower      : ', g)
+  //     console.log('isFollower      : ', h)
+  //   })
+  // })
 
   context.extend({
     user: {
       isAdmin,
-      isMod,
-      getID,
-      resolveID,
-      resolveIDList,
-      resolve: resolveUser,
-      get: resolveUserObject,
       isFollower,
+      isMod,
       isSubscriber,
+      getIdByName,
+      resolveIdByName,
+      resolveIdList,
+      resolveNameById,
+      resolveUserById,
       setAdmin,
       setMod,
-      exists: existsByName,
+      existsByName,
       existsById
     }
   })

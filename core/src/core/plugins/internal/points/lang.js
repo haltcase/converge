@@ -1,3 +1,6 @@
+/**
+ * @param {import('@converge/types/index').Core} $
+ */
 export default $ => {
   $.weave.set('response.default', '{0} has {1}.')
   $.weave.set('response.not-found', '{0} has not visited the chat yet.')

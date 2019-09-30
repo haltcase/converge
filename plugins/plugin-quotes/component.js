@@ -1,3 +1,8 @@
+/**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
 const sanitizeText = str => {
   // remove surrounding double quotes
   // @DEV: if this pattern has issues try this one:
@@ -9,12 +14,13 @@ const sanitizeText = str => {
 const add = $ => async quote => {
   if (!$.is.object(quote) || !quote.mesasge) return false
 
-  const obj = Object.assign({}, {
+  const obj = {
     credit: $.channel.name,
     submitter: '',
     date: new Date().toISOString().split('T')[0],
-    game: $.stream.game || ''
-  }, quote)
+    game: $.stream.game || '',
+    ...quote
+  }
 
   await $.db.set('quotes', {
     message: sanitizeText(obj.message),
@@ -48,6 +54,9 @@ const modify = $ => async (id, newData) => {
 }
 
 export default {
+  /**
+   * @param {Core} $
+   */
   async setup ($) {
     $.extend({
       quote: {

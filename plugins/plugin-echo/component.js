@@ -1,3 +1,8 @@
+/**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
 // let time = 0
 
 export default {

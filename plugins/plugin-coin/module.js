@@ -1,13 +1,15 @@
 /**
- * coin - users can place bets on the outcome of a coin flip
- *
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
+/**
  * @command coin
  * @usage !coin (amount)
  *
- * @source stock module
- * @author citycide
+ * @param {Core} $
+ * @param {ChatEvent} e
  */
-
 export const coin = async ($, e) => {
   const [risk, reward, maxBet] = await Promise.all([
     $.db.getExtConfig('coin.risk', 1),
@@ -92,6 +94,9 @@ export const coin = async ($, e) => {
   e.respond($.weave('usage'))
 }
 
+/**
+* @param {Core} $
+*/
 export const setup = $ => {
   $.addCommand('coin', { cooldown: 60 })
   $.addSubcommand('risk', 'coin', { permission: 1 })

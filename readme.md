@@ -35,16 +35,25 @@ yarn && yarn dev
 ```
 
 On first startup you'll be prompted to provide the required configuration,
-like the owner & bot names, and OAuth tokens for each. This is then stored
-in the OS config directory and used on future runs, for example on Windows:
+like a client ID and client secret. Your browser will open to authenticate
+your owner & bot accounts with Twitch. This data is then stored in the OS
+config directory and used on future runs, for example on Windows:
 
 `C:\Users\{user}\AppData\Roaming\converge\Config\config.toml`
 
 ```toml
-ownerName = '...'
-ownerAuth = 'oauth:...'
-botName = '...'
-botAuth = 'oauth:...'
+clientId = '...'
+clientSecret = '...'
+
+[owner]
+name = '...'
+auth = '...'
+# ...
+
+[bot]
+name = '...'
+auth = '...'
+# ...
 ```
 
 You could also create this file manually.

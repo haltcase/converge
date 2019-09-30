@@ -1,5 +1,8 @@
 import { it } from 'param.macro'
 
+/**
+ * @param {import('@converge/types/index').Core} context
+ */
 export default async context => {
   await context.db.model('alias', { name: String, original: String })
 

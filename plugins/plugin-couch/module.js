@@ -1,13 +1,15 @@
 /**
- * couch - awards users with random amounts of currency
- *
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
+/**
  * @command couch
  * @usage !couch
  *
- * @source stock module
- * @author citycide
+ * @param {Core} $
+ * @param {ChatEvent} e
  */
-
 export const couch = async ($, e) => {
   const multi = await $.db.getExtConfig('couch.multiplier', 1)
   const num = $.to.random(1000)
@@ -59,6 +61,10 @@ export const couch = async ($, e) => {
   }
 }
 
+/**
+* @param {Core} $
+* @param {ChatEvent} e
+*/
 export const setup = async $ => {
   $.addCommand('couch', { cooldown: 300 })
   $.addSubcommand('multi', 'couch', { permission: 1 })

@@ -5,10 +5,12 @@
   "repository": "https://github.com/citycide/converge",
   "workspaces": [
     "core",
-    "plugins/*"
+    "plugins/*",
+    "types"
   ],
   "scripts": {
     "dev": "cd core && yarn dev",
-    "start": "cd core && yarn start"
+    "start": "cd core && yarn start",
+    "lint": "eslint \"{core,plugins}/**/*.js\" --ignore-path .gitignore"
   }
 }

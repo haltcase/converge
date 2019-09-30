@@ -6,23 +6,23 @@ import strat from 'strat'
 import { map, isObject, toObject } from 'stunsail'
 
 const tagList = [
-  `{age}`,
-  `{cmdprefix}`,
-  `{sender}`,
-  `{@sender}`,
-  `{random}`,
-  `{count}`,
-  `{pointname}`,
-  `{price}`,
-  `{#}`,
-  `{uptime}`,
-  `{followers}`,
-  `{game}`,
-  `{status}`,
-  `{target}`,
-  `{@target}`,
-  `{echo}`,
-  `{readfile `
+  '{age}',
+  '{cmdprefix}',
+  '{sender}',
+  '{@sender}',
+  '{random}',
+  '{count}',
+  '{pointname}',
+  '{price}',
+  '{#}',
+  '{uptime}',
+  '{followers}',
+  '{game}',
+  '{status}',
+  '{target}',
+  '{@target}',
+  '{echo}',
+  '{readfile '
 ]
 
 const rgxTags = tagList.map(it |> escapeRegExp |> RegExp)
@@ -74,6 +74,9 @@ const getReplacements = (context, tags) => {
   }))
 }
 
+/**
+ * @param {import('@converge/types/index').Core} context
+ */
 export default context => {
   const params = async (event, text, tags) => {
     if (!isObject(event) || !hasTags(text)) return text

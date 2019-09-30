@@ -8,13 +8,16 @@ import { format } from 'date-fns'
 import log from '../../logger'
 import { paths } from '../../constants'
 
+/**
+ * @param {import('@converge/types/index').Core} context
+ */
 export default async context => {
   const writeLog = (source, data, channel = '') => {
-    const filePath = source |>
-      parse(_).name + '.txt' |>
-      join(paths.logs, channel, _)
+    const filePath = source
+      |> parse(_).name + '.txt'
+      |> join(paths.logs, channel, _)
 
-    const timestamp = format(Date.now(), 'YYYY-MM-DD HH:mm:ss a')
+    const timestamp = format(Date.now(), 'yyyy-MM-dd HH:mm:ss aaaa')
     const line = `${timestamp} :: ${data}${EOL}`
     return appendAsync(filePath, line)
   }

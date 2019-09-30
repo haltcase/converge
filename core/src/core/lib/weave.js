@@ -1,11 +1,4 @@
-import {
-  get,
-  getOr,
-  isString,
-  pathDots,
-  pathLinks,
-  set
-} from 'stunsail'
+import { get, getOr, isString, pathDots, pathLinks, set } from 'stunsail'
 
 import strat from 'strat'
 import callsites from 'callsites'
@@ -23,21 +16,21 @@ const MISSING_STRING = 'Unknown language string.'
 const INVALID_PATH = 'Invalid language string, confirm language path.'
 
 const directory = {
-  'en_029': 'en-US',
-  'en_AU': 'en-US',
-  'en_BZ': 'en-US',
-  'en_CA': 'en-US',
-  'en_GB': 'en-US',
-  'en_IE': 'en-US',
-  'en_IN': 'en-US',
-  'en_JM': 'en-US',
-  'en_MY': 'en-US',
-  'en_NZ': 'en-US',
-  'en_PH': 'en-US',
-  'en_SG': 'en-US',
-  'en_TT': 'en-US',
-  'en_ZA': 'en-US',
-  'en_ZW': 'en-US'
+  en_029: 'en-US',
+  en_AU: 'en-US',
+  en_BZ: 'en-US',
+  en_CA: 'en-US',
+  en_GB: 'en-US',
+  en_IE: 'en-US',
+  en_IN: 'en-US',
+  en_JM: 'en-US',
+  en_MY: 'en-US',
+  en_NZ: 'en-US',
+  en_PH: 'en-US',
+  en_SG: 'en-US',
+  en_TT: 'en-US',
+  en_ZA: 'en-US',
+  en_ZW: 'en-US'
 }
 
 const readConfig = () => {
@@ -95,15 +88,21 @@ const getKeyPath = (callsite, key) => {
   const manifest = find('package.json', { cwd: dirname(caller) })
   const { name } = read(manifest, 'json') || { name: '' }
   const keyPath = pathLinks(key)
+
   keyPath.unshift(name)
   return keyPath
 }
 
+/**
+ * @param {import('@converge/types/index').Core} context
+ */
 export default context => {
   const weave = (key, ...replacements) => {
     const str = get(plugins, getKeyPath(callsites(), key))
+
     if (!str) return MISSING_STRING
     if (!isString(str)) return INVALID_PATH
+
     return strat(str, replacements)
   }
 
@@ -111,8 +110,10 @@ export default context => {
     const keyPath = pathLinks(key)
     keyPath.unshift('bot', 'core')
     const str = get(core, pathDots(keyPath))
+
     if (!str) return MISSING_STRING
     if (!isString(str)) return INVALID_PATH
+
     return strat(str, replacements)
   }
 
@@ -139,7 +140,5 @@ export default context => {
     core = readCore()
   }
 
-  context.extend({
-    weave
-  })
+  context.extend({ weave })
 }

@@ -49,6 +49,9 @@ const defaultOptions = {
   minimal: false
 }
 
+/**
+ * @type {import('./duration').default}
+ */
 const duration = (duration, options) => {
   options = Object.assign(defaultOptions, options)
 

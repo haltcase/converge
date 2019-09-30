@@ -1,3 +1,6 @@
+/**
+ * @param {import('@converge/types/index').Core} $
+ */
 export default $ => {
   $.weave.set('usage', 'Usage: !coin (bet amount)')
   $.weave.set('error.bet-over-max', 'The max bet for !coin is {0}. Try again with a smaller bet.')

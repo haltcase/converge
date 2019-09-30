@@ -1,17 +1,40 @@
 import ms from 'ms'
 
+import Core from '../index'
+
+/**
+ * @typedef {string | number} Time
+ */
+
+/**
+ * @param {Time} time
+ * @returns {number}
+ */
 const normalizeTime = time =>
   typeof time === 'string'
     ? ms(time)
-    : parseInt(time)
+    : time
 
 export class Tock {
-  constructor () {
-    this.timers = new Map()
-    this.intervals = new Map()
-    this.ms = ms
-  }
+  /**
+   * @type {Map<string, NodeJS.Timeout>}
+   */
+  timers = new Map()
 
+  /**
+   * @type {Map<string, NodeJS.Timeout>}
+   */
+  intervals = new Map()
+
+  ms = ms
+
+  /**
+   *
+   * @param {string} name
+   * @param {() => any} fn
+   * @param {Time} time
+   * @param  {...unknown} args
+   */
   setTimeout (name, fn, time, ...args) {
     if (!name && !fn && time == null) {
       throw new Error('invalid arguments')
@@ -42,6 +65,9 @@ export class Tock {
     }
   }
 
+  /**
+   * @param {string} name
+   */
   clearTimeout (name) {
     if (!this.timers.has(name)) return
 
@@ -49,6 +75,13 @@ export class Tock {
     this.timers.delete(name)
   }
 
+  /**
+   *
+   * @param {string} name
+   * @param {() => any} fn
+   * @param {Time} time
+   * @param  {...unknown} args
+   */
   setInterval (name, fn, interval, ...args) {
     if (!name && !fn) {
       throw new Error('invalid arguments')
@@ -78,6 +111,9 @@ export class Tock {
     }
   }
 
+  /**
+   * @param {string} name
+   */
   clearInterval (name) {
     if (!this.intervals.has(name)) return
 
@@ -85,12 +121,21 @@ export class Tock {
     this.intervals.delete(name)
   }
 
+  /**
+   * @private
+   * @param {(...args: any[]) => any} fn
+   * @param {string} name
+   * @param {...unknown} args
+   */
   _wrapper (fn, name, ...args) {
     fn(...args.slice(2))
     this.timers.delete(name)
   }
 }
 
+/**
+ * @param {import('@converge/types/index').Core} context
+ */
 export default context => {
   context.extend({ tick: new Tock() })
 }

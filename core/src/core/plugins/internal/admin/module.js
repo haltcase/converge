@@ -1,5 +1,14 @@
-import { distanceInWordsToNow } from 'date-fns'
+import { formatDistanceToNow } from 'date-fns'
 
+/**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
+/**
+ * @param {Core} $
+ * @param {ChatEvent} e
+ */
 export const command = async ($, e) => {
   const [, param1, param2] = e.args
 
@@ -134,6 +143,10 @@ export const command = async ($, e) => {
   e.respond($.weave('command.usage'))
 }
 
+/**
+ * @param {Core} $
+ * @param {ChatEvent} e
+ */
 export const whisperMode = async ($, e) => {
   if (e.subcommand === 'enable') {
     await $.settings.set('whisperMode', true)
@@ -152,13 +165,17 @@ export const whisperMode = async ($, e) => {
   e.respond($.weave('whisper-mode.usage'), status)
 }
 
+/**
+ * @param {Core} $
+ * @param {ChatEvent} e
+ */
 export const lastSeen = async ($, e) => {
   const [target] = e.args
   if (!target) return e.respond($.weave('last-seen.usage'))
 
-  if (await $.user.exists(target)) {
-    const timeAgo = await $.db.get('users.seen', { name: target }) |>
-      distanceInWordsToNow
+  if (await $.user.existsByName(target)) {
+    const timeAgo = await $.db.get('users.seen', { name: target })
+      |> formatDistanceToNow
 
     e.respond($.weave('last-seen.response', target, timeAgo))
   } else {
@@ -166,6 +183,9 @@ export const lastSeen = async ($, e) => {
   }
 }
 
+/**
+ * @param {Core} $
+ */
 export const setup = async $ => {
   $.addCommand('command', {
     cooldown: 0,

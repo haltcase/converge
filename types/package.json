@@ -1,0 +1,20 @@
+{
+  "name": "@converge/types",
+  "version": "1.0.0-alpha.1",
+  "description": "TypeScript definitions for the converge Twitch bot.",
+  "author": "Bo Lingen <lingenbw@gmail.com> (https://github.com/citycide)",
+  "license": "MIT",
+  "repository": "https://github.com/citycide/converge",
+  "keywords": [
+    "cli",
+    "cli-app",
+    "twitch",
+    "bot",
+    "typescript",
+    "types",
+    "converge"
+  ],
+  "files": [
+    "*.d.ts"
+  ]
+}

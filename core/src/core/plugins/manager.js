@@ -80,8 +80,8 @@ const handlePluginFetchError = error => {
 }
 
 const getDependencies =
-  _ |> toPackageName |> join(modulesPath, _, 'package.json') |>
-    readAsync(_, 'json').then(it.dependencies || {})
+  _ |> toPackageName |> join(modulesPath, _, 'package.json')
+    |> readAsync(_, 'json').then(it.dependencies || {})
 
 const isCompatible = range =>
   satisfies(appVersion, range, { includePrerelease: true })
@@ -103,8 +103,8 @@ export const installPlugin = async (context, spec, {
   const pkgRoot = join(installPath, name)
 
   if (!isLocal && !exists(pkgRoot)) {
-    ;(isTransitive ? 'dependency' : 'plugin') |>
-      log.trace(`installing ${_} ${name} from npm`)
+    ;(isTransitive ? 'dependency' : 'plugin')
+      |> log.trace(`installing ${_} ${name} from npm`)
 
     if (!_resolved) return false
 

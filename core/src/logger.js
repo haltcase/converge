@@ -3,6 +3,9 @@ import loggerNeue from 'logger-neue'
 
 import { paths } from './constants'
 
+/**
+ * @type {import('@converge/types/index').LogApi}
+ */
 export default loggerNeue({
   file: {
     path: join(paths.log, 'app.log'),

@@ -1,13 +1,15 @@
 /**
- * 8ball - answers yes/no questions in vague, unhelpful ways
- *
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
+/**
  * @command 8ball
  * @usage !8ball (question)
  *
- * @source stock module
- * @author citycide
+ * @param {Core} $
+ * @param {ChatEvent} e
  */
-
 export const magicBall = async ($, e) => {
   if (!e.args.length) {
     e.respond($.weave('usage'))
@@ -47,9 +49,9 @@ export const magicBall = async ($, e) => {
       return
     }
 
-    let id = parseInt(e.subArgs[0])
+    const id = parseInt(e.subArgs[0])
     if (await $.db.remove('ball', { id })) {
-      let count = $.db.count('ball')
+      const count = $.db.count('ball')
       e.respond($.weave('remove.success', count))
     } else {
       e.respond($.weave('remove.failure', id))
@@ -69,8 +71,8 @@ export const magicBall = async ($, e) => {
       return
     }
 
-    let id = parseInt(e.subArgs[0])
-    let value = e.subArgs.slice(1).join(' ')
+    const id = parseInt(e.subArgs[0])
+    const value = e.subArgs.slice(1).join(' ')
 
     if (await $.db.set('ball.value', { id }, value)) {
       e.respond($.weave('edit.success', id))
@@ -90,6 +92,9 @@ export const magicBall = async ($, e) => {
   }
 }
 
+/**
+ * @param {Core} $
+ */
 const initResponses = async $ => {
   $.log('8ball', 'No 8ball responses found, adding some defaults...')
 
@@ -107,6 +112,9 @@ const initResponses = async $ => {
   $.log('8ball', `Done. ${defaults.length} default 8ball responses added.`)
 }
 
+/**
+ * @param {Core} $
+ */
 export const setup = async $ => {
   $.addCommand('8ball', {
     handler: 'magicBall',

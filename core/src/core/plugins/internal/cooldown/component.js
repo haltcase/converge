@@ -1,5 +1,13 @@
+/**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
 import { matches } from 'stunsail'
 
+/**
+ * @param {Core}
+ */
 let $ = null
 const cooldowns = []
 
@@ -96,6 +104,9 @@ const getIndex = async (cmd, user, sub) => {
 }
 
 export default {
+  /**
+   * @param {Core} context
+   */
   setup (context) {
     $ = context
 
@@ -110,6 +121,10 @@ export default {
     })
   },
 
+  /**
+   * @param {Core} $
+   * @param {ChatEvent} e
+   */
   async beforeCommand ($, e) {
     const timeLeft = await isOnCooldown(e.command, e.sender, e.subcommand)
 
@@ -126,6 +141,10 @@ export default {
     // return '40504'
   },
 
+  /**
+   * @param {Core} $
+   * @param {ChatEvent} e
+   */
   afterCommand ($, e) {
     return startCooldown(e.command, e.sender, e.subcommand)
   }

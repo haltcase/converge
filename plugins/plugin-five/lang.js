@@ -1,3 +1,6 @@
+/**
+ * @param {import('@converge/types/index').Core} $
+ */
 export default $ => {
   $.weave.set('usage', 'Usage: !five [target] | (add | remove | edit)')
 

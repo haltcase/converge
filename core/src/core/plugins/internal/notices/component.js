@@ -1,6 +1,15 @@
+/**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
 import { get } from 'stunsail'
 
+/**
+ * @type {Core}
+ */
 let $ = null
+
 let lines = 0
 
 const getMessage = name =>
@@ -65,16 +74,10 @@ const run = async lastNotice => {
     $.user.count >= $.to.number(userLimit) &&
     lines >= $.to.number(chatLines)
   ) {
-    await $.runCommand({
-      id: $.botID,
-      sender: $.botName,
-      mention: `@${$.botName}`,
-      mod: true,
-      command: thisNotice,
-      args: [],
-      argString: ''
-    })
+    const event = await $.createChatEvent()
+    event.command = thisNotice
 
+    await $.runCommand(event)
     lines = 0
   }
 
@@ -82,6 +85,9 @@ const run = async lastNotice => {
 }
 
 export default {
+  /**
+   * @param {Core} context
+   */
   async setup (context) {
     $ = context
 

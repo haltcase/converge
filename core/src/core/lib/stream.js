@@ -1,23 +1,34 @@
 import { _ } from 'param.macro'
 
-import { reduce } from 'stunsail'
+import FP from 'functional-promises'
 
+import { getInstance } from '../bot'
 import duration from '../util/duration'
 
 /**
- * TODO: mark users as seen and add them to the
- * database, or update the existing record
+ * @param {import('@converge/types/index').Core} context
+ * @param {import('twitch/lib/index').ChattersList} chatters
  */
-const parseChatterList = (context, chatters) =>
-  reduce(chatters, (acc, group) => {
-    acc.count += group.length
-    acc.list = [...acc.list, ...group]
-    return acc
-  }, { count: 0, list: [] })
+const parseChatterList = (context, chatters) => {
+  const { allChatters } = chatters
+
+  context.user.resolveIdList(allChatters)
+    .then(({ id, name }) =>
+      context.db.updateOrCreate('users', { id }, {
+        name,
+        seen: new Date()
+      })
+    )
+
+  return {
+    count: allChatters.length,
+    list: allChatters
+  }
+}
 
 const pollChatUsers = (context, getter) =>
   getter()
-    .then(parseChatterList(context, _.chatters))
+    .then(parseChatterList(context, _))
     .then(({ count, list }) => {
       context.user.list = list
       context.user.count = count
@@ -25,47 +36,42 @@ const pollChatUsers = (context, getter) =>
     })
 
 const pollStreamInfo = async (context, getter) => {
+  /**
+   * TODO: why do I have to manually point to the index file?
+   * @type {import('twitch/lib/index').HelixStream}
+   */
   const data = await getter()
-  const isLive = data?.stream
-  let game, status, created
+  const isLive = data !== null
 
   if (!isLive) {
-    game = ''
-    status = ''
-    created = 0
+    Object.assign(context.stream, {
+      isLive,
+      game: '',
+      status: '',
+      uptime: 'offline'
+    })
   } else {
-    ;({ game, created_at: created } = data.stream)
-    ;({ status } = data.stream.channel)
-    created = new Date(created).valueOf()
+    Object.assign(context.stream, {
+      isLive,
+      game: (await data.getGame())?.name ?? '',
+      status: data.title,
+      uptime: Date.now() - data.startDate.valueOf() |> duration
+    })
   }
-
-  const since = Date.now() - created
-  const uptime = isLive ? duration(since) : 'offline'
-
-  Object.assign(context.stream, {
-    isLive,
-    game,
-    status,
-    uptime
-  })
 }
 
-export default context => {
-  const getStreamInfo = id => {
-    id = id || context.ownerID
-    return context.api(`streams/${id}?ts=${Date.now()}`)
-  }
+/**
+ * @param {import('@converge/types/index').Core} context
+ */
+export default async context => {
+  const { client } = await getInstance()
 
-  const getChatUsers = name => {
-    name = name || context.ownerName
-    const base = 'https://tmi.twitch.tv/group/user/'
-    return context.api(`${base}${name}/chatters?ts=${Date.now()}`)
-      // eslint-disable-next-line camelcase
-      .then(({ chatter_count = 0, chatters = 0 } = {}) => {
-        // eslint-disable-next-line camelcase
-        return { count: chatter_count, chatters }
-      })
-  }
+  const getStreamInfo = id =>
+    String(id || context.ownerId)
+    |> client.helix.streams.getStreamByUserId
+
+  const getChatUsers = name =>
+    client.unsupported.getChatters(name || context.ownerName)
 
   context.on('ready', () => {
     const poll = () => {

@@ -12,8 +12,8 @@ import { name, paths } from './constants'
 
 const flags = args
   .option('config', 'Path to configuration file, defaults to OS config directory.')
-  .option(['f', 'log-file'], `Control amount of log file output, defaults to 'error'.`, 'error')
-  .option(['l', 'log-console'], `Control amount of console output, defaults to 'info'`, 'info')
+  .option(['f', 'log-file'], 'Control amount of log file output, defaults to \'error\'.', 'error')
+  .option(['l', 'log-console'], 'Control amount of console output, defaults to \'info\'', 'info')
   .parse(process.argv, { name })
 
 const options = {}
@@ -46,6 +46,7 @@ run(options).then(({ core, log }) => {
   log.on('log', () => term.prompt(true))
 
   // TODO?: support running commands from terminal
+  // TODO?: use unix-like command parsing (support arguments, flags, etc)
   term.on('line', line => {
     if (line.trim() === '') return term.prompt()
     const words = line.split(' ')
@@ -61,18 +62,19 @@ run(options).then(({ core, log }) => {
         // whisper a user as bot
         core.whisper(words[1], words.slice(2).join(' '))
         break
-      case 'open':
+      case 'open': {
         // open an app directory
         const choices = Object.keys(paths)
         if (includes(choices, words[1])) {
           open(paths[words[1]])
         } else {
-          choices.join(', ') |>
-            log.error(`\n\ninvalid option, choices: ${_}`)
+          choices.join(', ')
+            |> log.error(`\n\ninvalid option, choices: ${_}`)
         }
 
         break
-      case 'status':
+      }
+      case 'status': {
         const { count } = core.user
         const s = count === 1 ? '' : 's'
         log.info(`Stream is ${core.stream.isLive ? 'online' : 'offline'}`)
@@ -83,6 +85,7 @@ run(options).then(({ core, log }) => {
         }
         log.info(`${count} user${s} in chat`)
         break
+      }
       case 'plugin':
         switch (words[1]) {
           case 'install':

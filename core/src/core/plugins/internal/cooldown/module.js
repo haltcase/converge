@@ -1,3 +1,12 @@
+/**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
+/**
+ * @param {Core} $
+ * @param {ChatEvent} e
+ */
 export const cooldown = async ($, e) => {
   switch (e.subcommand) {
     case 'get': return get($, e)
@@ -7,6 +16,10 @@ export const cooldown = async ($, e) => {
   }
 }
 
+/**
+ * @param {Core} $
+ * @param {ChatEvent} e
+ */
 const get = async ($, e) => {
   const [cmd, sub] = e.subArgs
   const subStr = sub ? ` ${sub}` : ''
@@ -24,6 +37,10 @@ const get = async ($, e) => {
   return e.respond($.weave('get.response', cmd, sub, cool))
 }
 
+/**
+ * @param {Core} $
+ * @param {ChatEvent} e
+ */
 const set = async ($, e) => {
   const [cmd, sub, val] = e.subArgs
 
@@ -31,40 +48,43 @@ const set = async ($, e) => {
     return e.respond($.weave('set.usage'))
   }
 
-  switch (e.subArgs.length) {
-    case 2:
-      // provided a command and cooldown value only
-      const num = parseInt(sub)
+  if (e.subArgs.length === 2) {
+    // provided a command and cooldown value only
+    const num = parseInt(sub)
 
-      if ($.is.number(num)) {
-        return e.respond($.weave('set.usage'))
-      }
-
-      if (!await $.command.exists(cmd)) {
-        return e.respond($.weave.core('commands.does-not-exist'))
-      }
-
-      await $.command.setCooldown(cmd, num)
-      return e.respond($.weave('set.success', cmd, num))
-    case 3:
-      // provided a command, subcommand, and cooldown value
-      const subNum = parseInt(val)
-
-      if (!$.is.number(subNum)) {
-        return e.respond($.weave('set.usage'))
-      }
-
-      if (!await $.command.exists(cmd, sub)) {
-        return e.respond($.weave.core('commands.does-not-exist'))
-      }
-
-      await $.command.setCooldown(cmd, subNum, sub)
-      return e.respond($.weave('set.success-sub', cmd, sub, subNum))
-    default:
+    if ($.is.number(num)) {
       return e.respond($.weave('set.usage'))
+    }
+
+    if (!await $.command.exists(cmd)) {
+      return e.respond($.weave.core('commands.does-not-exist'))
+    }
+
+    await $.command.setCooldown(cmd, num)
+    return e.respond($.weave('set.success', cmd, num))
+  } else if (e.subArgs.length === 3) {
+    // provided a command, subcommand, and cooldown value
+    const subNum = parseInt(val)
+
+    if (!$.is.number(subNum)) {
+      return e.respond($.weave('set.usage'))
+    }
+
+    if (!await $.command.exists(cmd, sub)) {
+      return e.respond($.weave.core('commands.does-not-exist'))
+    }
+
+    await $.command.setCooldown(cmd, subNum, sub)
+    return e.respond($.weave('set.success-sub', cmd, sub, subNum))
+  } else {
+    return e.respond($.weave('set.usage'))
   }
 }
 
+/**
+ * @param {Core} $
+ * @param {ChatEvent} e
+ */
 const admin = async ($, e) => {
   const [status] = e.subArgs
 
@@ -77,6 +97,9 @@ const admin = async ($, e) => {
   e.respond($.weave('admin.response', bool ? 'enabled' : 'disabled'))
 }
 
+/**
+ * @param {Core} $
+ */
 export const setup = $ => {
   $.addCommand('cooldown', { permission: 1 })
   $.addSubcommand('get', 'cooldown')

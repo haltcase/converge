@@ -1,3 +1,8 @@
+/**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
 const getName = $ => level =>
   $.db.get('groups.name', { level })
 
@@ -8,20 +13,23 @@ const getUserGroup = $ => async user => {
   const _user = $.is.object(user) ? user : { 'display-name': user }
   const { 'display-name': username, 'user-type': userType } = _user
 
-  let defaultGroupID = 5
-  if (userType === 'mod') defaultGroupID = 1
-  if (await $.user.isAdmin(username)) defaultGroupID = 0
+  let defaultGroupId = 5
+  if (userType === 'mod') defaultGroupId = 1
+  if (await $.user.isAdmin(username)) defaultGroupId = 0
 
-  const _groupID = await $.db.get('users.permission', { name: username })
-  if (_groupID >= 0) return _groupID
+  const groupId = await $.db.get('users.permission', { name: username })
+  if (groupId >= 0) return groupId
 
   $.log.debug('groups',
-    `getUserGroup: assigning default group to ${username} (level ${defaultGroupID})`
+    `getUserGroup: assigning default group to ${username} (level ${defaultGroupId})`
   )
-  await $.db.set('users.name', { permission: defaultGroupID }, username)
-  return defaultGroupID
+  await $.db.set('users.name', { permission: defaultGroupId }, username)
+  return defaultGroupId
 }
 
+/**
+ * @param {Core} $
+ */
 const initGroups = async $ => {
   await $.db.addTableCustom('groups', {
     level: { type: Number, primary: true },
@@ -56,6 +64,9 @@ const initGroups = async $ => {
 }
 
 export default {
+  /**
+   * @param {Core} $
+   */
   setup ($) {
     $.extend({
       user: {
@@ -71,6 +82,10 @@ export default {
     return initGroups($)
   },
 
+  /**
+   * @param {Core} $
+   * @param {ChatEvent} e
+   */
   async beforeCommand ($, e) {
     const { sender, command, subcommand, groupID } = e
     const required = await $.command.getPermLevel(command, subcommand)

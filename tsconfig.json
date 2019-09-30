@@ -1,0 +1,21 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "allowJs": true,
+    "noEmit": true,
+    "strict": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "lib": ["esnext"],
+    "baseUrl": ".",
+    "paths": {
+      "*": ["./node_modules/*"],
+      "~core/*": ["./core/src/core/*"]
+    }
+  },
+  "include": [
+    "core",
+    "plugins",
+    "types"
+  ]
+}

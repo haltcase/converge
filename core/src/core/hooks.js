@@ -40,14 +40,15 @@ export const callHook = (name, ...args) => {
   args.unshift(context)
 
   context.emit(name, ...args)
-  hooks[name] && hooks[name].forEach(it.apply(context, args))
+  hooks[name]?.forEach(it.apply(context, args))
 }
 
-export const callHookAndWait = (name, ...args) => {
-  const hookList = getOr(hooks, name, [])
-  if (!hookList.length) return
-
+export const callHookAndWait = async (name, ...args) => {
   const context = loadHooks()
+  const hookList = getOr(hooks, name, [])
+
+  if (!hookList.length && !context.listeners(name).length) return
+
   args.unshift(context)
 
   return FP.all([

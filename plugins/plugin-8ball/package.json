@@ -14,6 +14,7 @@
     "converge": ">=1.0.0-alpha.1"
   },
   "converge": {
+    "description": "Answers yes/no questions in vague, unhelpful ways",
     "files": {
       "module": "./module.js",
       "component": "",

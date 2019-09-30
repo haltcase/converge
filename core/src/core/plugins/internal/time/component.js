@@ -1,5 +1,13 @@
+/**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
 import { map } from 'stunsail'
 
+/**
+ * @type {Core}
+ */
 let $ = null
 
 const getPayoutInterval = async offline => {
@@ -59,6 +67,9 @@ const handlePayouts = async (lastPayout = Date.now(), lastUserList = []) => {
 }
 
 export default {
+  /**
+   * @param {Core} context
+   */
   async setup (context) {
     $ = context
 

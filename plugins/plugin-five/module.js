@@ -1,13 +1,22 @@
 /**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
+/**
  * five - mostly highs, but sometimes low-fives
- *
- * @command five
- * @usage !five [target]
  *
  * @source stock module
  * @author citycide
  */
 
+/**
+ * @command five
+ * @usage !five [target]
+ *
+ * @param {Core} $
+ * @param {ChatEvent} e
+ */
 export const five = async ($, e) => {
   if (e.subcommand === 'add') {
     if (!e.subArgs[0]) {
@@ -37,9 +46,9 @@ export const five = async ($, e) => {
       return
     }
 
-    let id = parseInt(e.subArgs[0])
+    const id = parseInt(e.subArgs[0])
     if (await $.db.remove('five', { id })) {
-      let count = $.db.count('five')
+      const count = $.db.count('five')
       e.respond($.weave('remove.success', count))
     } else {
       e.respond($.weave('remove.failure', id))
@@ -59,8 +68,8 @@ export const five = async ($, e) => {
       return
     }
 
-    let id = parseInt(e.subArgs[0])
-    let value = e.subArgs.slice(1).join(' ')
+    const id = parseInt(e.subArgs[0])
+    const value = e.subArgs.slice(1).join(' ')
 
     if (await $.db.set('five.value', { id }, value)) {
       e.respond($.weave('edit.success', id))
@@ -119,6 +128,9 @@ const initResponses = async $ => {
   $.log('five', `Done. ${defaults.length} default five responses added.`)
 }
 
+/**
+ * @param {Core} $
+ */
 export const setup = async $ => {
   $.addCommand('five')
 

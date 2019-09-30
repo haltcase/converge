@@ -1,3 +1,12 @@
+/**
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
+/**
+ * @param {Core} $
+ * @param {ChatEvent} e
+ */
 export const points = async ($, e) => {
   const [action, target, amount] = e.args
   const parsedAmount = $.to.number(amount, true)
@@ -71,6 +80,9 @@ export const points = async ($, e) => {
   }
 }
 
+/**
+ * @param {Core} $
+ */
 export const setup = $ => {
   $.addCommand('points')
   $.addSubcommand('add', 'points', { permission: 1 })

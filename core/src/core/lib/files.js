@@ -19,13 +19,22 @@ import { paths } from '../../constants'
 
 const chatLogFormat = strat('[{ts}] {sender} -> {message}')
 
+/**
+ * @function
+ * @param {string}
+ * @returns {boolean}
+ */
 const pathExists = exists(_) === 'file'
 
+/**
+ * @param {string} path
+ * @returns {string}
+ */
 const sanitize = async path => {
   if (isAbsolute(path)) {
     if (!path || !isSubdirectory(path, paths.content)) {
       const message =
-        `File paths must be within the bot's content directory ` +
+        'File paths must be within the bot\'s content directory ' +
         `(${paths.content})`
 
       log.error(message)
@@ -36,6 +45,10 @@ const sanitize = async path => {
   return resolve(paths.content, path)
 }
 
+/**
+ * @param {unknown} data
+ * @returns {string}
+ */
 const serialize = data => {
   if (typeof data === 'string') {
     return data
@@ -52,9 +65,20 @@ const serialize = data => {
   return isPrimitive(data) ? String(data) : data
 }
 
+/**
+ * @param {string} path
+ * @param {{ json: boolean }} [options]
+ * @returns {Promise}
+ */
 const read = (path, { json = false } = {}) =>
-  sanitize(path).then(p => readAsync(p, json ? 'json' : undefined))
+  sanitize(path).then(cleaned => readAsync(cleaned, json ? 'json' : undefined))
 
+/**
+ * @param {string} path
+ * @param {any} data
+ * @param {{ append: boolean }} [options]
+ * @returns {Promise}
+ */
 const write = (path, data, { append = false } = {}) =>
   sanitize(path).then(cleanPath => {
     const writeable = `${serialize(data)}${append ? EOL : ''}`
@@ -64,6 +88,9 @@ const write = (path, data, { append = false } = {}) =>
       : writeAsync(cleanPath, writeable)
   })
 
+/**
+ * @param {import('@converge/types/index').Core} context
+ */
 export default async context => {
   context.extend({
     file: {

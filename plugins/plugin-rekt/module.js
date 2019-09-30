@@ -1,13 +1,15 @@
 /**
- * rekt - responds with a random rekt-notrekt message
- *
+ * @typedef {import('@converge/types/index').Core} Core
+ * @typedef {import('@converge/types/index').ChatEvent} ChatEvent
+ */
+
+/**
  * @command rekt
  * @usage !rekt
  *
- * @source stock module
- * @author citycide
+ * @param {Core } $
+ * @param {ChatEvent } e
  */
-
 export const rekt = async ($, e) => {
   if (!e.args.length) {
     const response = await $.db.getRandomRow('rekt')
@@ -79,6 +81,9 @@ export const rekt = async ($, e) => {
   }
 }
 
+/**
+ * @param {Core} $
+ */
 const initResponses = async $ => {
   $.log('rekt', 'No rekt responses found, adding some defaults...')
 
@@ -160,6 +165,9 @@ const initResponses = async $ => {
   $.log('rekt', `Done. ${defaults.length} default rekt responses added.`)
 }
 
+/**
+ * @param {Core} $
+ */
 export const setup = async $ => {
   $.addCommand('rekt', { cooldown: 60 })
 
