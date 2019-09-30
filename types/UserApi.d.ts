@@ -7,7 +7,7 @@ export interface UserApi {
   isSubscriber (id: string): Promise<boolean>
   getIdByName (name: string): Promise<boolean>
   resolveIdByName (name: string): Promise<boolean>
-  resolveIdList (names: string[]): Promise<Record<string, string>>
+  resolveUserList (names: string[]): Promise<Record<string, HelixUser>>
   resolveNameById (id: string): Promise<string>
   resolveUserById (id: string): Promise<HelixUser>
   setAdmin (id: string, status: boolean): Promise<boolean>

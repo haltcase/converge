@@ -27,9 +27,9 @@ export default async context => {
   const resolveIdByName = async name =>
     client.helix.users.getUserByName(name).then(it?.id)
 
-  const resolveIdList = async names => {
+  const resolveUserList = async names => {
     if (!Array.isArray(names)) {
-      context.log.error(`resolveIdList expected array, got ${typeof names}`)
+      context.log.error(`resolveUserList expected array, got ${typeof names}`)
       return []
     }
 
@@ -111,7 +111,7 @@ export default async context => {
       isSubscriber,
       getIdByName,
       resolveIdByName,
-      resolveIdList,
+      resolveUserList,
       resolveNameById,
       resolveUserById,
       setAdmin,

@@ -12,13 +12,15 @@ import duration from '../util/duration'
 const parseChatterList = (context, chatters) => {
   const { allChatters } = chatters
 
-  context.user.resolveIdList(allChatters)
-    .then(({ id, name }) =>
-      context.db.updateOrCreate('users', { id }, {
-        name,
-        seen: new Date()
-      })
-    )
+  allChatters
+  |> context.user.resolveUserList
+  |> FP.resolve(_).then(Object.entries)
+  |> _.map(([_, user]) =>
+    context.db.updateOrCreate('users', { id: user.id }, {
+      name: user.name,
+      seen: new Date()
+    })
+  )
 
   return {
     count: allChatters.length,
