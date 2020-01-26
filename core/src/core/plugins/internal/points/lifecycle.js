@@ -54,7 +54,7 @@ const setPointName = (name, singular) => {
 const getPayoutAmount = async offline => {
   const amount = offline
     ? await $.db.getConfig('pointPayoutOffline', -1)
-    : await $.db.getConfig('pointPayout', 6)
+    : await $.db.getConfig('pointPayout', 10)
 
   return $.to.int(amount)
 }
@@ -69,7 +69,7 @@ const setPayoutAmount = (amount, offline) => {
 const getPayoutInterval = async offline => {
   const interval = offline
     ? await $.db.getConfig('pointIntervalOffline', '-1s')
-    : await $.db.getConfig('pointInterval', '5s')
+    : await $.db.getConfig('pointInterval', '5m')
 
   return interval === '-1s' ? 0 : $.tick.ms(interval)
 }
