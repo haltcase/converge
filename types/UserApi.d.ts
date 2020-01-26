@@ -1,11 +1,13 @@
-import { HelixUser } from 'twitch/lib/index'
+import { HelixUser } from 'twitch'
 
 export interface UserApi {
   isAdmin (id: string): Promise<boolean>
   isFollower (id: string): Promise<boolean>
   isMod (id: string): Promise<boolean>
   isSubscriber (id: string): Promise<boolean>
+  getFollowerCount (id: string): Promise<number>
   getIdByName (name: string): Promise<boolean>
+  getNameById (id: string): Promise<boolean>
   resolveIdByName (name: string): Promise<boolean>
   resolveUserList (names: string[]): Promise<Record<string, HelixUser>>
   resolveNameById (id: string): Promise<string>

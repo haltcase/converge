@@ -59,7 +59,7 @@ const serialize = data => {
   }
 
   if (isArrayLike(data)) {
-    return data |> toArray |> JSON.stringify(_, null, 2)
+    return JSON.stringify(toArray(data), null, 2)
   }
 
   return isPrimitive(data) ? String(data) : data
@@ -89,7 +89,7 @@ const write = (path, data, { append = false } = {}) =>
   })
 
 /**
- * @param {import('@converge/types/index').Core} context
+ * @param {import('@converge/types').Core} context
  */
 export default async context => {
   context.extend({

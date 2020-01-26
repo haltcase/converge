@@ -7,14 +7,7 @@
     "converge-plugin",
     "admin"
   ],
-  "engines": {
-    "converge": ">=1.0.0-alpha.1"
-  },
   "converge": {
-    "files": {
-      "module": "./module.js",
-      "component": "",
-      "language": "./lang.js"
-    }
+    "version": ">=1.0.0-alpha.1"
   }
 }

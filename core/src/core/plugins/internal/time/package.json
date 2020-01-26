@@ -8,14 +8,7 @@
     "tracking",
     "time"
   ],
-  "engines": {
-    "converge": ">=1.0.0-alpha.1"
-  },
   "converge": {
-    "files": {
-      "module": "",
-      "component": "./component.js",
-      "language": ""
-    }
+    "version": ">=1.0.0-alpha.1"
   }
 }

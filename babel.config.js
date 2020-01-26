@@ -11,8 +11,7 @@ module.exports = {
       // using esm instead
       modules: false,
       loose: true
-    }],
-    ['@babel/typescript']
+    }]
   ],
   plugins: [
     'babel-plugin-macros',
@@ -21,9 +20,7 @@ module.exports = {
     '@babel/proposal-class-properties',
     '@babel/proposal-do-expressions',
     '@babel/proposal-function-bind',
-    '@babel/proposal-nullish-coalescing-operator',
     '@babel/proposal-numeric-separator',
-    '@babel/proposal-optional-chaining',
     ['@babel/proposal-pipeline-operator', {
       proposal: 'fsharp'
     }],

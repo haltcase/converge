@@ -1,3 +1,3 @@
 export interface SleepApi {
-  (ms: number): Promise<void>
+  (ms: number): Promise<undefined>
 }

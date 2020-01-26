@@ -12,12 +12,8 @@
     "repeat",
     "example"
   ],
+  "main": "src/index.js",
   "converge": {
-    "engine": ">=1.0.0-alpha.1",
-    "files": {
-      "module": "./module.js",
-      "component": "./component.js",
-      "language": ""
-    }
+    "version": ">=1.0.0-alpha.1"
   }
 }

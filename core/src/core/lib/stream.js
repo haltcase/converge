@@ -6,21 +6,25 @@ import { getInstance } from '../bot'
 import duration from '../util/duration'
 
 /**
- * @param {import('@converge/types/index').Core} context
- * @param {import('twitch/lib/index').ChattersList} chatters
+ * @typedef {import('@converge/types').Core} Core
+ * @typedef {import('twitch').HelixStream} HelixStream
+ */
+
+/**
+ * @param {Core} context
+ * @param {import('twitch').ChattersList} chatters
  */
 const parseChatterList = (context, chatters) => {
   const { allChatters } = chatters
 
-  allChatters
-  |> context.user.resolveUserList
-  |> FP.resolve(_).then(Object.entries)
-  |> _.map(([_, user]) =>
-    context.db.updateOrCreate('users', { id: user.id }, {
-      name: user.name,
-      seen: new Date()
-    })
-  )
+  FP.resolve(context.user.resolveUserList(allChatters))
+    .then(Object.entries)
+    .map(([_, user]) =>
+      context.db.updateOrCreate('users', { id: user.id }, {
+        name: user.name,
+        seen: new Date()
+      })
+    )
 
   return {
     count: allChatters.length,
@@ -28,6 +32,10 @@ const parseChatterList = (context, chatters) => {
   }
 }
 
+/**
+ * @param {Core} context
+ * @param {(name: string) => Promise<ChattersList>} getter
+ */
 const pollChatUsers = (context, getter) =>
   getter()
     .then(parseChatterList(context, _))
@@ -37,10 +45,13 @@ const pollChatUsers = (context, getter) =>
       return { count, list }
     })
 
+/**
+ * @param {Core} context
+ * @param {(name: string) => Promise<HelixStream | null>} getter
+ */
 const pollStreamInfo = async (context, getter) => {
   /**
-   * TODO: why do I have to manually point to the index file?
-   * @type {import('twitch/lib/index').HelixStream}
+   * @type {import('twitch').HelixStream}
    */
   const data = await getter()
   const isLive = data !== null
@@ -57,21 +68,26 @@ const pollStreamInfo = async (context, getter) => {
       isLive,
       game: (await data.getGame())?.name ?? '',
       status: data.title,
-      uptime: Date.now() - data.startDate.valueOf() |> duration
+      uptime: duration(Date.now() - data.startDate.valueOf())
     })
   }
 }
 
 /**
- * @param {import('@converge/types/index').Core} context
+ * @param {Core} context
  */
 export default async context => {
   const { client } = await getInstance()
 
+  /**
+   * @param {string} id
+   */
   const getStreamInfo = id =>
-    String(id || context.ownerId)
-    |> client.helix.streams.getStreamByUserId
+    client.helix.streams.getStreamByUserId(String(id || context.ownerId))
 
+  /**
+   * @param {string} name
+   */
   const getChatUsers = name =>
     client.unsupported.getChatters(name || context.ownerName)
 

@@ -4,7 +4,7 @@ import loggerNeue from 'logger-neue'
 import { paths } from './constants'
 
 /**
- * @type {import('@converge/types/index').LogApi}
+ * @type {import('@converge/types').LogApi}
  */
 export default loggerNeue({
   file: {

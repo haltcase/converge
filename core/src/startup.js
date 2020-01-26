@@ -1,3 +1,8 @@
+/**
+ * @typedef {import('@converge/types').CoreConfig} CoreConfig
+ * @typedef {import('@converge/types').CoreOptions} CoreOptions
+ */
+
 import http from 'http'
 import { join } from 'path'
 import { URL } from 'url'
@@ -13,6 +18,9 @@ import Core from './core'
 import log from './logger'
 import { paths } from './constants'
 
+/**
+ * @param {Record<string, string>} params
+ */
 const toQueryParams = params => {
   let result = '?'
 
@@ -25,6 +33,11 @@ const toQueryParams = params => {
   return result
 }
 
+/**
+ * @param {CoreConfig} config
+ * @param {CoreOptions} options
+ * @returns {Promise<void>}
+ */
 const getAuthorization = (config, options) => {
   return new Promise((resolve, reject) => {
     const { port, hostname } = new URL(config.redirectUri)
@@ -63,6 +76,10 @@ const getAuthorization = (config, options) => {
   })
 }
 
+/**
+ * @param {CoreConfig} config
+ * @param {CoreOptions} options
+ */
 const getAccessToken = async (config, options) => {
   const code = await getAuthorization(config, options)
   const params = toQueryParams({
@@ -81,17 +98,26 @@ const getAccessToken = async (config, options) => {
   }
 }
 
+/**
+ * @param {string} token
+ * @returns {Promise<{ valid: boolean }>}
+ */
 const getTokenStatus = token =>
   got('https://id.twitch.tv/oauth2/validate', {
-    json: true,
     headers: {
       Authorization: `OAuth ${token}`
-    }
+    },
+    responseType: 'json'
   }).then(
     ({ body }) => ({ valid: true, ...body }),
     ({ body }) => ({ valid: false, ...body })
   )
 
+/**
+ * @param {CoreConfig} config
+ * @param {boolean} isBot
+ * @returns {Promise<{ valid: boolean }>}
+ */
 export const validateToken = async (config, isBot) => {
   if (isBot && (!config.bot?.auth || !config.bot?.refreshToken)) {
     return { valid: false }
@@ -113,9 +139,13 @@ export const validateToken = async (config, isBot) => {
   return result
 }
 
+/**
+ * @param {CoreConfig} config
+ * @param {CoreOptions} options
+ */
 export default async (config, options) => {
   log.trace('starting up...')
-  options.db = join(paths.data, 'bot.db') |> connect
+  options.db = connect(join(paths.data, 'bot.db'))
 
   if (!config.owner?.auth || !config.owner?.refreshToken) {
     log.info('Please authenticate the owner\'s Twitch account...')
@@ -157,7 +187,7 @@ export default async (config, options) => {
     }
   }
 
-  await writeAsync(options.configPath, config |> TOML.stringify)
+  await writeAsync(options.configPath, TOML.stringify(config))
 
   return new Core(config, options)
 }

@@ -1,24 +1,24 @@
 interface LabelSet {
-  days: string,
-  hours: string,
-  minutes: string,
-  seconds: string,
+  days: string
+  hours: string
+  minutes: string
+  seconds: string
   milliseconds: string
 }
 
 interface DurationOptions {
-  labels: LabelSet,
-  includeMilliseconds: boolean,
-  removeZeroes: boolean,
-  template: string,
+  labels: LabelSet
+  includeMilliseconds: boolean
+  removeZeroes: boolean
+  template: string
   minimal: boolean
 }
 
 interface DurationInstance {
-  days: number,
-  hours: number,
-  minutes: number,
-  seconds: number,
+  days: number
+  hours: number
+  minutes: number
+  seconds: number
   milliseconds: number
 }
 
@@ -27,8 +27,8 @@ export default interface Duration {
 
   parse: (ms: number) => DurationInstance
 
-  day: number,
-  hour: number,
-  minute: number,
+  day: number
+  hour: number
+  minute: number
   second: number
 }

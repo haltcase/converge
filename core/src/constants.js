@@ -5,9 +5,6 @@ import getPackageProps from 'npm-package-arg'
 
 import { name as pkgName } from '../package.json'
 
-/**
- * @type {string}
- */
 export const name = getPackageProps(pkgName).scope.substring(1)
 
 /**

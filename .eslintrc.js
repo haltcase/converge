@@ -1,4 +1,5 @@
 module.exports = {
+  root: true,
   parser: 'babel-eslint',
   parserOptions: {
     babelOptions: {
@@ -15,6 +16,7 @@ module.exports = {
     // these cause parsing errors
     'no-extra-parens': ['off'],
     'space-unary-ops': ['off'],
+    'no-useless-constructor': ['off'],
     quotes: ['error', 'single', {
       avoidEscape: true,
       allowTemplateLiterals: true

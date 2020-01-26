@@ -94,7 +94,7 @@ const getKeyPath = (callsite, key) => {
 }
 
 /**
- * @param {import('@converge/types/index').Core} context
+ * @param {import('@converge/types').Core} context
  */
 export default context => {
   const weave = (key, ...replacements) => {

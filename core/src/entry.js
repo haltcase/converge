@@ -46,7 +46,7 @@ const getQuestions = (required, current) =>
       validate (value) {
         if (setting.endsWith('Auth')) {
           // oauth token
-          return value.length |> isOneOf(_, [36, 30])
+          return isOneOf(value.length, [36, 30])
         } else if (setting === 'clientId') {
           return value.length === 31
         } else if (setting === 'clientSecret') {
@@ -85,11 +85,12 @@ const promptOrStart = async (questions, currentConfig, options) => {
 
 /**
  * @typedef {Object} BotCliInstance
- * @property {import('@converge/types/index').Core} core
- * @property {import('logger-neue/dist/index').LoggerNeue} log
+ * @property {import('@converge/types').Core} core
+ * @property {import('logger-neue').LoggerNeue} log
  */
 
 /**
+ * @param {import('@converge/types').StartupOptions} options
  * @returns {Promise<BotCliInstance>}
  */
 export default (options = {}) => {
@@ -115,14 +116,16 @@ export default (options = {}) => {
 
   const currentConfig = {
     ...defaultConfig,
-    ...(read(options.configPath) |> it || '' |> TOML.parse)
+    ...TOML.parse(read(options.configPath) || '')
   }
 
   if (options.skipPrompt) {
     return promptOrStart([], currentConfig, options)
   }
 
-  return getQuestions(required, currentConfig)
-    |> promptOrStart(_, currentConfig, options)
-      .then({ core: it, log })
+  return promptOrStart(
+    getQuestions(required, currentConfig),
+    currentConfig,
+    options
+  ).then({ core: it, log })
 }

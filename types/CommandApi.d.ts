@@ -1,12 +1,78 @@
+import { CommandRegistry, SubcommandRegistry } from './CommandAttributes'
+
 export interface CommandApi {
-  addAlias (name: string, original: string): boolean
-  removeAlias (name: string): boolean
-  getAlias (name: string): string
+  /**
+   * Create a command for `name` as an alias to `original`.
+   */
+  addAlias (name: string, original: string): Promise<boolean>
+
+  /**
+   * Remove an existing alias by name.
+   */
+  removeAlias (name: string): Promise<boolean>
+
+  /**
+   * Get the original command for which `name` is an alias.
+   */
+  getAlias (name: string): Promise<string>
+
+  /**
+   * Check whether the command `name` has been registered or not.
+   * `subcommand` may also be supplied to check whether or not it
+   * is registered as a subcommand to `name`.
+   */
   exists (name: string, subcommand?: string): boolean
 
+  /**
+   * Enable the given command/subcommand.
+   */
+  enable (name: string, subcommand?: string): void
+
+  /**
+   * Disable the given command/subcommand.
+   */
+  disable (name: string, subcommand?: string): void
+
+  /**
+   * Get the prefix defined in the bot's configuration, i.e. `!`.
+   */
   getPrefix (): Promise<string>
-  getProperty <T> (): T
-  setProperty <T> (): T
+
+  /**
+   * Retrieve a property of a registered command, i.e. `price`.
+   */
+  getProperty <K extends keyof CommandRegistry> (
+    name: string, property: K
+  ): CommandRegistry[K]
+
+  /**
+   * Retrieve a property of a registered subcommand, i.e. `price`.
+   */
+  getProperty <K extends keyof SubcommandRegistry> (
+    name: string, subcommand: string, property: K
+  ): SubcommandRegistry[K]
+
+  /**
+   * Update the value of `property` for the given command.
+   */
+  setProperty <K extends keyof CommandRegistry> (
+    name: string, property: K, value: CommandRegistry[K]
+  ): void
+
+  /**
+   * Update the value of `property` for the given subcommand.
+   */
+  setProperty <K extends keyof SubcommandRegistry> (
+    name: string, subcommand: string, property: K, value: CommandRegistry[K]
+  ): void
+
+  /**
+   * Check if the given command/subcommand is enabled or disabled.
+   */
   isEnabled (name: string, subcommand?: string): boolean
+
+  /**
+   * Get the permission level of the given command/subcommand.
+   */
   getPermLevel (name: string, subcommand?: string): number
 }

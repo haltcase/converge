@@ -1,9 +1,13 @@
+/**
+ * @typedef {import('@converge/types').Core} Core
+ */
+
 import { _, it } from 'param.macro'
 
 import { join, resolve } from 'path'
 import { extract, manifest } from 'pacote'
 import getPackageProps from 'npm-package-arg'
-import { satisfies } from 'semver'
+import satisfies from 'semver/functions/satisfies'
 import TOML from '@iarna/toml'
 
 import {
@@ -41,14 +45,26 @@ const readManifest = () =>
     .then(it || { ...defaultManifest })
     .catch(e => log.error(manifestParseError(e)), { ...defaultManifest })
 
+/**
+ * @returns {Promise<string[]>}
+ */
 export const getPlugins = () =>
   readManifest().then(it.plugins)
 
+/**
+ * @returns {Promise<string[]>}
+ */
 export const getLocalPlugins = () =>
   readManifest().then(it.localPlugins)
 
+/**
+ * @type {typeof getPackageProps}
+ */
 const toPackageName = getPackageProps(_).name
 
+/**
+ * @param {Core} context
+ */
 export const install = async context => {
   context.emit('plugins:install:start')
 
@@ -59,8 +75,8 @@ export const install = async context => {
   }
 
   for (const plugin of manifest.localPlugins) {
-    if (!(plugin |> toPackageName |> join(modulesPath, _) |> exists)) {
-      plugin |> localPluginNotFoundError |> log.warn
+    if (!exists(join(modulesPath, toPackageName(plugin)))) {
+      log.warn(localPluginNotFoundError(plugin))
     } else {
       await installPlugin(context, plugin, { isLocal: true })
     }
@@ -69,23 +85,38 @@ export const install = async context => {
   context.emit('plugins:install:done')
 }
 
+/**
+ * @param {Error} error
+ */
 const handlePluginFetchError = error => {
   if (error.code === 'E404') {
-    error |> pluginNotFoundError |> log.error
+    log.error(pluginNotFoundError(error))
   } else if (error.code === 'ETARGET') {
-    error.message.split('\n')[0] |> log.error
+    log.error(error.message.split('\n')[0])
   }
 
   return {}
 }
 
-const getDependencies =
-  _ |> toPackageName |> join(modulesPath, _, 'package.json')
-    |> readAsync(_, 'json').then(it.dependencies || {})
+/**
+ * @param {string} spec
+ */
+const getDependencies = spec => {
+  const path = join(modulesPath, toPackageName(spec), 'package.json')
+  return readAsync(path, 'json').then(it.dependencies || {})
+}
 
+/**
+ * @param {string} range
+ */
 const isCompatible = range =>
   satisfies(appVersion, range, { includePrerelease: true })
 
+/**
+ * @param {Core} context
+ * @param {string} spec
+ * @param {{ isLocal?: boolean, isTransitive?: boolean, installPath?: string }} options
+ */
 export const installPlugin = async (context, spec, {
   isTransitive = false,
   installPath = modulesPath,
@@ -95,7 +126,7 @@ export const installPlugin = async (context, spec, {
     name,
     dependencies,
     _resolved,
-    engines
+    [pluginPackageKey]: appData = {}
   } = isLocal
     ? { name: toPackageName(spec), dependencies: await getDependencies(spec) }
     : await manifest(spec).catch(handlePluginFetchError)
@@ -103,13 +134,13 @@ export const installPlugin = async (context, spec, {
   const pkgRoot = join(installPath, name)
 
   if (!isLocal && !exists(pkgRoot)) {
-    ;(isTransitive ? 'dependency' : 'plugin')
-      |> log.trace(`installing ${_} ${name} from npm`)
+    const kind = isTransitive ? 'dependency' : 'plugin'
+    log.trace(`installing ${kind} ${name} from npm`)
 
     if (!_resolved) return false
 
     if (!isTransitive) {
-      if (!isCompatible(engines?.[pluginPackageKey])) {
+      if (!isCompatible(appData.version)) {
         log.error(`'${name}' does not support ${appName} v${appVersion}`)
         return
       }
@@ -143,6 +174,10 @@ export const installPlugin = async (context, spec, {
   return true
 }
 
+/**
+ * @param {Core} context
+ * @param {string} name
+ */
 export const uninstallPlugin = async (context, name) => {
   const manifest = await readManifest()
   const i = manifest.plugins.findIndex(toPackageName(_) === name)

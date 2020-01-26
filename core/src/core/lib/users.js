@@ -5,7 +5,7 @@ import FP from 'functional-promises'
 import { getInstance } from '../bot'
 
 /**
- * @param {import('@converge/types/index').Core} context
+ * @param {import('@converge/types').Core} context
  */
 export default async context => {
   const { client } = await getInstance()
@@ -17,12 +17,17 @@ export default async context => {
     context.db.get('usertypes.mod', { id })
 
   const isFollower = async id =>
-    String(id)
-    |> client.helix.users.getUserById(_).then(it?.follows(context.ownerId))
+    client.helix.users.getUserById(String(id))
+      .then(it?.follows(context.ownerId))
 
   const isSubscriber = async id =>
-    String(id)
-    |> client.helix.users.getUserById(_).then(it?.isSubscribedTo(context.ownerId))
+    client.helix.users.getUserById(String(id))
+      .then(it?.isSubscribedTo(context.ownerId))
+
+  const getFollowerCount = async id =>
+    (await client.helix.users.getFollows({
+      followedUser: String(id)
+    })).total
 
   const resolveIdByName = async name =>
     client.helix.users.getUserByName(name).then(it?.id)
@@ -44,10 +49,10 @@ export default async context => {
   }
 
   const resolveNameById = async id =>
-    String(id) |> client.helix.users.getUserById(_).then(it?.displayName)
+    client.helix.users.getUserById(String(id)).then(it?.displayName)
 
   const resolveUserById = async id =>
-    String(id) |> client.helix.users.getUserById
+    client.helix.users.getUserById(String(id))
 
   const getIdByName = async name =>
     context.db.get('users.id', { name })
@@ -56,20 +61,20 @@ export default async context => {
     context.db.get('users.name', { id })
 
   const setAdmin = async (id, status) => {
-    return getName(id)
+    return getNameById(id)
       .then(
         context.db.updateOrCreate('usertypes', { id }, {
           name: _,
-          admin: status |> context.toBoolean
+          admin: context.toBoolean(status)
         })
       )
   }
 
   const setMod = async (id, status) =>
-    getName(id).then(
+    getNameById(id).then(
       context.db.updateOrCreate('usertypes', { id }, {
         name: _,
-        mod: status |> context.toBoolean
+        mod: context.toBoolean(status)
       })
     )
 
@@ -109,7 +114,9 @@ export default async context => {
       isFollower,
       isMod,
       isSubscriber,
+      getFollowerCount,
       getIdByName,
+      getNameById,
       resolveIdByName,
       resolveUserList,
       resolveNameById,

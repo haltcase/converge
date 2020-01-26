@@ -10,14 +10,8 @@
     "converge-plugin",
     "quotes"
   ],
-  "engines": {
-    "converge": ">=1.0.0-alpha.1"
-  },
+  "main": "src/index.js",
   "converge": {
-    "files": {
-      "module": "./module.js",
-      "component": "./component.js",
-      "language": "./lang.js"
-    }
+    "version": ">=1.0.0-alpha.1"
   }
 }

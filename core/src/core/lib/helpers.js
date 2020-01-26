@@ -10,15 +10,17 @@ const isToMethod = stunsail.includes([
 ], _)
 
 /**
- * @param {import('@converge/types/index').Core} context
+ * @param {import('@converge/types').Core} context
  */
 export default context => {
   const is = stunsail.isEqual
-  const to = {}
+  const to = {
+    int: stunsail.toNumber(_, true)
+  }
 
   stunsail.each(Object.keys(stunsail), key => {
     const prefix = key.slice(0, 2)
-    const token = key.slice(2) |> stunsail.camelCase
+    const token = stunsail.camelCase(key.slice(2))
 
     if (prefix === 'is') {
       is[token] = stunsail[key]

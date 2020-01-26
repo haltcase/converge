@@ -1,0 +1,26 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "noEmit": true,
+    "strict": true,
+    "isolatedModules": true,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "lib": ["esnext"],
+    "baseUrl": ".",
+    "paths": {
+      "*": ["./node_modules/*"],
+      "~core/*": ["./core/src/core/*"]
+    }
+  },
+  "include": [
+    "core/src",
+    "plugins",
+    "types"
+  ],
+  "exclude": [
+    "node_modules",
+    "**/node_modules",
+    "core/dist"
+  ]
+}

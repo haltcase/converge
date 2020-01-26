@@ -1,8 +1,8 @@
 /**
- * @typedef {import('trilogy/dist/index').Trilogy} Trilogy
- * @typedef {import('@converge/types/index').Core} Core
- * @typedef {import('@converge/types/index').CoreConfig} CoreConfig
- * @typedef {import('@converge/types/index').CoreOptions} CoreOptions
+ * @typedef {import('trilogy').Trilogy} Trilogy
+ * @typedef {import('@converge/types').Core} Core
+ * @typedef {import('@converge/types').CoreConfig} CoreConfig
+ * @typedef {import('@converge/types').CoreOptions} CoreOptions
  */
 
 import { _, it } from 'param.macro'
@@ -10,7 +10,6 @@ import importAll from 'import-all.macro'
 
 import EventEmitter from 'eventemitter2'
 import FP from 'functional-promises'
-import TwitchClient from 'twitch'
 
 import {
   defaults,
@@ -160,7 +159,14 @@ export default class Core extends EventEmitter {
     if (this.shuttingDown) return
     this.shuttingDown = true
     log.info('shutting down')
-    await callHookAndWait('beforeShutdown')
+
+    // tasks will be given 10 seconds to shut down before it's forced
+    await Promise.race([
+      FP.delay(10_000).then(() => log.debug('shutdown timed out')),
+      callHookAndWait('beforeShutdown')
+    ])
+
+    await this.db.close()
     return this.emit('shutdown')
   }
 }

@@ -1,11 +1,17 @@
+export interface AuthInfo {
+  auth: string
+  refreshToken: string
+  name: string
+  id: string
+  expiration: number
+}
+
 export interface CoreConfig {
   redirectUri: string
   scopes: string[]
   clientId: string
   clientSecret: string
-  ownerName: string
-  ownerAuth: string
-  botName: string
-  botAuth: string
-  refreshToken: string
+
+  owner: AuthInfo
+  bot: AuthInfo
 }

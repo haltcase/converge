@@ -7,14 +7,7 @@
     "converge-plugin",
     "cooldown"
   ],
-  "engines": {
-    "converge": ">=1.0.0-alpha.1"
-  },
   "converge": {
-    "files": {
-      "module": "./module.js",
-      "component": "./component.js",
-      "language": "./lang.js"
-    }
+    "version": ">=1.0.0-alpha.1"
   }
 }

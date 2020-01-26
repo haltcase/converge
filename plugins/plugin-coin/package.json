@@ -10,14 +10,8 @@
     "converge-plugin",
     "coin"
   ],
-  "engines": {
-    "converge": ">=1.0.0-alpha.1"
-  },
+  "main": "src/index.ts",
   "converge": {
-    "files": {
-      "module": "./module.js",
-      "component": "",
-      "language": "./lang.js"
-    }
+    "version": ">=1.0.0-alpha.1"
   }
 }

@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 
-import { _, it } from 'param.macro'
+/* eslint-disable import/first */
+require('wtfnode')
+
+import { it } from 'param.macro'
 
 import open from 'open'
 import args from 'args'
@@ -68,8 +71,7 @@ run(options).then(({ core, log }) => {
         if (includes(choices, words[1])) {
           open(paths[words[1]])
         } else {
-          choices.join(', ')
-            |> log.error(`\n\ninvalid option, choices: ${_}`)
+          log.error(`\n\ninvalid option, choices: ${choices.join(', ')}`)
         }
 
         break

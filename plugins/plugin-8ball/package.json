@@ -10,15 +10,9 @@
     "converge-plugin",
     "8ball"
   ],
-  "engines": {
-    "converge": ">=1.0.0-alpha.1"
-  },
+  "main": "src/index.js",
   "converge": {
-    "description": "Answers yes/no questions in vague, unhelpful ways",
-    "files": {
-      "module": "./module.js",
-      "component": "",
-      "language": "./lang.js"
-    }
+    "version": ">=1.0.0-alpha.1",
+    "description": "Answers yes/no questions in vague, unhelpful ways"
   }
 }

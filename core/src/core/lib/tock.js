@@ -1,9 +1,8 @@
 import ms from 'ms'
 
-import Core from '../index'
-
 /**
  * @typedef {string | number} Time
+ * @typedef {import('@converge/types').Core} Core
  */
 
 /**
@@ -134,8 +133,15 @@ export class Tock {
 }
 
 /**
- * @param {import('@converge/types/index').Core} context
+ * @param {Core} context
  */
 export default context => {
-  context.extend({ tick: new Tock() })
+  const instance = new Tock()
+
+  context.on('beforeShutdown', () => {
+    instance.timers.forEach(timer => clearTimeout(timer))
+    instance.intervals.forEach(interval => clearInterval(interval))
+  })
+
+  context.extend({ tick: instance })
 }

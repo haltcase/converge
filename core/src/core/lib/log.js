@@ -9,13 +9,12 @@ import log from '../../logger'
 import { paths } from '../../constants'
 
 /**
- * @param {import('@converge/types/index').Core} context
+ * @param {import('@converge/types').Core} context
  */
 export default async context => {
   const writeLog = (source, data, channel = '') => {
-    const filePath = source
-      |> parse(_).name + '.txt'
-      |> join(paths.logs, channel, _)
+    const filePath =
+      join(paths.logs, channel, parse(source).name + '.txt')
 
     const timestamp = format(Date.now(), 'yyyy-MM-dd HH:mm:ss aaaa')
     const line = `${timestamp} :: ${data}${EOL}`

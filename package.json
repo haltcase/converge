@@ -12,5 +12,8 @@
     "dev": "cd core && yarn dev",
     "start": "cd core && yarn start",
     "lint": "eslint \"{core,plugins}/**/*.js\" --ignore-path .gitignore"
+  },
+  "dependencies": {
+    "typescript": "^3.8.0-beta"
   }
 }

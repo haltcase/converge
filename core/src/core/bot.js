@@ -1,3 +1,12 @@
+/**
+ * @typedef {import('@converge/types').Bot} Bot
+ * @typedef {import('@converge/types').Core} Core
+ * @typedef {import('@converge/types').CoreConfig} CoreConfig
+ * @typedef {import('@converge/types').CoreOptions} CoreOptions
+ * @typedef {import('@converge/types').ChatEvent} ChatEvent
+ * @typedef {import('twitch-chat-client').PrivateMessage} PrivateMessage
+ */
+
 import { basename, dirname } from 'path'
 
 import callsites from 'callsites'
@@ -14,10 +23,11 @@ import log from '../logger'
 import { callHook, callHookAndWait } from './hooks'
 
 /**
- * @typedef {import('@converge/types/index').Bot} Bot
- * @typedef {import('@converge/types/index').Core} Core
- */
-
+* @param {CoreConfig} config
+* @param {CoreOptions} options
+* @param {boolean} isBot
+* @returns {Promise<TwitchClient>}
+*/
 const getTwitchClient = async (config, options, isBot) => {
   const data = isBot ? config.bot : config.owner
 
@@ -36,61 +46,143 @@ const getTwitchClient = async (config, options, isBot) => {
         config.owner = data
       }
 
-      await writeAsync(options.configPath, config |> TOML.stringify)
+      await writeAsync(options.configPath, TOML.stringify(config))
     }
   })
 }
 
 /**
- * @type {() => Promise<Bot>}
+ * @param {TwitchClient} twitchClient
+ * @param {{ port: number }} webhookOptions
  */
-export const getInstance = once(async (config, options) => {
-  const [client, botClient] = await FP.all([
-    getTwitchClient(config, options),
-    getTwitchClient(config, options, true)
-  ])
+const getWebhookClient = async (twitchClient, webhookOptions) => {
+  try {
+    const webhooks = await Webhooks.create(twitchClient, webhookOptions)
+    webhooks.listen()
+    return webhooks
+  } catch (e) {
+    log.error(`Failed to set up webhooks: ${e.message}. They will be unavailable.`)
+  }
+}
 
-  const [owner, bot] = await FP.all([
-    ChatClient.forTwitchClient(client),
-    ChatClient.forTwitchClient(botClient)
-  ])
+/**
+ * @type {(config: CoreConfig, options: CoreOptions) => Promise<Bot>}
+ */
+export const getInstance = once(
+  /**
+   * @param {CoreConfig} config
+   * @param {CoreOptions} options
+   */
+  async (config, options) => {
+    /**
+     * @type {[TwitchClient, TwitchClient]}
+     */
+    const [client, botClient] = await FP.all([
+      getTwitchClient(config, options),
+      getTwitchClient(config, options, true)
+    ])
 
-  await owner.connect()
-  await owner.waitForRegistration()
-  await bot.connect()
-  await bot.waitForRegistration()
+    /**
+     * @type {[ChatClient, ChatClient]}
+     */
+    const [owner, bot] = await FP.all([
+      ChatClient.forTwitchClient(client),
+      ChatClient.forTwitchClient(botClient)
+    ])
 
-  const pubsub = new PubSubClient()
-  await pubsub.registerUserListener(client)
-  const webhooks = await Webhooks.create(client, { port: 9090 })
-  webhooks.listen()
+    owner.onRegister(() => owner.join(config.owner.name))
+    bot.onRegister(() => bot.join(config.owner.name))
+    await FP.all([owner.connect(), bot.connect()])
 
-  return { client, botClient, bot, owner, pubsub, webhooks }
-})
+    const pubsub = new PubSubClient()
+    await pubsub.registerUserListener(client)
 
+    const webhooks = await getWebhookClient(client, { port: 8686 })
+
+    return { client, botClient, bot, owner, pubsub, webhooks }
+  }
+)
+
+/**
+ * @param {string} message
+ * @param {string} prefix
+ */
 const isCommand = (message, prefix) =>
   message.substr(0, prefix.length) === prefix &&
   message.length > prefix.length &&
   message.charAt(prefix.length) !== ' '
 
+/**
+ * @param {string} message
+ * @param {string} prefix
+ */
 const getCommand = (message, prefix) =>
   message.slice(prefix.length).split(' ', 1)[0].toLowerCase()
 
+/**
+ * @param {string} message
+ */
 const getCommandArgs = message =>
   message.split(' ').slice(1)
 
+/**
+ * @param {string} message
+ */
 const getCommandArgString = message =>
   getCommandArgs(message).join(' ')
 
+/**
+ * @param {string} message
+ */
+const getCommandSubArgs = message =>
+  getCommandArgs(message).slice(1)
+
+/**
+ * @param {string} message
+ */
 const getCommandSubArgString = message =>
   getCommandArgs(message).slice(1).join(' ')
 
+/**
+ * @param {string} message
+ * @param {string} prefix
+ */
+const getCommandData = (message, prefix) => {
+  if (!isCommand(message, prefix)) {
+    return {
+      command: '',
+      subcommand: '',
+      args: [],
+      subArgs: [],
+      argString: '',
+      subArgString: ''
+    }
+  } else {
+    const args = getCommandArgs(message)
+    return {
+      command: getCommand(message, prefix),
+      subcommand: args[0],
+      args,
+      argString: getCommandArgString(message),
+      subArgs: getCommandSubArgs(message),
+      subArgString: getCommandSubArgString(message)
+    }
+  }
+}
+
+/**
+ * @param {ReturnType<import('callsites')>} callsite
+ */
 const getCaller = callsite => {
   const caller = callsite[1].getFileName()
-  const parent = caller |> dirname |> basename
+  const parent = basename(dirname(caller))
   return `${parent}/${basename(caller)}`
 }
 
+/**
+ * @param {Core} context
+ * @param {ChatEvent} event
+ */
 const createResponder = (context, event) => {
   const partial = event.whispered
     ? message => context.whisper(event.sender, message)
@@ -106,6 +198,15 @@ const createPrevent = event => () => {
   callHook('preventedCommand', event)
 }
 
+/**
+ * @param {Core} ctx
+ * @param {ChatClient} bot
+ * @param {string} prefix
+ * @param {string} type
+ * @param {string} user
+ * @param {string} message
+ * @param {PrivateMessage} rawMessage
+ */
 const dispatcher = async (ctx, bot, prefix, type, user, message, rawMessage) => {
   if (type === 'action') return
 
@@ -122,7 +223,12 @@ const dispatcher = async (ctx, bot, prefix, type, user, message, rawMessage) => 
   }
 }
 
-const setupListeners = (ctx, bot, prefix) => {
+/**
+ * @param {Core} ctx
+ * @param {ChatClient} bot
+ * @param {string} prefix
+ */
+const setupListeners = async (ctx, bot, prefix) => {
   log.trace('registering chat listeners')
 
   bot.onPrivmsg((source, ...args) =>
@@ -138,6 +244,10 @@ const setupListeners = (ctx, bot, prefix) => {
   )
 }
 
+/**
+ * @param {Core} ctx
+ * @param {ChatEvent} event
+ */
 const aliasHandler = async (ctx, event) => {
   let original
   try {
@@ -166,6 +276,10 @@ const aliasHandler = async (ctx, event) => {
   return commandHandler(ctx, event)
 }
 
+/**
+ * @param {Core} ctx
+ * @param {ChatEvent} event
+ */
 const commandHandler = async (ctx, event) => {
   await callHookAndWait('receivedCommand', event)
   if (!event.isPrevented && !await ctx.runCommand(event)) {
@@ -173,6 +287,10 @@ const commandHandler = async (ctx, event) => {
   }
 }
 
+/**
+ * @param {Core} ctx
+ * @param {ChatEvent} event
+ */
 const updateChatUser = async (ctx, event) => {
   try {
     await ctx.db.updateOrCreate('users', {
@@ -189,15 +307,15 @@ const updateChatUser = async (ctx, event) => {
 
 /**
  * @param {Core} ctx
- * @param {import('twitch-chat-client/lib/index').PrivateMessage} messageEvent
+ * @param {PrivateMessage} messageEvent
  * @param {string} prefix
  * @param {boolean} whispered
+ * @returns {Promise<ChatEvent>}
  */
 const buildEvent = async (ctx, messageEvent, prefix, whispered) => {
   const { displayName, isMod, userId } = messageEvent.userInfo
   const message = messageEvent.message.value
   const mod = isMod || displayName === ctx.ownerName
-  const args = getCommandArgs(message)
 
   const event = {
     id: messageEvent.userInfo.userId,
@@ -207,13 +325,8 @@ const buildEvent = async (ctx, messageEvent, prefix, whispered) => {
     seen: new Date(),
     raw: message,
     whispered,
-    command: getCommand(message, prefix),
-    args,
-    subArgs: args.slice(1),
-    subcommand: args[0],
-    argString: getCommandArgString(message),
-    subArgString: getCommandSubArgString(message),
-    isPrevented: false
+    isPrevented: false,
+    ...getCommandData(message, prefix)
   }
 
   event.prevent = createPrevent(event)
@@ -245,12 +358,17 @@ const buildEventPublic = ctx => async (message = '', userInfo = {}, whispered = 
 
 /**
  * @param {Core} context
- * @param {import('@converge/types/index').CoreConfig} config
- * @param {import('@converge/types/index').CoreOptions} options
+ * @param {CoreConfig} config
+ * @param {CoreOptions} options
+ * @returns {Promise<ChatClient>}
  */
 export const loadBot = async (context, config, options) => {
   log.trace('starting up bot instance')
-  const { bot } = await getInstance(config, options)
+  const {
+    bot,
+    owner,
+    webhooks
+  } = await getInstance(config, options)
 
   const shout = message => bot.say(context.ownerName, message)
 
@@ -291,9 +409,12 @@ export const loadBot = async (context, config, options) => {
     }
   })
 
-  context.on('beforeShutdown', () => bot.quit())
+  context.on('beforeShutdown', () => FP.all([
+    bot.quit(),
+    owner.quit(),
+    webhooks?.unlisten()
+  ]))
 
-  await bot.join(context.ownerName)
   const prefix = await getPrefix()
   await setupListeners(context, bot, prefix)
 

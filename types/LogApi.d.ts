@@ -1,11 +1,11 @@
-import { LoggerNeue } from 'logger-neue/dist/index'
+import { LoggerNeue } from 'logger-neue'
 
 export interface LogApi extends LoggerNeue {
-  (...args: any[]): void
-  error(...args: any[]): void
-  warn(...args: any[]): void
-  info(...args: any[]): void
-  debug(...args: any[]): void
-  trace(...args: any[]): void
-  absurd(...args: any[]): void
+  (source: string, ...args: readonly unknown[]): void
+  error (...args: readonly unknown[]): void
+  warn (...args: readonly unknown[]): void
+  info (...args: readonly unknown[]): void
+  debug (...args: readonly unknown[]): void
+  trace (...args: readonly unknown[]): void
+  absurd (...args: readonly unknown[]): void
 }

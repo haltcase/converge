@@ -1,4 +1,4 @@
-import { Trilogy } from 'trilogy/dist/index'
+import { Trilogy } from 'trilogy'
 
 export interface CoreOptions {
   configPath: string

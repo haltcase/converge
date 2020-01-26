@@ -3,7 +3,7 @@ import FP from 'functional-promises'
 import log from '../logger'
 
 /**
- * @param {import('@converge/types/index').Core} context
+ * @param {import('@converge/types').Core} context
  */
 export default async (context, db) => {
   log.trace('preparing database')
@@ -38,8 +38,8 @@ export default async (context, db) => {
     return db.findOrCreate('settings', { key }, { value })
   }
 
-  data.getExtConfig = async (ext, defaultValue) => {
-    const [plugin, key] = ext.split('.', 2)
+  data.getPluginConfig = async (pluginAndKey, defaultValue) => {
+    const [plugin, key] = pluginAndKey.split('.', 2)
     if (!plugin || !key) {
       throw new Error('invalid database identifier')
     }
@@ -47,8 +47,8 @@ export default async (context, db) => {
     return db.get('plugin_settings.value', { key, plugin }, defaultValue)
   }
 
-  data.setExtConfig = async (ext, value) => {
-    const [plugin, key] = ext.split('.', 2)
+  data.setPluginConfig = async (pluginAndKey, value) => {
+    const [plugin, key] = pluginAndKey.split('.', 2)
     if (!plugin || !key || typeof value === 'undefined') {
       throw new Error('invalid database identifier')
     }
