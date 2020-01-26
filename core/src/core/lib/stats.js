@@ -13,6 +13,7 @@ export default async context => {
   })
 
   context.on('afterCommand', /** @type {HookListener} */ async (_, e) => {
-    context.db.increment('stats_commands.uses', { name: e.command })
+    await context.db.create('stats_commands', { name: e.command })
+    await context.db.increment('stats_commands.uses', { name: e.command })
   })
 }
