@@ -133,7 +133,7 @@ export declare class Core extends EventEmitter2 {
   /**
    * Timer & interval API for managing by name and using human readable time durations.
    */
-  tock: Tock
+  tick: Tock
 
   /**
    * Provides an API for fetching info about users.
