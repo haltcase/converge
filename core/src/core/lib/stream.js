@@ -7,12 +7,13 @@ import duration from '../util/duration'
 
 /**
  * @typedef {import('@converge/types').Core} Core
+ * @typedef {import('twitch').ChattersList} ChattersList
  * @typedef {import('twitch').HelixStream} HelixStream
  */
 
 /**
  * @param {Core} context
- * @param {import('twitch').ChattersList} chatters
+ * @param {ChattersList} chatters
  */
 const parseChatterList = (context, chatters) => {
   const { allChatters } = chatters
