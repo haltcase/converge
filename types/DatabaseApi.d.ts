@@ -16,6 +16,6 @@ export interface DatabaseApi {
   confirmConfig <T> (key: string, value: T): Promise<unknown>
   getPluginConfig <T> (pluginAndKey: string, defaultValue: T): Promise<T>
   setPluginConfig <T> (pluginAndKey: string, value: T): Promise<unknown>
-  getRandomRow <T> (table: string, where: Partial<T>): Promise<T>
-  exists (...args: Parameters<Model['findOne']>): Promise<boolean>
+  getRandomRow <T> (table: string, where?: Partial<T>): Promise<T>
+  exists (table: string, ...args: Parameters<Model['findOne']>): Promise<boolean>
 }
