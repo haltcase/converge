@@ -16,4 +16,7 @@ export interface UserApi {
   setMod (id: string, status: boolean): Promise<boolean>
   existsByName (name: string): Promise<boolean>
   existsById (id: string): Promise<boolean>
+
+  list: string[]
+  count: number
 }
