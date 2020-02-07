@@ -9,8 +9,9 @@
     "types"
   ],
   "scripts": {
-    "dev": "cd core && yarn dev",
-    "start": "cd core && yarn start",
+    "build": "yarn workspace @converge/core build",
+    "dev": "yarn workspace @converge/core dev",
+    "start": "yarn workspace @converge/core start",
     "lint": "eslint \"{core,plugins}/**/*.js\" --ignore-path .gitignore"
   },
   "dependencies": {
