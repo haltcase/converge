@@ -1,4 +1,4 @@
-import S from 'stunsail'
+import * as S from 'stunsail'
 import callsites from 'callsites'
 import { basename, dirname } from 'path'
 

@@ -1,4 +1,4 @@
-import S from 'stunsail'
+import * as S from 'stunsail'
 
 export interface IsApi extends S.isEqual {
   // <T> (a: T, b: T): boolean

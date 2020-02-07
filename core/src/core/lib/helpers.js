@@ -1,6 +1,6 @@
 import { _ } from 'param.macro'
 
-import stunsail from 'stunsail'
+import * as stunsail from 'stunsail'
 
 const isToMethod = stunsail.includes([
   'clamp',

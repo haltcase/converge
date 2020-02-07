@@ -1,4 +1,4 @@
-import S from 'stunsail'
+import * as S from 'stunsail'
 
 export interface ToApi {
   array: typeof S.toArray
