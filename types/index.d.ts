@@ -25,8 +25,8 @@ export { CoreConfig }
 import { CoreOptions } from './CoreOptions'
 export { CoreOptions }
 
-import { DatabaseApi } from './DatabaseApi'
-export { DatabaseApi }
+import { DatabaseApi, TableSchema, TableSchemaDefault, TableSchemaKeyed } from './DatabaseApi'
+export { DatabaseApi, TableSchema, TableSchemaDefault, TableSchemaKeyed }
 
 export { Duration, DurationInstance, DurationOptions, LabelSet } from './Duration'
 
