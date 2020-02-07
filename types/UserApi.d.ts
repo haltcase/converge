@@ -9,7 +9,7 @@ export interface UserApi {
   getIdByName (name: string): Promise<boolean>
   getNameById (id: string): Promise<boolean>
   resolveIdByName (name: string): Promise<boolean>
-  resolveUserList (names: string[]): Promise<Record<string, HelixUser>>
+  resolveUserList (names: readonly string[]): Promise<Record<string, HelixUser>>
   resolveNameById (id: string): Promise<string>
   resolveUserById (id: string): Promise<HelixUser>
   setAdmin (id: string, status: boolean): Promise<boolean>

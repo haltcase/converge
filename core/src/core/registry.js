@@ -58,6 +58,7 @@ const getCommandProperty = (command, property) => {
  * @param {string} command
  * @param {string} sub
  * @param {string} property
+ * @returns {SubcommandRegistry}
  */
 const getSubcommandProperty = (command, sub, property) => {
   if (!commandExists(command)) return

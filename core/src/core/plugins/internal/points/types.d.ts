@@ -13,7 +13,17 @@ interface PointsApi {
   setPointName (name: string, singular: boolean): Promise<unknown>
   getPayoutAmount (offline: boolean): Promise<number>
   setPayoutAmount (amount: number, offline: boolean): Promise<unknown>
+
+  /**
+   * Get the number of seconds between point payouts (when stream is not live
+   * if `offline` is true).
+   */
   getPayoutInterval (offline: boolean): Promise<number>
+
+  /**
+   * Set the number of seconds between point payouts (when stream is not live
+   * if `offline` is true).
+   */
   setPayoutInterval (seconds: number | string, offline: boolean): Promise<unknown>
 }
 
