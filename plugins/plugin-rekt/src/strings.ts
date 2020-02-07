@@ -1,7 +1,6 @@
-/**
- * @param {import('@converge/types').Core} $
- */
-export const strings = $ => {
+import { PluginStrings } from '@converge/types'
+
+export const strings: PluginStrings = $ => {
   $.weave.set('usage', 'Usage: !rekt (add | remove | edit)')
   $.weave.set('not-found', 'There is no !rekt response with ID #{0}.')
 

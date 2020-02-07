@@ -1,38 +1,32 @@
-/**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').PluginCommandHandler} PluginCommandHandler
- * @typedef {import('@converge/types').PluginSetup} PluginSetup
- */
+import { Core, PluginCommandHandler, PluginSetup, TableSchemaKeyed } from '@converge/types'
 
 /**
  * @command 8ball
  * @usage !8ball (question)
- *
- * @type {PluginCommandHandler}
  */
-export const magicBall = async ($, e) => {
+export const magicBall: PluginCommandHandler = async ($, e) => {
   if (!e.args.length) {
-    e.respond($.weave('usage'))
+    e.respond(await $.weave('usage'))
     return
   }
 
   if (e.argString.toLowerCase() === `i'm ron burgundy?`) {
-    e.respond($.weave('burgundy'))
+    e.respond(await $.weave('burgundy'))
     return
   }
 
   if (e.subcommand === 'add') {
     if (!e.subArgs[0]) {
-      e.respond($.weave('add.usage'))
+      e.respond(await $.weave('add.usage'))
       return
     }
 
     const res = await $.db.create('ball', { value: e.subArgString })
 
     if (res.id) {
-      e.respond($.weave('add.success', res.id))
+      e.respond(await $.weave('add.success', res.id))
     } else {
-      e.respond($.weave('add.failure'))
+      e.respond(await $.weave('add.failure'))
     }
 
     return
@@ -40,34 +34,34 @@ export const magicBall = async ($, e) => {
 
   if (e.subcommand === 'remove') {
     if (!e.subArgs[0]) {
-      e.respond($.weave('remove.usage'))
+      e.respond(await $.weave('remove.usage'))
       return
     }
 
     if (!await $.db.exists('ball', { id: e.subArgs[0] })) {
-      e.respond($.weave('not-found', e.subArgs[0]))
+      e.respond(await $.weave('not-found', e.subArgs[0]))
       return
     }
 
     const id = parseInt(e.subArgs[0])
     if (await $.db.remove('ball', { id })) {
       const count = await $.db.count('ball')
-      e.respond($.weave('remove.success', count))
+      e.respond(await $.weave('remove.success', count))
     } else {
-      e.respond($.weave('remove.failure', id))
+      e.respond(await $.weave('remove.failure', id))
     }
 
     return
   }
 
   if (e.subcommand === 'edit') {
-    if (!e.subArgs.length < 2) {
-      e.respond($.weave('edit.usage'))
+    if (e.subArgs.length < 2) {
+      e.respond(await $.weave('edit.usage'))
       return
     }
 
     if (!await $.db.exists('ball', { id: e.subArgs[0] })) {
-      e.respond($.weave('not-found', e.subArgs[0]))
+      e.respond(await $.weave('not-found', e.subArgs[0]))
       return
     }
 
@@ -75,27 +69,24 @@ export const magicBall = async ($, e) => {
     const value = e.subArgs.slice(1).join(' ')
 
     if (await $.db.set('ball.value', { id }, value)) {
-      e.respond($.weave('edit.success', id))
+      e.respond(await $.weave('edit.success', id))
     } else {
-      e.respond($.weave('edit.failure', id))
+      e.respond(await $.weave('edit.failure', id))
     }
 
     return
   }
 
-  const response = await $.db.getRandomRow('ball')
+  const response = await $.db.getRandomRow<TableSchemaKeyed>('ball')
 
   if (response) {
     e.respond(await $.params(e, response.value))
   } else {
-    e.respond($.weave('no-response'))
+    e.respond(await $.weave('no-response'))
   }
 }
 
-/**
- * @param {Core} $
- */
-const initResponses = async $ => {
+const initResponses = async ($: Core) => {
   $.log('8ball', 'No 8ball responses found, adding some defaults...')
 
   const defaults = [
@@ -112,10 +103,7 @@ const initResponses = async $ => {
   $.log('8ball', `Done. ${defaults.length} default 8ball responses added.`)
 }
 
-/**
- * @type {PluginSetup}
- */
-export const setup = async $ => {
+export const setup: PluginSetup = async $ => {
   $.addCommand('8ball', {
     handler: 'magicBall',
     cooldown: 60

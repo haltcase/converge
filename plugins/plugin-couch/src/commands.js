@@ -39,10 +39,10 @@ export const couch = async ($, e) => {
     }
 
     if (payout === 0) {
-      e.respond($.weave('did-not-find', await $.points.getName()))
+      e.respond(await $.weave('did-not-find', await $.points.getName()))
     } else {
       await $.points.add(e.sender, payout)
-      e.respond($.weave('found-points', await $.points.str(payout)))
+      e.respond(await $.weave('found-points', await $.points.str(payout)))
     }
 
     return
@@ -50,14 +50,14 @@ export const couch = async ($, e) => {
 
   if (e.subcommand === 'multi') {
     if (!e.subArgs[0] || !$.is.numeric(e.subArgs[0])) {
-      e.respond($.weave('multi.usage', multi))
+      e.respond(await $.weave('multi.usage', multi))
       return
     }
 
     const newMulti = $.to.number(e.subArgs[0])
 
     await $.db.setPluginConfig('couch.multiplier', newMulti)
-    e.respond($.weave('multi.success', newMulti))
+    e.respond(await $.weave('multi.success', newMulti))
   }
 }
 

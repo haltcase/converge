@@ -1,7 +1,6 @@
-/**
- * @param {import('@converge/types').Core} $
- */
-export const strings = $ => {
+import { PluginStrings } from '@converge/types'
+
+export const strings: PluginStrings = $ => {
   $.weave.set('usage', 'Usage: !quote (add | remove | edit | help)')
 
   $.weave.set('add.usage', 'Usage: !quote add Something really wise. [~username]')

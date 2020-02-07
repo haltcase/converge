@@ -1,12 +1,7 @@
-/**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').ChatEvent} ChatEvent
- */
+import { Core, PluginLifecycle } from '@converge/types'
+import { Quote } from './types'
 
-/**
- * @param {string} str
- */
-const sanitizeText = str => {
+const sanitizeText = (str: string) => {
   // remove surrounding double quotes
   // @DEV: if this pattern has issues try this one:
   // /^"(.+(?="$))"$/g
@@ -14,13 +9,12 @@ const sanitizeText = str => {
   return match ? str.replace(/^"(.*)"$/g, '$1') : str
 }
 
-/**
- * @param {Core} $
- */
-const add = $ => async quote => {
-  if (!$.is.object(quote) || !quote.message) return false
+const add = ($: Core) => async (quote: Quote) => {
+  if (!$.is.object(quote) || !quote.message) {
+    return false
+  }
 
-  const obj = {
+  const obj: Quote = {
     credit: $.ownerName,
     submitter: '',
     date: new Date().toISOString().split('T')[0],
@@ -28,7 +22,7 @@ const add = $ => async quote => {
     ...quote
   }
 
-  await $.db.set('quotes', {
+  const result = await $.db.create('quotes', {
     message: sanitizeText(obj.message),
     credit: obj.credit,
     submitter: obj.submitter,
@@ -36,39 +30,37 @@ const add = $ => async quote => {
     game: obj.game
   })
 
-  const res = await $.db.create('quotes', obj)
-  return res && res.id ? res.id : false
+  return result?.id || false
 }
 
-const get = $ => async id => {
+const get = ($: Core) => async (id: number) => {
   if (!$.is.number(id)) return false
   return $.db.findOne('quotes', { id })
 }
 
-const remove = $ => async id => {
+const remove = ($: Core) => async (id: number) => {
   if (!$.is.number(id)) return false
 
   await $.db.remove('quotes', { id })
   return !await $.db.exists('quotes', { id })
 }
 
-const modify = $ => async (id, newData) => {
-  if (!$.is.number(id) || !$.is.object(newData)) return false
+const edit = ($: Core) => async (id: number, newData: Partial<Quote>) => {
+  if (!$.is.number(id) || !$.is.object(newData)) {
+    return false
+  }
 
   await $.db.update('quotes', { id }, newData)
   return $.db.exists('quotes', { id })
 }
 
-/**
- * @type {import('@converge/types').PluginLifecycle}
- */
-export const lifecycle = {
+export const lifecycle: PluginLifecycle = {
   async setup ($) {
     $.extend({
       quote: {
         add: add($),
         get: get($),
-        modify: modify($),
+        edit: edit($),
         remove: remove($)
       }
     })

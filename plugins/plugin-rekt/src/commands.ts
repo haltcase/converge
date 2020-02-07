@@ -1,23 +1,17 @@
-/**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').ChatEvent} ChatEvent
- */
+import { Core, PluginCommandHandler, PluginSetup, TableSchemaKeyed } from '@converge/types'
 
 /**
  * @command rekt
  * @usage !rekt
- *
- * @param {Core } $
- * @param {ChatEvent } e
  */
-export const rekt = async ($, e) => {
+export const rekt: PluginCommandHandler = async ($, e) => {
   if (!e.args.length) {
-    const response = await $.db.getRandomRow('rekt')
+    const response = await $.db.getRandomRow<TableSchemaKeyed>('rekt')
 
     if (response) {
       e.respond(await $.params(e, response.value))
     } else {
-      e.respond($.weave('not-found'))
+      e.respond(await $.weave('not-found'))
     }
 
     return
@@ -25,7 +19,7 @@ export const rekt = async ($, e) => {
 
   if (e.subcommand === 'add') {
     if (!e.subArgs[0]) {
-      return e.respond($.weave('add.usage'))
+      return e.respond(await $.weave('add.usage'))
     }
 
     const res = await $.db.create('rekt', {
@@ -33,9 +27,9 @@ export const rekt = async ($, e) => {
     })
 
     if (res.id) {
-      e.respond($.weave('add.success', res.id))
+      e.respond(await $.weave('add.success', res.id))
     } else {
-      e.respond($.weave('add.failure'))
+      e.respond(await $.weave('add.failure'))
     }
 
     return
@@ -43,40 +37,40 @@ export const rekt = async ($, e) => {
 
   if (e.subcommand === 'remove') {
     if (!e.subArgs[0]) {
-      return e.respond($.weave('remove.usage'))
+      return e.respond(await $.weave('remove.usage'))
     }
 
     if (!await $.db.exists('rekt', { id: e.subArgs[0] })) {
-      return e.respond($.weave('not-found', e.subArgs[0]))
+      return e.respond(await $.weave('not-found', e.subArgs[0]))
     }
 
     const id = parseInt(e.subArgs[0])
     if (await $.db.remove('rekt', { id })) {
       const count = $.db.count('rekt')
-      e.respond($.weave('remove.success', count))
+      e.respond(await $.weave('remove.success', count))
     } else {
-      e.respond($.weave('remove.failure', id))
+      e.respond(await $.weave('remove.failure', id))
     }
 
     return
   }
 
   if (e.subcommand === 'edit') {
-    if (!e.subArgs.length < 2) {
-      return e.respond($.weave('edit.usage'))
+    if (e.subArgs.length < 2) {
+      return e.respond(await $.weave('edit.usage'))
     }
 
     if (!await $.db.exists('rekt', { id: e.subArgs[0] })) {
-      return e.respond($.weave('not-found', e.subArgs[0]))
+      return e.respond(await $.weave('not-found', e.subArgs[0]))
     }
 
     const id = parseInt(e.subArgs[0])
     const value = e.subArgs.slice(1).join(' ')
 
     if (await $.db.set('rekt.value', { id }, value)) {
-      e.respond($.weave('edit.success', id))
+      e.respond(await $.weave('edit.success', id))
     } else {
-      e.respond($.weave('edit.failure', id))
+      e.respond(await $.weave('edit.failure', id))
     }
   }
 }
@@ -84,7 +78,7 @@ export const rekt = async ($, e) => {
 /**
  * @param {Core} $
  */
-const initResponses = async $ => {
+const initResponses = async ($: Core) => {
   $.log('rekt', 'No rekt responses found, adding some defaults...')
 
   const defaults = [
@@ -165,10 +159,7 @@ const initResponses = async $ => {
   $.log('rekt', `Done. ${defaults.length} default rekt responses added.`)
 }
 
-/**
- * @param {Core} $
- */
-export const setup = async $ => {
+export const setup: PluginSetup = async $ => {
   $.addCommand('rekt', { cooldown: 60 })
 
   $.addSubcommand('add', 'rekt', { permission: 1 })

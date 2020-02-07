@@ -1,35 +1,29 @@
 /**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').ChatEvent} ChatEvent
- */
-
-/**
  * five - mostly highs, but sometimes low-fives
  *
  * @source stock module
  * @author citycide
  */
 
+import { Core, PluginCommandHandler, PluginSetup, TableSchemaKeyed } from '@converge/types'
+
 /**
  * @command five
  * @usage !five [target]
- *
- * @param {Core} $
- * @param {ChatEvent} e
  */
-export const five = async ($, e) => {
+export const five: PluginCommandHandler = async ($, e) => {
   if (e.subcommand === 'add') {
     if (!e.subArgs[0]) {
-      e.respond($.weave('add.usage'))
+      e.respond(await $.weave('add.usage'))
       return
     }
 
     const res = await $.db.create('five', { value: e.subArgString })
 
     if (res.id) {
-      e.respond($.weave('add.success', res.id))
+      e.respond(await $.weave('add.success', res.id))
     } else {
-      e.respond($.weave('add.failure'))
+      e.respond(await $.weave('add.failure'))
     }
 
     return
@@ -37,34 +31,34 @@ export const five = async ($, e) => {
 
   if (e.subcommand === 'remove') {
     if (!e.subArgs[0]) {
-      e.respond($.weave('remove.usage'))
+      e.respond(await $.weave('remove.usage'))
       return
     }
 
     if (!await $.db.exists('five', { id: e.subArgs[0] })) {
-      e.respond($.weave('not-found', e.subArgs[0]))
+      e.respond(await $.weave('not-found', e.subArgs[0]))
       return
     }
 
     const id = parseInt(e.subArgs[0])
     if (await $.db.remove('five', { id })) {
       const count = $.db.count('five')
-      e.respond($.weave('remove.success', count))
+      e.respond(await $.weave('remove.success', count))
     } else {
-      e.respond($.weave('remove.failure', id))
+      e.respond(await $.weave('remove.failure', id))
     }
 
     return
   }
 
   if (e.subcommand === 'edit') {
-    if (!e.subArgs.length < 2) {
-      e.respond($.weave('edit.usage'))
+    if (e.subArgs.length < 2) {
+      e.respond(await $.weave('edit.usage'))
       return
     }
 
     if (!await $.db.exists('five', { id: e.subArgs[0] })) {
-      e.respond($.weave('not-found', e.subArgs[0]))
+      e.respond(await $.weave('not-found', e.subArgs[0]))
       return
     }
 
@@ -72,16 +66,16 @@ export const five = async ($, e) => {
     const value = e.subArgs.slice(1).join(' ')
 
     if (await $.db.set('five.value', { id }, value)) {
-      e.respond($.weave('edit.success', id))
+      e.respond(await $.weave('edit.success', id))
     } else {
-      e.respond($.weave('edit.failure', id))
+      e.respond(await $.weave('edit.failure', id))
     }
 
     return
   }
 
   if (e.args.length > 1) {
-    e.respond($.weave('response.default', e.sender))
+    e.respond(await $.weave('response.default', e.sender))
     return
   }
 
@@ -90,28 +84,28 @@ export const five = async ($, e) => {
   if (!target) {
     if ($.user.list.length) {
       const random = $.to.random($.user.list)
-      e.respond($.weave('response.random', e.sender, random))
+      e.respond(await $.weave('response.random', e.sender, random))
       return
     } else {
-      e.respond($.weave('response.random-fallback'))
+      e.respond(await $.weave('response.random-fallback'))
       return
     }
   }
 
   if (!$.is.oneOf(target, $.user.list)) {
-    e.respond($.weave('target-not-present', e.sender, target))
+    e.respond(await $.weave('target-not-present', e.sender, target))
     return
   }
 
-  const response = await $.db.getRandomRow('five')
+  const response = await $.db.getRandomRow<TableSchemaKeyed>('five')
   if (response) {
     e.respond(await $.params(e, response.value, { target }))
   } else {
-    e.respond($.weave('response.fallback'))
+    e.respond(await $.weave('response.fallback'))
   }
 }
 
-const initResponses = async $ => {
+const initResponses = async ($: Core) => {
   $.log('five', 'No five responses found, adding some defaults...')
 
   const defaults = [
@@ -128,10 +122,7 @@ const initResponses = async $ => {
   $.log('five', `Done. ${defaults.length} default five responses added.`)
 }
 
-/**
- * @param {Core} $
- */
-export const setup = async $ => {
+export const setup: PluginSetup = async $ => {
   $.addCommand('five')
 
   $.addSubcommand('add', 'five', { permission: 1 })
