@@ -7,6 +7,8 @@
  * @typedef {import('twitch-chat-client').PrivateMessage} PrivateMessage
  */
 
+import { it } from 'param.macro'
+
 import { basename, dirname } from 'path'
 
 import callsites from 'callsites'
@@ -260,20 +262,13 @@ const aliasHandler = async (ctx, event) => {
   const [command, subcommand, ...rest] = original.split(' ')
   if (!ctx.command.exists(command)) return
 
-  const args = [subcommand, ...rest, ...event.args]
-  const argString = args.join(' ')
-  const subArgs = [...rest, ...event.args]
-  Object.assign(event, {
-    command,
-    subcommand,
-    args,
-    argString,
-    subArgs,
-    subArgString: subArgs.join(' '),
-    raw: `${command} ${argString}`
-  })
+  const newMessage = [command, subcommand, ...rest, ...event.args]
+    .filter(it != null)
+    .join(' ')
 
-  return commandHandler(ctx, event)
+  const prefix = await ctx.command.getPrefix()
+  const data = getCommandData(prefix + newMessage.trimLeft(), prefix)
+  return commandHandler(ctx, { ...event, ...data })
 }
 
 /**
