@@ -63,7 +63,7 @@
     "semver": "^7.1.1",
     "sqlite3": "^4.1.1",
     "strat": "^1.2.0",
-    "stunsail": "^1.0.0-rc.5",
+    "stunsail": "^1.0.0-rc.6",
     "trilogy": "^2.0.2",
     "twitch": "^3.7.1",
     "twitch-chat-client": "^3.7.1",

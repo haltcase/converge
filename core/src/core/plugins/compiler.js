@@ -3,24 +3,12 @@ import { relative, resolve } from 'path'
 
 import register from '@babel/register'
 import FP from 'functional-promises'
+import { count } from 'stunsail'
 
 import isSubdirectory from '../util/is-subdirectory'
 import { paths } from '../../constants'
 
 import appConfig from '../../../../babel.config.js'
-
-// TODO?: add to stunsail
-const count = (str, search, maxOccurrences) => {
-  let num = 0
-  let pos = str.indexOf(search)
-
-  while (pos !== -1 && num < maxOccurrences) {
-    num++
-    pos = str.indexOf(search, pos + 1)
-  }
-
-  return num
-}
 
 const pluginDir = resolve(paths.data, 'plugins')
 
