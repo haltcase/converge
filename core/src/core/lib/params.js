@@ -1,16 +1,17 @@
+/**
+ * @typedef {import('@converge/types').Core} Core
+ * @typedef {import('@converge/types').ChatEvent} ChatEvent
+ * @typedef {import('@converge/types').ExtraTags} ExtraTags
+ * @typedef {import('@converge/types').Tag} Tag
+ * @typedef {ChatEvent & Record<Tag, any>} TagObject
+ */
+
 import { _, it } from 'param.macro'
 
 import FP from 'functional-promises'
 import escapeRegExp from 'lodash.escaperegexp'
 import strat from 'strat'
 import { has, map, isObject, toObject } from 'stunsail'
-
-/**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').ChatEvent} ChatEvent
- * @typedef {'age' | 'cmdprefix' | 'sender' | '@sender' | 'random' | 'count' | 'pointname' | 'price' | '#' | 'uptime' | 'followers' | 'game' | 'status' | 'target' | '@target' | 'echo' | 'readfile '} Tag
- * @typedef {ChatEvent & Record<Tag, any>} TagObject
- */
 
 const tagList = [
   '{age}',
@@ -20,6 +21,8 @@ const tagList = [
   '{random}',
   '{count}',
   '{pointname}',
+  '{pointsname}',
+  '{pointstr ',
   '{price}',
   '{#}',
   '{uptime}',
@@ -54,7 +57,11 @@ const getReplacements = (context, tags) => {
       case 'random':
         return context.to.random(context.user.list) || context.ownerName
       case 'pointname':
+        return context.points.getName(true)
+      case 'pointsname':
         return context.points.getName()
+      case 'pointstr':
+        return amount => context.points.str(context.to.int(amount))
       case '#':
         return context.to.random(100)
       case 'uptime':
@@ -98,13 +105,33 @@ const getReplacements = (context, tags) => {
  * @param {Core} context
  */
 export default context => {
+  /**
+   * @param {ChatEvent} event
+   * @param {string} text
+   * @param {ExtraTags} tags
+   */
   const params = async (event, text, tags) => {
-    if (!isObject(event) || !hasTags(text)) return text
+    if (!isObject(event) || !hasTags(text)) {
+      if (Array.isArray(tags)) {
+        return strat(text, tags)
+      }
+
+      return text
+    }
 
     const tagObj = toObject(getTags(text))
-    const tagMap = Object.assign({}, tagObj, event, tags)
-    return getReplacements(context, tagMap)
-      .then(strat(text))
+    const tagMap = Object.assign({}, tagObj, event)
+
+    const replacements = []
+    if (Array.isArray(tags) && tags.length > 0) {
+      Object.assign(tagMap, { toString: () => tags[0] })
+      replacements.push(...tags.slice(1))
+    } else {
+      Object.assign(tagMap, tags)
+    }
+
+    replacements.unshift(await getReplacements(context, tagMap))
+    return strat(text, replacements)
   }
 
   context.extend({

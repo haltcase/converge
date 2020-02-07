@@ -1,6 +1,5 @@
 import { get, getOr, isString, pathDots, pathLinks, set } from 'stunsail'
 
-import strat from 'strat'
 import callsites from 'callsites'
 import { sync as find } from 'find-up'
 import { sync as getLocale } from 'os-locale'
@@ -83,6 +82,10 @@ const sanitizeFileName = input => {
   return input
 }
 
+/**
+ * @param {ReturnType<callsites>} callsite
+ * @param {string} key
+ */
 const getKeyPath = (callsite, key) => {
   const caller = callsite[1].getFileName()
   const manifest = find('package.json', { cwd: dirname(caller) })
@@ -97,13 +100,13 @@ const getKeyPath = (callsite, key) => {
  * @param {import('@converge/types').Core} context
  */
 export default context => {
-  const weave = (key, ...replacements) => {
+  const weave = async (key, ...replacements) => {
     const str = get(plugins, getKeyPath(callsites(), key))
 
     if (!str) return MISSING_STRING
     if (!isString(str)) return INVALID_PATH
 
-    return strat(str, replacements)
+    return context.params({}, str, replacements)
   }
 
   weave.core = (key, ...replacements) => {
@@ -114,7 +117,7 @@ export default context => {
     if (!str) return MISSING_STRING
     if (!isString(str)) return INVALID_PATH
 
-    return strat(str, replacements)
+    return context.params({}, str, replacements)
   }
 
   weave.set = (key, str) => {

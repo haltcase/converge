@@ -39,8 +39,8 @@ export { IsApi }
 import { LogApi } from './LogApi'
 export { LogApi }
 
-import { ParamsApi } from './ParamsApi'
-export { ParamsApi }
+import { ParamsApi, Tag, ExtraTags, ExtraTagObject } from './ParamsApi'
+export { ParamsApi, Tag, ExtraTags, ExtraTagObject }
 
 import { Plugin } from './Plugin'
 export { Plugin }
