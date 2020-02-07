@@ -19,7 +19,7 @@ export interface PluginLifecycle <
   /**
    * Called on plugin load.
    */
-  setup?: (core: Core) => undefined | Store<T, A> | Promise<Store<T, A>>
+  setup?: (core: Core) => void | undefined | Store<T, A> | Promise<Store<T, A> | void | undefined>
 
   /**
    * Called whenever the bot receives a potential command,
@@ -76,7 +76,7 @@ export interface PluginLifecycle <
    */
 
   [pluginName: string]:
-    | ((core: Core) => undefined | Store<T, A> | Promise<Store<T, A>>)
+    | ((core: Core) => void | undefined | Store<T, A> | Promise<Store<T, A> | void | undefined>)
     | HookListenerWithStore<T, A>
     | Record<string, HookListenerWithStore<T, A>>
 

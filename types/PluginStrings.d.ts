@@ -1,4 +1,4 @@
 import { Core } from '.'
 
 export type PluginStrings =
-  (core: Core) => undefined | Promise<unknown>
+  (core: Core) => void | undefined | Promise<unknown>
