@@ -1,6 +1,8 @@
 /**
  * @typedef {import('@converge/types').Core} Core
  * @typedef {import('@converge/types').ChatEvent} ChatEvent
+ * @typedef {import('@converge/types').PluginLifecycle} PluginLifecycle
+ * @typedef {import('@converge/state').Store} Store
  */
 
 import { get } from 'stunsail'
@@ -9,8 +11,6 @@ import { get } from 'stunsail'
  * @type {Core}
  */
 let $ = null
-
-let lines = 0
 
 const getMessage = name =>
   $.db.get('notices.value', { key: name })
@@ -45,7 +45,11 @@ const remove = async (name, withCommand) => {
   return Boolean(removed)
 }
 
-const run = async lastNotice => {
+/**
+ * @param {Store} store
+ * @param {string} lastNotice
+ */
+const run = async (store, lastNotice) => {
   const [
     interval,
     userLimit,
@@ -71,27 +75,32 @@ const run = async lastNotice => {
   if (
     thisNotice &&
     (!$.stream.isLive && onlineOnly) &&
-    $.user.count >= $.to.number(userLimit) &&
-    lines >= $.to.number(chatLines)
+    $.user.count >= $.to.int(userLimit) &&
+    store.getState() >= $.to.int(chatLines)
   ) {
     const event = await $.createChatEvent()
     event.command = thisNotice
 
     await $.runCommand(event)
-    lines = 0
+    store.getActions().reset()
   }
 
-  $.tick.setTimeout('notice:polling', () => run(thisNotice), interval)
+  $.tick.setTimeout('notice:polling', () => run(store, thisNotice), interval)
 }
 
 /**
- * @type {import('@converge/types').PluginLifecycle}
+ * @type {PluginLifecycle}
  */
 export const lifecycle = {
   async setup (context) {
     $ = context
 
-    $.on('beforeMessage', () => lines++)
+    const store = $.store(0, {
+      increment: () => lines => lines + 1,
+      reset: () => () => 0
+    })
+
+    $.on('beforeMessage', store.getActions().increment)
 
     await $.db.model('notices', {
       key: { type: String, primary: true },
@@ -101,7 +110,7 @@ export const lifecycle = {
 
     const interval = await $.db.getPluginConfig('notices.interval', '10m')
     if (interval !== '-1s') {
-      $.tick.setTimeout('notice:polling', run, interval)
+      $.tick.setTimeout('notice:polling', () => run(store), interval)
     }
 
     $.extend({

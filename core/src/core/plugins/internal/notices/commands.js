@@ -11,27 +11,27 @@ export const notice = async ($, e) => {
 
   if (e.subcommand === 'add') {
     if (!name || !message.length) {
-      e.respond($.weave('add.usage'))
+      e.respond(await $.weave('add.usage'))
       return
     }
 
     const result = await $.notices.add(name, message.join(' '))
-    e.respond($.weave(result ? 'add.success' : 'add.failure', name))
+    e.respond(await $.weave(result ? 'add.success' : 'add.failure', name))
 
     return
   }
 
   if (e.subcommand === 'get') {
     if (!name) {
-      e.respond($.weave('get.usage'))
+      e.respond(await $.weave('get.usage'))
       return
     }
 
     const result = await $.notices.get(name)
     if (result) {
-      e.respond($.weave('get.response', name, result))
+      e.respond(await $.weave('get.response', name, result))
     } else {
-      e.respond($.weave('get.not-found', name))
+      e.respond(await $.weave('get.not-found', name))
     }
 
     return
@@ -39,24 +39,24 @@ export const notice = async ($, e) => {
 
   if (e.subcommand === 'edit') {
     if (!name || !message.length) {
-      e.respond($.weave('edit.usage'))
+      e.respond(await $.weave('edit.usage'))
       return
     }
 
     const result = await $.notices.edit(name, message.join(' '))
-    e.respond($.weave(result ? 'edit.success' : 'edit.failure', name))
+    e.respond(await $.weave(result ? 'edit.success' : 'edit.failure', name))
 
     return
   }
 
   if (e.subcommand === 'remove') {
     if (!name) {
-      e.respond($.weave('remove.usage'))
+      e.respond(await $.weave('remove.usage'))
       return
     }
 
     const result = await $.notices.remove(name, true)
-    e.respond($.weave(result ? 'remove.success' : 'remove.failure', name))
+    e.respond(await $.weave(result ? 'remove.success' : 'remove.failure', name))
 
     return
   }
@@ -65,15 +65,15 @@ export const notice = async ($, e) => {
     const notices = await $.db.find('notices')
     if (notices.length) {
       const list = notices.map(v => v.key).join(', ')
-      e.respond($.weave('list.response', list))
+      e.respond(await $.weave('list.response', list))
     } else {
-      e.respond($.weave('list.not-found'))
+      e.respond(await $.weave('list.not-found'))
     }
 
     return
   }
 
-  e.respond($.weave('usage'))
+  e.respond(await $.weave('usage'))
 }
 
 /**

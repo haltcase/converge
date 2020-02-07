@@ -1,4 +1,6 @@
 /**
+ * @typedef {import('@converge/types').Core} Core
+ * @typedef {import('@converge/types').ChatEvent} ChatEvent
  * @typedef {import('@converge/types').PluginCommandHandler} PluginCommandHandler
  * @typedef {import('@converge/types').PluginSetup} PluginSetup
  */
@@ -6,140 +8,124 @@
 import { formatDistanceToNow } from 'date-fns'
 
 /**
+ * @param {Core} $
+ * @param {ChatEvent} e
+ * @param {'enable' | 'disable' | 'permission'} action
+ */
+const commandAction = async ($, e, action) => {
+  const [commandSpec, value] = e.subArgs
+
+  if ($.is.empty(commandSpec)) {
+    return e.respond(await $.weave(`command.${action}-usage`))
+  }
+
+  if (action === 'permission' && $.is.empty(value)) {
+    return e.respond(await $.weave('command.permission-usage'))
+  }
+
+  const [command, subcommand] = commandSpec.split('.')
+
+  if ($.command.exists(command, subcommand)) {
+    switch (action) {
+      case 'enable':
+        await $.command.enable(command, subcommand)
+        break
+      case 'disable':
+        await $.command.disable(command, subcommand)
+        break
+      case 'permission':
+        await $.command.setPermLevel(command, subcommand, value)
+        break
+    }
+
+    return e.respond(await $.weave.core(`commands.${action}-success`, commandSpec))
+  } else {
+    return e.respond(await $.weave.core('commands.does-not-exist'))
+  }
+}
+
+/**
+ * @type {PluginCommandHandler}
+ */
+const commandAdd = async ($, e) => {
+  if (e.subArgs.length < 2) {
+    return e.respond(await $.weave('command.add-usage'))
+  }
+
+  const [name, ...value] = e.subArgs
+
+  if ($.command.exists(name)) {
+    return e.respond(await $.weave.core('commands.already-exists'))
+  }
+
+  await $.command.addCustom(name, value.join(' '))
+  return e.respond(await $.weave.core('commands.add-success', name))
+}
+
+/**
+ * @type {PluginCommandHandler}
+ */
+const commandRemove = async ($, e) => {
+  const [name] = e.subArgs
+
+  if ($.is.empty(name)) {
+    return e.respond(await $.weave('command.remove-usage'))
+  }
+
+  if (!$.command.exists(name)) {
+    return e.respond(await $.weave.core('commands.does-not-exist'))
+  }
+
+  if (!await $.command.isCustom(name)) {
+    return e.respond(await $.weave.core('commands.is-plugin-command'))
+  }
+
+  await $.command.removeCustom(name)
+  return e.respond(await $.weave.core('commands.remove-success', name))
+}
+
+/**
+ * @type {PluginCommandHandler}
+ */
+const commandEdit = async ($, e) => {
+  const [name, ...value] = e.subArgs
+
+  if ($.is.empty(name) || value.length === 0) {
+    return e.respond(await $.weave('command.edit-usage'))
+  }
+
+  if (!$.command.exists(name)) {
+    return e.respond(await $.weave.core('commands.does-not-exist'))
+  }
+
+  if (!await $.command.isCustom(name)) {
+    return e.respond(await $.weave.core('commands.is-plugin-command'))
+  }
+
+  await $.db.set(
+    'commands',
+    { name, module: 'custom' },
+    { response: value.join(' ') }
+  )
+
+  return e.respond(await $.weave.core('commands.edit-success', name))
+}
+
+/**
  * @type {PluginCommandHandler}
  */
 export const command = async ($, e) => {
-  const [, param1, param2] = e.args
-
-  if (e.subcommand === 'enable') {
-    if (e.args.length < 2) {
-      return e.respond($.weave('command.enable-usage'))
-    }
-
-    if (param1.includes('>')) {
-      const pair = param1.split('>')
-
-      if ($.command.exists(pair[0], pair[1])) {
-        await $.command.enable(pair[0], pair[1])
-        e.respond($.weave.core('commands.enable-success', param1))
-      } else {
-        e.respond($.weave.core('commands.does-not-exist'))
-      }
-    } else {
-      if ($.command.exists(param1)) {
-        await $.command.enable(param1)
-        e.respond($.weave.core('commands.enable-success', param1))
-      } else {
-        e.respond($.weave.core('commands.does-not-exist'))
-      }
-    }
-
-    return
+  if ($.is.oneOf(e.subcommand, ['enable', 'disable', 'permission'])) {
+    return commandAction($, e, e.subcommand)
   }
 
-  if (e.subcommand === 'disable') {
-    if (e.args.length < 2) {
-      return e.respond($.weave('command.disable-usage'))
-    }
-
-    if (param1.includes('>')) {
-      const pair = param1.split('>')
-
-      if ($.command.exists(pair[0], pair[1])) {
-        await $.command.disable(pair[0], pair[1])
-        e.respond($.weave.core('commands.disable-success', param1))
-      } else {
-        e.respond($.weave.core('commands.does-not-exist'))
-      }
-    } else {
-      if ($.command.exists(param1)) {
-        await $.command.disable(param1)
-        e.respond($.weave.core('commands.disable-success', param1))
-      } else {
-        e.respond($.weave.core('commands.does-not-exist'))
-      }
-    }
-
-    return
+  switch (e.subcommand) {
+    case 'add': return commandAdd($, e)
+    case 'remove': return commandRemove($, e)
+    case 'edit': return commandEdit($, e)
   }
 
-  if (e.subcommand === 'permission') {
-    if (e.args.length < 2) {
-      return e.respond($.weave('command.permission-usage'))
-    }
-
-    if ($.command.exists(param1)) {
-      await $.command.setPermLevel(param1, param2)
-      e.respond($.weave.core('commands.permission-success', param1, param2))
-    } else {
-      e.respond($.weave.core('commands.does-not-exist'))
-    }
-
-    return
-  }
-
-  if (e.subcommand === 'add') {
-    if (e.subArgs.length < 2) {
-      return e.respond($.weave('command.add-usage'))
-    }
-
-    if ($.command.exists(param1)) {
-      return e.respond($.weave.core('commands.already-exists'))
-    }
-
-    const response = e.subArgs.slice(1).join(' ')
-
-    await $.command.addCustom(param1, response)
-    e.respond($.weave.core('commands.add-success', param1))
-
-    return
-  }
-
-  if (e.subcommand === 'remove') {
-    if (!e.subArgs[0]) {
-      return e.respond($.weave('command.remove-usage'))
-    }
-
-    if (!$.command.exists(param1)) {
-      return e.respond($.weave.core('commands.does-not-exist'))
-    }
-
-    if (!await $.command.isCustom(param1)) {
-      return e.respond($.weave.core('commands.is-plugin-command'))
-    }
-
-    await $.command.removeCustom(param1)
-    e.respond($.weave.core('commands.remove-success', param1))
-
-    return
-  }
-
-  if (e.subcommand === 'edit') {
-    if (e.subArgs.length < 2) {
-      return e.respond($.weave('command.edit-usage'))
-    }
-
-    if (!$.command.exists(param1)) {
-      return e.respond($.weave.core('commands.does-not-exist'))
-    }
-
-    if (!await $.command.isCustom(param1)) {
-      return e.respond($.weave.core('commands.is-plugin-command'))
-    }
-
-    const newResponse = e.subArgs.slice(1).join(' ')
-
-    await $.db.set(
-      'commands',
-      { name: param1, module: 'custom' },
-      { response: newResponse }
-    )
-    e.respond($.weave.core('commands.edit-success', param1))
-
-    return
-  }
-
-  e.respond($.weave('command.usage'))
+  return e.respond(await $.weave('command.usage'))
 }
 
 /**
@@ -148,19 +134,19 @@ export const command = async ($, e) => {
 export const whisperMode = async ($, e) => {
   if (e.subcommand === 'enable') {
     await $.settings.set('whisperMode', true)
-    return e.respond($.weave.core('settings.whisper-mode.enabled-success'))
+    return e.respond(await $.weave.core('settings.whisper-mode.enabled-success'))
   }
 
   if (e.subcommand === 'disable') {
     await $.settings.set('whisperMode', false)
-    return e.respond($.weave.core('settings.whisper-mode.disabled-success'))
+    return e.respond(await $.weave.core('settings.whisper-mode.disabled-success'))
   }
 
   const status = await $.settings.get('whisperMode')
-    ? $.weave.core('common-words.enabled')
-    : $.weave.core('common-words.disabled')
+    ? await $.weave.core('common-words.enabled')
+    : await $.weave.core('common-words.disabled')
 
-  e.respond($.weave('whisper-mode.usage'), status)
+  return e.respond(await $.weave('whisper-mode.usage'), status)
 }
 
 /**
@@ -168,15 +154,18 @@ export const whisperMode = async ($, e) => {
  */
 export const lastSeen = async ($, e) => {
   const [target] = e.args
-  if (!target) return e.respond($.weave('last-seen.usage'))
+
+  if ($.is.empty(target)) {
+    return e.respond(await $.weave('last-seen.usage'))
+  }
 
   if (await $.user.existsByName(target)) {
     const timeAgo =
       formatDistanceToNow(await $.db.get('users.seen', { name: target }))
 
-    e.respond($.weave('last-seen.response', target, timeAgo))
+    return e.respond(await $.weave('last-seen.response', target, timeAgo))
   } else {
-    e.respond($.weave('last-seen.not-seen', target))
+    return e.respond(await $.weave('last-seen.not-seen', target))
   }
 }
 

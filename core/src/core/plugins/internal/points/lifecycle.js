@@ -3,7 +3,7 @@
  * @typedef {import('@converge/types').ChatEvent} ChatEvent
  */
 
-import map from 'stunsail/map'
+import { map } from 'stunsail'
 
 /**
  * @type {Core} $
@@ -34,21 +34,28 @@ const set = (name, value) =>
 
 const str = async amount => {
   amount = $.to.int(amount)
-  return amount === 1
-    ? `${amount} ${await getPointName(true)}`
-    : `${amount} ${await getPointName()}`
+  return `${amount.toLocaleString()} ${await getPointName(amount === 1)}`
 }
 
 const getPointName = singular => {
-  return singular
-    ? $.db.getConfig('pointName', 'point')
-    : $.db.getConfig('pointNamePlural', 'points')
+  const key = singular ? 'pointName' : 'pointNamePlural'
+  return $.db.getConfig(key, 'points')
 }
 
-const setPointName = (name, singular) => {
-  return singular
-    ? $.db.setConfig('pointName', name)
-    : $.db.setConfig('pointNamePlural', name)
+const setPointName = async (name, singular) => {
+  const key = singular ? 'pointName' : 'pointNamePlural'
+
+  if (!singular) {
+    const current = await $.db.getConfig(key)
+
+    if (current) {
+      await $.command.removeAlias(current)
+    }
+
+    await $.command.addAlias(name, 'points')
+  }
+
+  return $.db.setConfig(key, name)
 }
 
 const getPayoutAmount = async offline => {
@@ -61,9 +68,8 @@ const getPayoutAmount = async offline => {
 
 const setPayoutAmount = (amount, offline) => {
   amount = $.to.int(amount)
-  return offline
-    ? $.db.setConfig('pointPayoutOffline', amount)
-    : $.db.setConfig('pointPayout', amount)
+  const key = offline ? 'pointPayoutOffline' : 'pointPayout'
+  return $.db.setConfig(key, amount)
 }
 
 const getPayoutInterval = async offline => {
@@ -71,17 +77,24 @@ const getPayoutInterval = async offline => {
     ? await $.db.getConfig('pointIntervalOffline', '-1s')
     : await $.db.getConfig('pointInterval', '5m')
 
-  return interval === '-1s' ? 0 : $.tick.ms(interval)
+  return interval === '-1s' ? 0 : $.tick.ms(interval) / 1_000
 }
 
 const setPayoutInterval = (seconds, offline) => {
   if (!$.is.number(seconds)) {
-    seconds = $.tick.ms(seconds) / 1000 || -1
+    // time string, e.g. 5m 30s
+    try {
+      seconds = $.tick.ms(seconds) / 1_000 || -1
+    } catch {
+      $.log.debug('points', `could not convert non-number to time interval: '${seconds}'`)
+      return
+    }
   }
 
-  return offline
-    ? $.db.setConfig('pointIntervalOffline', seconds)
-    : $.db.setConfig('pointInterval', seconds)
+  const value = seconds <= 0 ? '-1s' : $.to.duration(seconds * 1_000)
+
+  const key = offline ? 'pointIntervalOffline' : 'pointInterval'
+  return $.db.setConfig(key, value)
 }
 
 const getCommandPrice = async (command, subcommand) => {
@@ -89,7 +102,10 @@ const getCommandPrice = async (command, subcommand) => {
     return $.db.get('commands.price', { name: command }, 0)
   }
 
-  let cost = await $.db.get('subcommands.price', { name: subcommand }, -1)
+  let cost = await $.db.get('subcommands.price', {
+    name: subcommand,
+    parent: command
+  }, -1)
 
   if (cost === -1) {
     cost = await $.db.get('commands.price', { name: command })
@@ -105,13 +121,16 @@ const setCommandPrice = async (command, subcommand, price) => {
   }
 
   if (!subcommand) {
-    await $.db.set('commands', { name: command }, { name: command, price })
+    await $.db.set('commands.price', { name: command }, price)
   } else {
-    if (price === -1) {
-      price = $.to.int(await $.db.get('commands.price', { name: command }))
+    if (price < 0) {
+      price = -1
     }
 
-    return $.db.set('subcommands', { name: command }, { name: command, price })
+    return $.db.set('subcommands.price', {
+      name: subcommand,
+      parent: command
+    }, price)
   }
 }
 
@@ -146,7 +165,7 @@ const handlePayouts = async (lastPayout = Date.now(), lastUserList = []) => {
   const userList = $.user.list
 
   const [interval, amount] = await Promise.all([
-    getPayoutInterval(!isLive),
+    getPayoutInterval(!isLive).then(value => value / 1_000),
     getPayoutAmount(!isLive)
   ])
 
@@ -227,7 +246,7 @@ export const lifecycle = {
 
     if (points >= price) return
 
-    const message = $.weave('command.not-enough-points', e.command, price, points)
+    const message = await $.weave('command.not-enough-points', e.command, price, points)
     $.whisper(e.sender, message)
 
     e.prevent()
