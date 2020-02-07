@@ -1,4 +1,4 @@
-import { promises, realpathSync } from 'fs'
+import { promises } from 'fs'
 import { relative, resolve } from 'path'
 
 import register from '@babel/register'
