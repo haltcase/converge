@@ -1,9 +1,20 @@
-import ms from 'ms'
-
 /**
  * @typedef {string | number} Time
  * @typedef {import('@converge/types').Core} Core
  */
+
+import ms from 'ms'
+
+/**
+ * @type {typeof ms}
+ */
+const msWrapper = (value, options) => {
+  if (typeof value === 'string' && value.trim().includes(' ')) {
+    return value.split(' ').reduce((total, unit) => total + ms(unit, options), 0)
+  }
+
+  return ms(value, options)
+}
 
 /**
  * @param {Time} time
@@ -25,7 +36,7 @@ export class Tock {
    */
   intervals = new Map()
 
-  ms = ms
+  ms = msWrapper
 
   /**
    *
