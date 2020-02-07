@@ -430,7 +430,7 @@ export const getCommand = registry[_]
  */
 export const getSubcommand = registry[_].subcommands[_]
 
-const getProperty = (command, ...args) => {
+const getProperty = async (command, ...args) => {
   let sub
   let property = args[0]
   if (args.length === 2) {
@@ -442,7 +442,7 @@ const getProperty = (command, ...args) => {
     : getCommandProperty(command, property)
 }
 
-const setProperty = context => (command, ...args) => {
+const setProperty = context => async (command, ...args) => {
   if (args.length !== 2 && args.length !== 3) return
 
   let sub
