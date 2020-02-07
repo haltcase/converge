@@ -28,6 +28,8 @@ export { CoreOptions }
 import { DatabaseApi } from './DatabaseApi'
 export { DatabaseApi }
 
+export { Duration, DurationInstance, DurationOptions, LabelSet } from './Duration'
+
 import { FileApi } from './FileApi'
 export { FileApi }
 

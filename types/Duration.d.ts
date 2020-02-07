@@ -1,4 +1,4 @@
-interface LabelSet {
+export interface LabelSet {
   days: string
   hours: string
   minutes: string
@@ -6,7 +6,7 @@ interface LabelSet {
   milliseconds: string
 }
 
-interface DurationOptions {
+export interface DurationOptions {
   labels: LabelSet
   includeMilliseconds: boolean
   removeZeroes: boolean
@@ -14,7 +14,7 @@ interface DurationOptions {
   minimal: boolean
 }
 
-interface DurationInstance {
+export interface DurationInstance {
   days: number
   hours: number
   minutes: number
@@ -22,7 +22,7 @@ interface DurationInstance {
   milliseconds: number
 }
 
-export default interface Duration {
+export interface Duration {
   (ms: number, options: DurationOptions): string
 
   parse: (ms: number) => DurationInstance

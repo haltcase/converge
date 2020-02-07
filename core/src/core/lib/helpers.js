@@ -2,6 +2,8 @@ import { _ } from 'param.macro'
 
 import * as stunsail from 'stunsail'
 
+import duration from '../util/duration'
+
 const isToMethod = stunsail.includes([
   'clamp',
   'range',
@@ -15,7 +17,8 @@ const isToMethod = stunsail.includes([
 export default context => {
   const is = stunsail.isEqual
   const to = {
-    int: stunsail.toNumber(_, true)
+    int: stunsail.toNumber(_, true),
+    duration
   }
 
   stunsail.each(Object.keys(stunsail), key => {
