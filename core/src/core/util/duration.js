@@ -50,7 +50,7 @@ const defaultOptions = {
 }
 
 /**
- * @type {import('./duration').default}
+ * @type {import('@converge/types').Duration}
  */
 const duration = (duration, options) => {
   options = Object.assign(defaultOptions, options)
