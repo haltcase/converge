@@ -79,21 +79,10 @@ const normalizeScope = (user, useGlobalCooldown) => {
     : user ?? GlobalCooldown
 }
 
-/**
- * @param {State} state
- * @param {Scope} scope
- * @param {string} command
- * @param {string} subcommand
- */
-const getIndex = (state, scope, command, subcommand) => {
-  const search = {
-    command,
-    subcommand,
-    scope
-  }
-
-  return state.findIndex(item => matches(item, search))
-}
+const isMatch = (cooldown, scope, command, subcommand) =>
+  cooldown.command === command &&
+  cooldown.subcommand === subcommand &&
+  (cooldown.scope.global || (cooldown.id === scope.id || cooldown.name === scope.name))
 
 /**
  * @param {State} state
@@ -101,15 +90,17 @@ const getIndex = (state, scope, command, subcommand) => {
  * @param {string} command
  * @param {string} subcommand
  */
-const getActiveCooldown = (state, scope, command, subcommand) => {
-  const search = {
-    command,
-    subcommand,
-    scope
-  }
+const getIndex = (state, scope, command, subcommand) =>
+  state.findIndex(item => isMatch(item, scope, command, subcommand))
 
-  return state.find(item => matches(item, search))
-}
+/**
+ * @param {State} state
+ * @param {Scope} scope
+ * @param {string} command
+ * @param {string} subcommand
+ */
+const getActiveCooldown = (state, scope, command, subcommand) =>
+  state.find(item => isMatch(item, scope, command, subcommand))
 
 /**
  * @returns {Core["command"]["startCooldown"]}
