@@ -15,7 +15,7 @@ export interface StreamApi {
   status: string
 
   /**
-   * Running duration of the active stream, or 'offline' if the stream is offline.
+   * Running duration of the active stream, or "offline" if the stream is offline.
    */
   uptime: string
 }

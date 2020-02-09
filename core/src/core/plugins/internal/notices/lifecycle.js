@@ -1,11 +1,11 @@
 /**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').ChatEvent} ChatEvent
- * @typedef {import('@converge/types').PluginLifecycle} PluginLifecycle
- * @typedef {import('@converge/state').Store} Store
+ * @typedef {import("@converge/types").Core} Core
+ * @typedef {import("@converge/types").ChatEvent} ChatEvent
+ * @typedef {import("@converge/types").PluginLifecycle} PluginLifecycle
+ * @typedef {import("@converge/state").Store} Store
  */
 
-import { get } from 'stunsail'
+import { get } from "stunsail"
 
 /**
  * @type {Core}
@@ -13,20 +13,20 @@ import { get } from 'stunsail'
 let $ = null
 
 const getMessage = name =>
-  $.db.get('notices.value', { key: name })
+  $.db.get("notices.value", { key: name })
 
 const add = async (name, message) => {
   if ($.command.exists(name) || await getMessage(name)) {
     return false
   }
 
-  const added = await $.db.create('notices', { key: name, value: message })
+  const added = await $.db.create("notices", { key: name, value: message })
   if (added) $.addCustomCommand(name, { response: message })
   return Boolean(added)
 }
 
 const edit = async (name, message) => {
-  await $.db.updateOrCreate('notices', { key: name }, { value: message })
+  await $.db.updateOrCreate("notices", { key: name }, { value: message })
 
   if (!$.command.exists(name)) {
     $.addCustomCommand(name, { response: message })
@@ -36,9 +36,9 @@ const edit = async (name, message) => {
 }
 
 const remove = async (name, withCommand) => {
-  const removed = await $.db.remove('notices', { key: name })
+  const removed = await $.db.remove("notices", { key: name })
   if (removed && withCommand) {
-    const affected = await $.db.remove('commands', { name, caller: 'custom' })
+    const affected = await $.db.remove("commands", { name, caller: "custom" })
     return Boolean(affected)
   }
 
@@ -57,19 +57,19 @@ const run = async (store, lastNotice) => {
     onlineOnly,
     notices
   ] = await Promise.all([
-    $.db.getPluginConfig('notices.interval', '10m'),
-    $.db.getPluginConfig('notices.userLimit', 10),
-    $.db.getPluginConfig('notices.chatLines', 15),
-    $.db.getPluginConfig('notices.onlineOnly', true),
-    $.db.find('notices')
+    $.db.getPluginConfig("notices.interval", "10m"),
+    $.db.getPluginConfig("notices.userLimit", 10),
+    $.db.getPluginConfig("notices.chatLines", 15),
+    $.db.getPluginConfig("notices.onlineOnly", true),
+    $.db.find("notices")
   ])
 
-  if (interval === '-1s') return
+  if (interval === "-1s") return
 
   let thisNotice = lastNotice
 
   do {
-    thisNotice = get($.to.random(notices), 'key')
+    thisNotice = get($.to.random(notices), "key")
   } while (notices.length > 1 && thisNotice === lastNotice)
 
   if (
@@ -85,7 +85,7 @@ const run = async (store, lastNotice) => {
     store.getActions().reset()
   }
 
-  $.tick.setTimeout('notice:polling', () => run(store, thisNotice), interval)
+  $.tick.setTimeout("notice:polling", () => run(store, thisNotice), interval)
 }
 
 /**
@@ -100,17 +100,17 @@ export const lifecycle = {
       reset: () => () => 0
     })
 
-    $.on('beforeMessage', store.getActions().increment)
+    $.on("beforeMessage", store.getActions().increment)
 
-    await $.db.model('notices', {
+    await $.db.model("notices", {
       key: { type: String, primary: true },
       value: String,
       info: String
     })
 
-    const interval = await $.db.getPluginConfig('notices.interval', '10m')
-    if (interval !== '-1s') {
-      $.tick.setTimeout('notice:polling', () => run(store), interval)
+    const interval = await $.db.getPluginConfig("notices.interval", "10m")
+    if (interval !== "-1s") {
+      $.tick.setTimeout("notice:polling", () => run(store), interval)
     }
 
     $.extend({

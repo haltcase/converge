@@ -1,16 +1,16 @@
 /**
  * @typedef {string | number} Time
- * @typedef {import('@converge/types').Core} Core
+ * @typedef {import("@converge/types").Core} Core
  */
 
-import ms from 'ms'
+import ms from "ms"
 
 /**
  * @type {typeof ms}
  */
 const msWrapper = (value, options) => {
-  if (typeof value === 'string' && value.trim().includes(' ')) {
-    return value.split(' ').reduce((total, unit) => total + ms(unit, options), 0)
+  if (typeof value === "string" && value.trim().includes(" ")) {
+    return value.split(" ").reduce((total, unit) => total + ms(unit, options), 0)
   }
 
   return ms(value, options)
@@ -21,7 +21,7 @@ const msWrapper = (value, options) => {
  * @returns {number}
  */
 const normalizeTime = time =>
-  typeof time === 'string'
+  typeof time === "string"
     ? ms(time)
     : time
 
@@ -47,19 +47,19 @@ export class Tock {
    */
   setTimeout (name, fn, time, ...args) {
     if (!name && !fn && time == null) {
-      throw new Error('invalid arguments')
+      throw new Error("invalid arguments")
     }
 
-    if (typeof name === 'function') {
+    if (typeof name === "function") {
       time = normalizeTime(fn)
       fn = name
-      name = ''
+      name = ""
     } else {
       time = normalizeTime(time)
     }
 
     const kind = typeof fn
-    if (kind !== 'function') {
+    if (kind !== "function") {
       throw new TypeError(`Expected function, got ${kind}`)
     }
 
@@ -94,19 +94,19 @@ export class Tock {
    */
   setInterval (name, fn, interval, ...args) {
     if (!name && !fn) {
-      throw new Error('invalid arguments')
+      throw new Error("invalid arguments")
     }
 
-    if (typeof name === 'function') {
+    if (typeof name === "function") {
       interval = normalizeTime(fn) || 1000
       fn = name
-      name = ''
+      name = ""
     } else {
       interval = normalizeTime(interval) || 1000
     }
 
     const kind = typeof fn
-    if (kind !== 'function') {
+    if (kind !== "function") {
       throw new TypeError(`Expected function, got ${kind}`)
     }
 
@@ -149,7 +149,7 @@ export class Tock {
 export default context => {
   const instance = new Tock()
 
-  context.on('beforeShutdown', () => {
+  context.on("beforeShutdown", () => {
     instance.timers.forEach(timer => clearTimeout(timer))
     instance.intervals.forEach(interval => clearInterval(interval))
   })

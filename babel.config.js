@@ -4,7 +4,7 @@
 
 module.exports = {
   presets: [
-    ['@babel/env', {
+    ["@babel/env", {
       targets: {
         node: true
       },
@@ -14,16 +14,16 @@ module.exports = {
     }]
   ],
   plugins: [
-    'babel-plugin-macros',
-    'module:stunsail/babel',
-    'dynamic-import-node',
-    '@babel/proposal-class-properties',
-    '@babel/proposal-do-expressions',
-    '@babel/proposal-function-bind',
-    '@babel/proposal-numeric-separator',
-    ['@babel/proposal-pipeline-operator', {
-      proposal: 'fsharp'
+    "babel-plugin-macros",
+    "module:stunsail/babel",
+    "dynamic-import-node",
+    "@babel/proposal-class-properties",
+    "@babel/proposal-do-expressions",
+    "@babel/proposal-function-bind",
+    "@babel/proposal-numeric-separator",
+    ["@babel/proposal-pipeline-operator", {
+      proposal: "fsharp"
     }],
-    '@babel/proposal-throw-expressions'
+    "@babel/proposal-throw-expressions"
   ]
 }

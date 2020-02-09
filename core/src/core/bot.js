@@ -1,28 +1,28 @@
 /**
- * @typedef {import('@converge/types').Bot} Bot
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').CoreConfig} CoreConfig
- * @typedef {import('@converge/types').CoreOptions} CoreOptions
- * @typedef {import('@converge/types').ChatEvent} ChatEvent
- * @typedef {import('twitch-chat-client').PrivateMessage} PrivateMessage
+ * @typedef {import("@converge/types").Bot} Bot
+ * @typedef {import("@converge/types").Core} Core
+ * @typedef {import("@converge/types").CoreConfig} CoreConfig
+ * @typedef {import("@converge/types").CoreOptions} CoreOptions
+ * @typedef {import("@converge/types").ChatEvent} ChatEvent
+ * @typedef {import("twitch-chat-client").PrivateMessage} PrivateMessage
  */
 
-import { it } from 'param.macro'
+import { it } from "param.macro"
 
-import { basename, dirname } from 'path'
+import { basename, dirname } from "path"
 
-import callsites from 'callsites'
-import { writeAsync } from 'fs-jetpack'
-import FP from 'functional-promises'
-import { once } from 'stunsail'
-import TwitchClient from 'twitch'
-import ChatClient from 'twitch-chat-client'
-import PubSubClient from 'twitch-pubsub-client'
-import Webhooks from 'twitch-webhooks'
-import TOML from '@iarna/toml'
+import callsites from "callsites"
+import { writeAsync } from "fs-jetpack"
+import FP from "functional-promises"
+import { once } from "stunsail"
+import TwitchClient from "twitch"
+import ChatClient from "twitch-chat-client"
+import PubSubClient from "twitch-pubsub-client"
+import Webhooks from "twitch-webhooks"
+import TOML from "@iarna/toml"
 
-import log from '../logger'
-import { callHook, callHookAndWait } from './hooks'
+import log from "../logger"
+import { callHook, callHookAndWait } from "./hooks"
 
 /**
 * @param {CoreConfig} config
@@ -112,26 +112,26 @@ export const getInstance = once(
 const isCommand = (message, prefix) =>
   message.substr(0, prefix.length) === prefix &&
   message.length > prefix.length &&
-  message.charAt(prefix.length) !== ' '
+  message.charAt(prefix.length) !== " "
 
 /**
  * @param {string} message
  * @param {string} prefix
  */
 const getCommand = (message, prefix) =>
-  message.slice(prefix.length).split(' ', 1)[0].toLowerCase()
+  message.slice(prefix.length).split(" ", 1)[0].toLowerCase()
 
 /**
  * @param {string} message
  */
 const getCommandArgs = message =>
-  message.split(' ').slice(1)
+  message.split(" ").slice(1)
 
 /**
  * @param {string} message
  */
 const getCommandArgString = message =>
-  getCommandArgs(message).join(' ')
+  getCommandArgs(message).join(" ")
 
 /**
  * @param {string} message
@@ -143,7 +143,7 @@ const getCommandSubArgs = message =>
  * @param {string} message
  */
 const getCommandSubArgString = message =>
-  getCommandArgs(message).slice(1).join(' ')
+  getCommandArgs(message).slice(1).join(" ")
 
 /**
  * @param {string} message
@@ -152,12 +152,12 @@ const getCommandSubArgString = message =>
 const getCommandData = (message, prefix) => {
   if (!isCommand(message, prefix)) {
     return {
-      command: '',
-      subcommand: '',
+      command: "",
+      subcommand: "",
       args: [],
       subArgs: [],
-      argString: '',
-      subArgString: ''
+      argString: "",
+      subArgString: ""
     }
   } else {
     const args = getCommandArgs(message)
@@ -173,7 +173,7 @@ const getCommandData = (message, prefix) => {
 }
 
 /**
- * @param {ReturnType<import('callsites')>} callsite
+ * @param {ReturnType<import("callsites")>} callsite
  */
 const getCaller = callsite => {
   const caller = callsite[1].getFileName()
@@ -197,7 +197,7 @@ const createPrevent = event => () => {
   event.isPrevented = true
   const caller = getCaller(callsites())
   log.debug(`command prevented by ${caller}`)
-  callHook('preventedCommand', event)
+  callHook("preventedCommand", event)
 }
 
 /**
@@ -210,13 +210,13 @@ const createPrevent = event => () => {
  * @param {PrivateMessage} rawMessage
  */
 const dispatcher = async (ctx, bot, prefix, type, user, message, rawMessage) => {
-  if (type === 'action') return
+  if (type === "action") return
 
   const event = await buildEvent(
-    ctx, rawMessage, prefix, type === 'whisper'
+    ctx, rawMessage, prefix, type === "whisper"
   )
 
-  await callHookAndWait('beforeMessage', event)
+  await callHookAndWait("beforeMessage", event)
 
   if (event.isPrevented) return
 
@@ -231,18 +231,18 @@ const dispatcher = async (ctx, bot, prefix, type, user, message, rawMessage) => 
  * @param {string} prefix
  */
 const setupListeners = async (ctx, bot, prefix) => {
-  log.trace('registering chat listeners')
+  log.trace("registering chat listeners")
 
   bot.onPrivmsg((source, ...args) =>
-    dispatcher(ctx, bot, prefix, 'chat', ...args)
+    dispatcher(ctx, bot, prefix, "chat", ...args)
   )
 
   bot.onAction((source, ...args) =>
-    dispatcher(ctx, bot, prefix, 'action', ...args)
+    dispatcher(ctx, bot, prefix, "action", ...args)
   )
 
   bot.onWhisper((...args) =>
-    dispatcher(ctx, bot, prefix, 'whisper', ...args)
+    dispatcher(ctx, bot, prefix, "whisper", ...args)
   )
 }
 
@@ -259,12 +259,12 @@ const aliasHandler = async (ctx, event) => {
   }
 
   if (!original) return
-  const [command, subcommand, ...rest] = original.split(' ')
+  const [command, subcommand, ...rest] = original.split(" ")
   if (!ctx.command.exists(command)) return
 
   const newMessage = [command, subcommand, ...rest, ...event.args]
     .filter(it != null)
-    .join(' ')
+    .join(" ")
 
   const prefix = await ctx.command.getPrefix()
   const data = getCommandData(prefix + newMessage.trimLeft(), prefix)
@@ -276,7 +276,7 @@ const aliasHandler = async (ctx, event) => {
  * @param {ChatEvent} event
  */
 const commandHandler = async (ctx, event) => {
-  await callHookAndWait('receivedCommand', event)
+  await callHookAndWait("receivedCommand", event)
   if (!event.isPrevented && !await ctx.runCommand(event)) {
     return aliasHandler(ctx, event)
   }
@@ -288,7 +288,7 @@ const commandHandler = async (ctx, event) => {
  */
 const updateChatUser = async (ctx, event) => {
   try {
-    await ctx.db.updateOrCreate('users', {
+    await ctx.db.updateOrCreate("users", {
       id: event.id
     }, {
       name: event.sender,
@@ -333,9 +333,9 @@ const buildEvent = async (ctx, messageEvent, prefix, whispered) => {
 
 /**
  * @param {Core} ctx
- * @returns {Core['createChatEvent']}
+ * @returns {Core["createChatEvent"]}
  */
-const buildEventPublic = ctx => async (message = '', userInfo = {}, whispered = false) => {
+const buildEventPublic = ctx => async (message = "", userInfo = {}, whispered = false) => {
   const messageEvent = {
     userInfo: {
       displayName: ctx.botName,
@@ -358,7 +358,7 @@ const buildEventPublic = ctx => async (message = '', userInfo = {}, whispered = 
  * @returns {Promise<ChatClient>}
  */
 export const loadBot = async (context, config, options) => {
-  log.trace('starting up bot instance')
+  log.trace("starting up bot instance")
   const {
     bot,
     owner,
@@ -368,7 +368,7 @@ export const loadBot = async (context, config, options) => {
   const shout = message => bot.say(context.ownerName, message)
 
   const whisper = (user, message) => {
-    log.debug('note: outgoing whispers are currently unreliable or broken (thanks twitch)')
+    log.debug("note: outgoing whispers are currently unreliable or broken (thanks twitch)")
     bot.whisper(user, message)
   }
 
@@ -376,12 +376,12 @@ export const loadBot = async (context, config, options) => {
     if (!args.length) return shout(user)
 
     const [mentions, whispers] = await FP.all([
-      context.db.getConfig('responseMention', false),
-      context.db.getConfig('whisperMode', false)
+      context.db.getConfig("responseMention", false),
+      context.db.getConfig("whisperMode", false)
     ])
 
     const [message] = args
-    const mention = mentions ? `${user}: ` : ''
+    const mention = mentions ? `${user}: ` : ""
 
     if (!whispers) {
       return shout(`${mention}${message}`)
@@ -390,7 +390,7 @@ export const loadBot = async (context, config, options) => {
     }
   }
 
-  const getPrefix = () => context.db.getConfig('prefix', '!')
+  const getPrefix = () => context.db.getConfig("prefix", "!")
 
   context.extend({
     say,
@@ -404,7 +404,7 @@ export const loadBot = async (context, config, options) => {
     }
   })
 
-  context.on('beforeShutdown', () => FP.all([
+  context.on("beforeShutdown", () => FP.all([
     bot.quit(),
     owner.quit(),
     webhooks?.unlisten()

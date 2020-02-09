@@ -15,7 +15,7 @@
     "converge"
   ],
   "scripts": {
-    "lint": "eslint *.ts"
+    "lint": "eslint *.ts --ext .ts"
   },
   "files": [
     "*.d.ts"

@@ -6,8 +6,8 @@
  */
 
 /**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').ChatEvent} ChatEvent
+ * @typedef {import("@converge/types").Core} Core
+ * @typedef {import("@converge/types").ChatEvent} ChatEvent
  */
 
 /**
@@ -20,11 +20,11 @@
 export const echo = ($, e) => {
   if (!e.argString) return
 
-  if (e.subcommand === 'twice') {
+  if (e.subcommand === "twice") {
     return e.respond(`${e.subArgString} ${e.subArgString}`)
   }
 
-  if (e.subcommand === 'loudly') {
+  if (e.subcommand === "loudly") {
     return e.respond(e.subArgString.toUpperCase())
   }
 
@@ -48,7 +48,7 @@ export const setup = $ => {
    *   @param {boolean} [options.status] - whether the command is enabled / disabled by default
    */
 
-  $.addCommand('echo', { price: 2 })
+  $.addCommand("echo", { price: 2 })
 
   /**
    * $.addSubcommand
@@ -64,6 +64,6 @@ export const setup = $ => {
    * -> hello hello
    */
 
-  $.addSubcommand('twice', 'echo', { cooldown: 10 })
-  $.addSubcommand('loudly', 'echo', { cooldown: 10 })
+  $.addSubcommand("twice", "echo", { cooldown: 10 })
+  $.addSubcommand("loudly", "echo", { cooldown: 10 })
 }

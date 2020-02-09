@@ -1,11 +1,11 @@
-import getPkg from 'pkg.macro'
+import getPkg from "pkg.macro"
 
-import { resolve } from 'path'
+import { resolve } from "path"
 
-import getPaths from 'env-paths'
-import getPackageProps from 'npm-package-arg'
+import getPaths from "env-paths"
+import getPackageProps from "npm-package-arg"
 
-const pkg = getPkg(['name', 'version'])
+const pkg = getPkg(["name", "version"])
 
 export const name = getPackageProps(pkg.name).scope.substring(1)
 
@@ -29,9 +29,9 @@ export const version = pkg.version
 /**
  * @type {Paths}
  */
-export const paths = getPaths(name, { suffix: '' })
-paths.app = resolve(paths.data, '..')
-paths.content = resolve(paths.data, 'content')
-paths.logs = resolve(paths.data, 'logs')
+export const paths = getPaths(name, { suffix: "" })
+paths.app = resolve(paths.data, "..")
+paths.content = resolve(paths.data, "content")
+paths.logs = resolve(paths.data, "logs")
 
 export const pluginPackageKey = name

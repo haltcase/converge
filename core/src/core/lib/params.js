@@ -1,38 +1,38 @@
 /**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').ChatEvent} ChatEvent
- * @typedef {import('@converge/types').ExtraTags} ExtraTags
- * @typedef {import('@converge/types').Tag} Tag
+ * @typedef {import("@converge/types").Core} Core
+ * @typedef {import("@converge/types").ChatEvent} ChatEvent
+ * @typedef {import("@converge/types").ExtraTags} ExtraTags
+ * @typedef {import("@converge/types").Tag} Tag
  * @typedef {ChatEvent & Record<Tag, any>} TagObject
  */
 
-import { _, it } from 'param.macro'
+import { _, it } from "param.macro"
 
-import FP from 'functional-promises'
-import escapeRegExp from 'lodash.escaperegexp'
-import strat from 'strat'
-import { has, map, isObject, toObject } from 'stunsail'
+import FP from "functional-promises"
+import escapeRegExp from "lodash.escaperegexp"
+import strat from "strat"
+import { has, map, isObject, toObject } from "stunsail"
 
 const tagList = [
-  '{age}',
-  '{cmdprefix}',
-  '{sender}',
-  '{@sender}',
-  '{random}',
-  '{count}',
-  '{pointname}',
-  '{pointsname}',
-  '{pointstr ',
-  '{price}',
-  '{#}',
-  '{uptime}',
-  '{followers}',
-  '{game}',
-  '{status}',
-  '{target}',
-  '{@target}',
-  '{echo}',
-  '{readfile '
+  "{age}",
+  "{cmdprefix}",
+  "{sender}",
+  "{@sender}",
+  "{random}",
+  "{count}",
+  "{pointname}",
+  "{pointsname}",
+  "{pointstr ",
+  "{price}",
+  "{#}",
+  "{uptime}",
+  "{followers}",
+  "{game}",
+  "{status}",
+  "{target}",
+  "{@target}",
+  "{echo}",
+  "{readfile "
 ]
 
 const tagRegex = /[^{}]+(?=})/g
@@ -48,44 +48,44 @@ const hasTags = str => rgxTags.some(it.test(str))
 const getReplacements = (context, tags) => {
   return FP.all(map(tags, (_, tag) => {
     switch (tag) {
-      case 'cmdprefix':
+      case "cmdprefix":
         return context.command.getPrefix()
-      case 'sender':
+      case "sender":
         return tags.sender
-      case '@sender':
+      case "@sender":
         return tags.mention
-      case 'random':
+      case "random":
         return context.to.random(context.user.list) || context.ownerName
-      case 'pointname':
+      case "pointname":
         return context.points.getName(true)
-      case 'pointsname':
+      case "pointsname":
         return context.points.getName()
-      case 'pointstr':
+      case "pointstr":
         return amount => context.points.str(context.to.int(amount))
-      case '#':
+      case "#":
         return context.to.random(100)
-      case 'uptime':
+      case "uptime":
         return context.stream.uptime
-      case 'game':
-        return context.stream.game || 'this game'
-      case 'status':
+      case "game":
+        return context.stream.game || "this game"
+      case "status":
         return context.stream.status
-      case 'echo':
+      case "echo":
         return tags.argString
-      case 'price':
+      case "price":
         return context.command.getPrice(tags.command, tags.subcommand)
-      case 'target':
+      case "target":
         return tags.target
-      case '@target':
-        return '@' + tags.target
-      case 'readfile':
+      case "@target":
+        return "@" + tags.target
+      case "readfile":
         return context.file.read(_)
-      case 'age':
-        console.log('TODO: handle age')
+      case "age":
+        console.log("TODO: handle age")
         break
-      case 'count':
-        return context.db.get('stats_commands.uses', { name: tags.command }, 1)
-      case 'followers':
+      case "count":
+        return context.db.get("stats_commands.uses", { name: tags.command }, 1)
+      case "followers":
         return context.user.getFollowerCount(context.ownerId)
       default: {
         if (has(tags, tag)) {

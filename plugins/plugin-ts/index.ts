@@ -1,4 +1,4 @@
-import { PluginLifecycle, PluginSetup } from '@converge/types'
+import { PluginLifecycle, PluginSetup } from "@converge/types"
 
 interface State {
   count: number

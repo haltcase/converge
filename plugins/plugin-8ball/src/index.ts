@@ -1,2 +1,2 @@
-export { strings } from './strings'
-export { setup } from './commands'
+export { strings } from "./strings"
+export { setup } from "./commands"

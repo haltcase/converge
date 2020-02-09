@@ -1,4 +1,4 @@
-import { CommandRegistry, SubcommandRegistry } from './CommandAttributes'
+import { CommandRegistry, SubcommandRegistry } from "./CommandAttributes"
 
 export interface CommandApi {
   /**

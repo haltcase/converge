@@ -1,36 +1,36 @@
 /**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').PluginLifecycle} PluginLifecycle
- * @typedef {import('@converge/types').HookListener} HookListener
- * @typedef {import('@converge/state').Store} Store
+ * @typedef {import("@converge/types").Core} Core
+ * @typedef {import("@converge/types").PluginLifecycle} PluginLifecycle
+ * @typedef {import("@converge/types").HookListener} HookListener
+ * @typedef {import("@converge/state").Store} Store
  */
 
-import { _ } from 'param.macro'
-import codegen from 'codegen.macro'
+import { _ } from "param.macro"
+import codegen from "codegen.macro"
 
-import { isAbsolute, resolve } from 'path'
+import { isAbsolute, resolve } from "path"
 
-import { exists, readAsync } from 'fs-jetpack'
-import FP from 'functional-promises'
-import getPackageProps from 'npm-package-arg'
-import { each, isFunction, partition, isObject, getType } from 'stunsail'
+import { exists, readAsync } from "fs-jetpack"
+import FP from "functional-promises"
+import getPackageProps from "npm-package-arg"
+import { each, isFunction, partition, isObject, getType } from "stunsail"
 
-import { setupCompiler } from './compiler'
-import { builtinHooks, registerHook, registerPluginHook } from '../hooks'
-import log from '../../logger'
+import { setupCompiler } from "./compiler"
+import { builtinHooks, registerHook, registerPluginHook } from "../hooks"
+import log from "../../logger"
 
 import {
   directory,
   install,
   getPlugins,
   getLocalPlugins
-} from './manager'
+} from "./manager"
 
-const modulePath = resolve(directory, 'node_modules')
-export const internalPluginDirectory = resolve(__dirname, 'internal')
+const modulePath = resolve(directory, "node_modules")
+export const internalPluginDirectory = resolve(__dirname, "internal")
 export { directory as externalPluginDirectory }
 
-const internalPackages = codegen.require('./internal-packages')
+const internalPackages = codegen.require("./internal-packages")
 
 /**
  * @param {Core} context
@@ -38,7 +38,7 @@ const internalPackages = codegen.require('./internal-packages')
 const loadInternalPlugins = context =>
   internalPackages.map(load(context, _, true))
 
-const extensions = ['.js', '.ts']
+const extensions = [".js", ".ts"]
 
 /**
  * @param {object} pkg
@@ -48,7 +48,7 @@ const extensions = ['.js', '.ts']
 const validate = (pkg, atPath, internal) => {
   // if (internal) return pkg
 
-  const main = [pkg.main, ...extensions.map(ext => 'index' + ext)]
+  const main = [pkg.main, ...extensions.map(ext => "index" + ext)]
     .filter(Boolean)
     .find(name => exists(resolve(atPath, name)))
 
@@ -79,11 +79,11 @@ const registerHooks = async (context, atPath, component) => {
   const store = await component.setup?.call(context, context)
 
   each(builtins, (method, hook) => {
-    if (hook === 'setup') return
+    if (hook === "setup") return
 
     if (!isFunction(method)) {
       context.log.error(
-        'Hooks must be known methods or objects for plugins, but ' +
+        "Hooks must be known methods or objects for plugins, but " +
         `${hook} was of type ${getType(method)}`
       )
 
@@ -96,7 +96,7 @@ const registerHooks = async (context, atPath, component) => {
   each(plugins, (pluginHooks, plugin) => {
     if (!isObject(pluginHooks)) {
       context.log.error(
-        'Hooks must be objects for plugins, but ' +
+        "Hooks must be objects for plugins, but " +
         `${plugin} was of type ${getType(pluginHooks)}`
       )
     }
@@ -137,30 +137,30 @@ const handlePluginError = (atPath, type) => e => {
  * @param {boolean} internal
  */
 const load = async (context, atPath, internal) => {
-  const pkg = await readAsync(resolve(atPath, 'package.json'), 'json')
+  const pkg = await readAsync(resolve(atPath, "package.json"), "json")
     .catch(log.error(_.message))
 
   if (!validate(pkg, atPath, internal)) return
 
   /**
-   * @type {import('@converge/types').Plugin}
+   * @type {import("@converge/types").Plugin}
    */
   const plugin = await import(resolve(atPath, pkg.main))
 
   await FP.resolve(plugin.strings?.(context))
-    .catch(handlePluginError(atPath, 'strings'))
+    .catch(handlePluginError(atPath, "strings"))
 
   const store = await registerHooks(context, atPath, plugin.lifecycle)
-    .catch(handlePluginError(atPath, 'lifecycle'))
+    .catch(handlePluginError(atPath, "lifecycle"))
 
   await FP.resolve(plugin.setup?.(context, store))
-    .catch(handlePluginError(atPath, 'setup'))
+    .catch(handlePluginError(atPath, "setup"))
 
   log.debug(`plugin loaded: '${pkg.name} (v${pkg.version})'`)
 }
 
 export const loadPlugins = async context => {
-  log.trace('loading plugins...')
+  log.trace("loading plugins...")
 
   await FP.all(loadInternalPlugins(context))
   await install(context)
@@ -170,7 +170,7 @@ export const loadPlugins = async context => {
     getLocalPlugins()
   ])
 
-  log.trace('setting up plugin compiler...')
+  log.trace("setting up plugin compiler...")
   await setupCompiler({ plugins, localPlugins: locals })
 
   const all = [...plugins, ...locals]

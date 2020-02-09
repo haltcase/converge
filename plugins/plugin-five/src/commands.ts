@@ -5,77 +5,77 @@
  * @author citycide
  */
 
-import { Core, PluginCommandHandler, PluginSetup, TableSchemaKeyed } from '@converge/types'
+import { Core, PluginCommandHandler, PluginSetup, TableSchemaKeyed } from "@converge/types"
 
 /**
  * @command five
  * @usage !five [target]
  */
 export const five: PluginCommandHandler = async ($, e) => {
-  if (e.subcommand === 'add') {
+  if (e.subcommand === "add") {
     if (!e.subArgs[0]) {
-      e.respond(await $.weave('add.usage'))
+      e.respond(await $.weave("add.usage"))
       return
     }
 
-    const res = await $.db.create('five', { value: e.subArgString })
+    const res = await $.db.create("five", { value: e.subArgString })
 
     if (res.id) {
-      e.respond(await $.weave('add.success', res.id))
+      e.respond(await $.weave("add.success", res.id))
     } else {
-      e.respond(await $.weave('add.failure'))
+      e.respond(await $.weave("add.failure"))
     }
 
     return
   }
 
-  if (e.subcommand === 'remove') {
+  if (e.subcommand === "remove") {
     if (!e.subArgs[0]) {
-      e.respond(await $.weave('remove.usage'))
+      e.respond(await $.weave("remove.usage"))
       return
     }
 
-    if (!await $.db.exists('five', { id: e.subArgs[0] })) {
-      e.respond(await $.weave('not-found', e.subArgs[0]))
+    if (!await $.db.exists("five", { id: e.subArgs[0] })) {
+      e.respond(await $.weave("not-found", e.subArgs[0]))
       return
     }
 
     const id = parseInt(e.subArgs[0])
-    if (await $.db.remove('five', { id })) {
-      const count = $.db.count('five')
-      e.respond(await $.weave('remove.success', count))
+    if (await $.db.remove("five", { id })) {
+      const count = $.db.count("five")
+      e.respond(await $.weave("remove.success", count))
     } else {
-      e.respond(await $.weave('remove.failure', id))
+      e.respond(await $.weave("remove.failure", id))
     }
 
     return
   }
 
-  if (e.subcommand === 'edit') {
+  if (e.subcommand === "edit") {
     if (e.subArgs.length < 2) {
-      e.respond(await $.weave('edit.usage'))
+      e.respond(await $.weave("edit.usage"))
       return
     }
 
-    if (!await $.db.exists('five', { id: e.subArgs[0] })) {
-      e.respond(await $.weave('not-found', e.subArgs[0]))
+    if (!await $.db.exists("five", { id: e.subArgs[0] })) {
+      e.respond(await $.weave("not-found", e.subArgs[0]))
       return
     }
 
     const id = parseInt(e.subArgs[0])
-    const value = e.subArgs.slice(1).join(' ')
+    const value = e.subArgs.slice(1).join(" ")
 
-    if (await $.db.set('five.value', { id }, value)) {
-      e.respond(await $.weave('edit.success', id))
+    if (await $.db.set("five.value", { id }, value)) {
+      e.respond(await $.weave("edit.success", id))
     } else {
-      e.respond(await $.weave('edit.failure', id))
+      e.respond(await $.weave("edit.failure", id))
     }
 
     return
   }
 
   if (e.args.length > 1) {
-    e.respond(await $.weave('response.default', e.sender))
+    e.respond(await $.weave("response.default", e.sender))
     return
   }
 
@@ -84,29 +84,29 @@ export const five: PluginCommandHandler = async ($, e) => {
   if (!target) {
     if ($.user.list.length) {
       const random = $.to.random($.user.list)
-      e.respond(await $.weave('response.random', e.sender, random))
+      e.respond(await $.weave("response.random", e.sender, random))
       return
     } else {
-      e.respond(await $.weave('response.random-fallback'))
+      e.respond(await $.weave("response.random-fallback"))
       return
     }
   }
 
   if (!$.is.oneOf(target, $.user.list)) {
-    e.respond(await $.weave('target-not-present', e.sender, target))
+    e.respond(await $.weave("target-not-present", e.sender, target))
     return
   }
 
-  const response = await $.db.getRandomRow<TableSchemaKeyed>('five')
+  const response = await $.db.getRandomRow<TableSchemaKeyed>("five")
   if (response) {
     e.respond(await $.params(e, response.value, { target }))
   } else {
-    e.respond(await $.weave('response.fallback'))
+    e.respond(await $.weave("response.fallback"))
   }
 }
 
 const initResponses = async ($: Core) => {
-  $.log('five', 'No five responses found, adding some defaults...')
+  $.log("five", "No five responses found, adding some defaults...")
 
   const defaults = [
     `{sender} touched {target}'s hand, aaalll high-like.`,
@@ -118,18 +118,18 @@ const initResponses = async ($: Core) => {
     `{sender} to {target} be like "Gimme five!" ... crickets.`
   ]
 
-  await Promise.all(defaults.map(value => $.db.create('five', { value })))
-  $.log('five', `Done. ${defaults.length} default five responses added.`)
+  await Promise.all(defaults.map(value => $.db.create("five", { value })))
+  $.log("five", `Done. ${defaults.length} default five responses added.`)
 }
 
 export const setup: PluginSetup = async $ => {
-  $.addCommand('five')
+  $.addCommand("five")
 
-  $.addSubcommand('add', 'five', { permission: 1 })
-  $.addSubcommand('remove', 'five', { permission: 1 })
-  $.addSubcommand('edit', 'five', { permission: 1 })
+  $.addSubcommand("add", "five", { permission: 1 })
+  $.addSubcommand("remove", "five", { permission: 1 })
+  $.addSubcommand("edit", "five", { permission: 1 })
 
-  await $.db.addTable('five', true)
+  await $.db.addTable("five", true)
 
-  if (!await $.db.count('five')) initResponses($)
+  if (!await $.db.count("five")) initResponses($)
 }

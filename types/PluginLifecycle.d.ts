@@ -1,21 +1,19 @@
-import { Core, ChatEvent } from './index'
-import { Store } from '@converge/state'
+import { Core, ChatEvent } from "./index"
+import { Store } from "@converge/state"
 
 export type HookListener =
-  (core: Core, event: ChatEvent) => any
+  (core: Core, event: ChatEvent) => unknown
 
 export type HookListenerWithStore <
-  T extends Record<string, any> = Record<string, any>,
+  T extends Record<string, unknown> = Record<string, unknown>,
   A extends Actions<T> = Actions<T>
 > =
-  (core: Core, event: ChatEvent, store: Store<T, A>) => any
+  (core: Core, event: ChatEvent, store: Store<T, A>) => unknown
 
 export interface PluginLifecycle <
-  T = Record<string, any>,
+  T = Record<string, unknown>,
   A extends Actions<T> = Actions<T>
 > {
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-
   /**
    * Called on plugin load.
    */
@@ -79,6 +77,4 @@ export interface PluginLifecycle <
     | ((core: Core) => void | undefined | Store<T, A> | Promise<Store<T, A> | void | undefined>)
     | HookListenerWithStore<T, A>
     | Record<string, HookListenerWithStore<T, A>>
-
-  /* eslint-enable @typescript-eslint/no-explicit-any */
 }

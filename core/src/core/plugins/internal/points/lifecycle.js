@@ -1,9 +1,9 @@
 /**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').ChatEvent} ChatEvent
+ * @typedef {import("@converge/types").Core} Core
+ * @typedef {import("@converge/types").ChatEvent} ChatEvent
  */
 
-import { map } from 'stunsail'
+import { map } from "stunsail"
 
 /**
  * @type {Core} $
@@ -13,24 +13,24 @@ let $ = null
 const add = async (name, amount) => {
   amount = $.to.int(amount)
   if (amount < 1) return sub(name, amount)
-  await $.db.create('points', { name })
-  return $.db.increment('points.value', { name }, amount)
+  await $.db.create("points", { name })
+  return $.db.increment("points.value", { name }, amount)
 }
 
 const sub = async (name, amount) => {
   amount = $.to.int(amount)
   if (amount < 1) return
-  await $.db.create('points', { name })
-  return $.db.decrement('points.value', { name }, amount)
+  await $.db.create("points", { name })
+  return $.db.decrement("points.value", { name }, amount)
 }
 
 const get = async (name, asString) => {
-  const points = await $.db.get('points.value', { name }, 0)
+  const points = await $.db.get("points.value", { name }, 0)
   return asString ? str(points) : points
 }
 
 const set = (name, value) =>
-  $.db.set('points.value', { name }, $.to.int(value))
+  $.db.set("points.value", { name }, $.to.int(value))
 
 const str = async amount => {
   amount = $.to.int(amount)
@@ -38,12 +38,12 @@ const str = async amount => {
 }
 
 const getPointName = singular => {
-  const key = singular ? 'pointName' : 'pointNamePlural'
-  return $.db.getConfig(key, 'points')
+  const key = singular ? "pointName" : "pointNamePlural"
+  return $.db.getConfig(key, "points")
 }
 
 const setPointName = async (name, singular) => {
-  const key = singular ? 'pointName' : 'pointNamePlural'
+  const key = singular ? "pointName" : "pointNamePlural"
 
   if (!singular) {
     const current = await $.db.getConfig(key)
@@ -52,7 +52,7 @@ const setPointName = async (name, singular) => {
       await $.command.removeAlias(current)
     }
 
-    await $.command.addAlias(name, 'points')
+    await $.command.addAlias(name, "points")
   }
 
   return $.db.setConfig(key, name)
@@ -60,24 +60,24 @@ const setPointName = async (name, singular) => {
 
 const getPayoutAmount = async offline => {
   const amount = offline
-    ? await $.db.getConfig('pointPayoutOffline', -1)
-    : await $.db.getConfig('pointPayout', 10)
+    ? await $.db.getConfig("pointPayoutOffline", -1)
+    : await $.db.getConfig("pointPayout", 10)
 
   return $.to.int(amount)
 }
 
 const setPayoutAmount = (amount, offline) => {
   amount = $.to.int(amount)
-  const key = offline ? 'pointPayoutOffline' : 'pointPayout'
+  const key = offline ? "pointPayoutOffline" : "pointPayout"
   return $.db.setConfig(key, amount)
 }
 
 const getPayoutInterval = async offline => {
   const interval = offline
-    ? await $.db.getConfig('pointIntervalOffline', '-1s')
-    : await $.db.getConfig('pointInterval', '5m')
+    ? await $.db.getConfig("pointIntervalOffline", "-1s")
+    : await $.db.getConfig("pointInterval", "5m")
 
-  return interval === '-1s' ? 0 : $.tick.ms(interval) / 1_000
+  return interval === "-1s" ? 0 : $.tick.ms(interval) / 1_000
 }
 
 const setPayoutInterval = (seconds, offline) => {
@@ -86,48 +86,48 @@ const setPayoutInterval = (seconds, offline) => {
     try {
       seconds = $.tick.ms(seconds) / 1_000 || -1
     } catch {
-      $.log.debug('points', `could not convert non-number to time interval: '${seconds}'`)
+      $.log.debug("points", `could not convert non-number to time interval: '${seconds}'`)
       return
     }
   }
 
-  const value = seconds <= 0 ? '-1s' : $.to.duration(seconds * 1_000)
+  const value = seconds <= 0 ? "-1s" : $.to.duration(seconds * 1_000)
 
-  const key = offline ? 'pointIntervalOffline' : 'pointInterval'
+  const key = offline ? "pointIntervalOffline" : "pointInterval"
   return $.db.setConfig(key, value)
 }
 
 const getCommandPrice = async (command, subcommand) => {
   if (!subcommand) {
-    return $.db.get('commands.price', { name: command }, 0)
+    return $.db.get("commands.price", { name: command }, 0)
   }
 
-  let cost = await $.db.get('subcommands.price', {
+  let cost = await $.db.get("subcommands.price", {
     name: subcommand,
     parent: command
   }, -1)
 
   if (cost === -1) {
-    cost = await $.db.get('commands.price', { name: command })
+    cost = await $.db.get("commands.price", { name: command })
   }
 
   return $.to.int(cost)
 }
 
 const setCommandPrice = async (command, subcommand, price) => {
-  if (typeof price === 'undefined' && Number.isFinite(subcommand)) {
+  if (typeof price === "undefined" && Number.isFinite(subcommand)) {
     price = subcommand
     subcommand = undefined
   }
 
   if (!subcommand) {
-    await $.db.set('commands.price', { name: command }, price)
+    await $.db.set("commands.price", { name: command }, price)
   } else {
     if (price < 0) {
       price = -1
     }
 
-    return $.db.set('subcommands.price', {
+    return $.db.set("subcommands.price", {
       name: subcommand,
       parent: command
     }, price)
@@ -144,17 +144,17 @@ const canAffordCommand = async (user, command, subcommand) => {
 }
 
 const run = async (lastPayout, lastUserList) => {
-  if (!await $.db.getConfig('pointsEnabled', true)) return
+  if (!await $.db.getConfig("pointsEnabled", true)) return
 
   const interval = $.stream.isLive
-    ? await $.db.getConfig('pointInterval', '5s')
-    : await $.db.getConfig('pointIntervalOffline', '-1s')
+    ? await $.db.getConfig("pointInterval", "5s")
+    : await $.db.getConfig("pointIntervalOffline", "-1s")
 
-  if (interval === '-1s') return
+  if (interval === "-1s") return
 
   const [now, userList] = await handlePayouts(lastPayout, lastUserList)
 
-  $.tick.setTimeout('points:poll', () => {
+  $.tick.setTimeout("points:poll", () => {
     run(now, userList)
   }, interval)
 }
@@ -183,19 +183,19 @@ const handlePayouts = async (lastPayout = Date.now(), lastUserList = []) => {
     if (user === $.botName) return
     if (!$.is.oneOf(user, lastUserList)) return
 
-    await $.db.create('points', { name: user })
+    await $.db.create("points", { name: user })
 
     const event = { user, amount: payout }
-    $.emit('points:payout', event)
-    await $.callHookAndWait('points.beforePayout', event)
-    return $.db.increment('points.value', { name: user }, event.amount)
+    $.emit("points:payout", event)
+    await $.callHookAndWait("points.beforePayout", event)
+    return $.db.increment("points.value", { name: user }, event.amount)
   }))
 
   return [now, userList]
 }
 
 /**
- * @type {import('@converge/types').PluginLifecycle}
+ * @type {import("@converge/types").PluginLifecycle}
  */
 export const lifecycle = {
   async setup (context) {
@@ -228,7 +228,7 @@ export const lifecycle = {
       }
     })
 
-    await context.db.model('points', {
+    await context.db.model("points", {
       name: { type: String, primary: true },
       value: { type: Number, defaultTo: 0 }
     })
@@ -237,7 +237,7 @@ export const lifecycle = {
   },
 
   async beforeCommand ($, e) {
-    if (!await $.db.getPluginConfig('points.enabled', true)) return
+    if (!await $.db.getPluginConfig("points.enabled", true)) return
 
     const [price, points] = await Promise.all([
       getCommandPrice(e.command, e.subcommand),
@@ -246,7 +246,7 @@ export const lifecycle = {
 
     if (points >= price) return
 
-    const message = await $.weave('command.not-enough-points', e.command, price, points)
+    const message = await $.weave("command.not-enough-points", e.command, price, points)
     $.whisper(e.sender, message)
 
     e.prevent()

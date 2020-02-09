@@ -1,6 +1,6 @@
-import * as S from 'stunsail'
+import * as S from "stunsail"
 
-import { Duration } from './Duration'
+import { Duration } from "./Duration"
 
 export interface ToApi {
   array: typeof S.toArray

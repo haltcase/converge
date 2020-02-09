@@ -1,30 +1,30 @@
-import { _ } from 'param.macro'
+import { _ } from "param.macro"
 
-import { EOL } from 'os'
-import { isAbsolute, resolve } from 'path'
+import { EOL } from "os"
+import { isAbsolute, resolve } from "path"
 
 import {
   exists,
   readAsync,
   writeAsync,
   appendAsync
-} from 'fs-jetpack'
+} from "fs-jetpack"
 
-import strat from 'strat'
-import { isObject, isArrayLike, toArray, isPrimitive } from 'stunsail'
+import strat from "strat"
+import { isObject, isArrayLike, toArray, isPrimitive } from "stunsail"
 
-import isSubdirectory from '../util/is-subdirectory'
-import log from '../../logger'
-import { paths } from '../../constants'
+import isSubdirectory from "../util/is-subdirectory"
+import log from "../../logger"
+import { paths } from "../../constants"
 
-const chatLogFormat = strat('[{ts}] {sender} -> {message}')
+const chatLogFormat = strat("[{ts}] {sender} -> {message}")
 
 /**
  * @function
  * @param {string}
  * @returns {boolean}
  */
-const pathExists = exists(_) === 'file'
+const pathExists = exists(_) === "file"
 
 /**
  * @param {string} path
@@ -34,7 +34,7 @@ const sanitize = async path => {
   if (isAbsolute(path)) {
     if (!path || !isSubdirectory(path, paths.content)) {
       const message =
-        'File paths must be within the bot\'s content directory ' +
+        "File paths must be within the bot's content directory " +
         `(${paths.content})`
 
       log.error(message)
@@ -50,7 +50,7 @@ const sanitize = async path => {
  * @returns {string}
  */
 const serialize = data => {
-  if (typeof data === 'string') {
+  if (typeof data === "string") {
     return data
   }
 
@@ -71,7 +71,7 @@ const serialize = data => {
  * @returns {Promise}
  */
 const read = (path, { json = false } = {}) =>
-  sanitize(path).then(cleaned => readAsync(cleaned, json ? 'json' : undefined))
+  sanitize(path).then(cleaned => readAsync(cleaned, json ? "json" : undefined))
 
 /**
  * @param {string} path
@@ -81,7 +81,7 @@ const read = (path, { json = false } = {}) =>
  */
 const write = (path, data, { append = false } = {}) =>
   sanitize(path).then(cleanPath => {
-    const writeable = `${serialize(data)}${append ? EOL : ''}`
+    const writeable = `${serialize(data)}${append ? EOL : ""}`
 
     return append
       ? appendAsync(cleanPath, writeable)
@@ -89,7 +89,7 @@ const write = (path, data, { append = false } = {}) =>
   })
 
 /**
- * @param {import('@converge/types').Core} context
+ * @param {import("@converge/types").Core} context
  */
 export default async context => {
   context.extend({
@@ -100,8 +100,8 @@ export default async context => {
     }
   })
 
-  context.on('beforeMessage', async ($, e) => {
-    if (!await $.db.getConfig('enableChatLog', false)) return
+  context.on("beforeMessage", async ($, e) => {
+    if (!await $.db.getConfig("enableChatLog", false)) return
 
     const line = chatLogFormat({
       ts: new Date().toISOString(),
@@ -109,6 +109,6 @@ export default async context => {
       message: e.raw
     })
 
-    return write('chat.txt', line, { append: true })
+    return write("chat.txt", line, { append: true })
   })
 }

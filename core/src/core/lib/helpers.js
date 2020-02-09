@@ -1,18 +1,18 @@
-import { _ } from 'param.macro'
+import { _ } from "param.macro"
 
-import * as stunsail from 'stunsail'
+import * as stunsail from "stunsail"
 
-import duration from '../util/duration'
+import duration from "../util/duration"
 
 const isToMethod = stunsail.includes([
-  'clamp',
-  'range',
-  'random',
-  'defaults'
+  "clamp",
+  "range",
+  "random",
+  "defaults"
 ], _)
 
 /**
- * @param {import('@converge/types').Core} context
+ * @param {import("@converge/types").Core} context
  */
 export default context => {
   const is = stunsail.isEqual
@@ -25,12 +25,12 @@ export default context => {
     const prefix = key.slice(0, 2)
     const token = stunsail.camelCase(key.slice(2))
 
-    if (prefix === 'is') {
+    if (prefix === "is") {
       is[token] = stunsail[key]
       return
     }
 
-    if (prefix === 'to') {
+    if (prefix === "to") {
       to[token] = stunsail[key]
       return
     }

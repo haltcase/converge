@@ -1,4 +1,4 @@
-import * as types from '@converge/types'
+import * as types from "@converge/types"
 
 export interface RanksApi {
   getName (level: number): Promise<string>
@@ -8,7 +8,7 @@ export interface RanksApi {
   setAllowPurchases (): Promise<unknown>
 }
 
-declare module '@converge/types' {
+declare module "@converge/types" {
   interface UserApi {
     getRank (): string
   }

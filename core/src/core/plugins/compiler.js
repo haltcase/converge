@@ -1,18 +1,18 @@
-import { promises } from 'fs'
-import { relative, resolve } from 'path'
+import { promises } from "fs"
+import { relative, resolve } from "path"
 
-import register from '@babel/register'
-import FP from 'functional-promises'
-import { count } from 'stunsail'
+import register from "@babel/register"
+import FP from "functional-promises"
+import { count } from "stunsail"
 
-import isSubdirectory from '../util/is-subdirectory'
-import { paths } from '../../constants'
+import isSubdirectory from "../util/is-subdirectory"
+import { paths } from "../../constants"
 
-import appConfig from '../../../../babel.config.js'
+import appConfig from "../../../../babel.config.js"
 
-const pluginDir = resolve(paths.data, 'plugins')
+const pluginDir = resolve(paths.data, "plugins")
 
-appConfig.presets.push('@babel/typescript')
+appConfig.presets.push("@babel/typescript")
 
 const getConfig = ({ compileIf }) => ({
   ...appConfig,
@@ -21,16 +21,16 @@ const getConfig = ({ compileIf }) => ({
     comments: false,
     ignore: [],
     only: [
-      // resolve(paths.data, 'plugins', 'node_modules', '*', '*.js')
+      // resolve(paths.data, "plugins", "node_modules", "*", "*.js")
       compileIf
     ],
-    extensions: ['.ts', '.js', '.mjs']
+    extensions: [".ts", ".js", ".mjs"]
   }
 })
 
 export const setupCompiler = async ({ localPlugins = [] }) => {
   const linkedLocations = await FP.resolve(localPlugins)
-    .map(name => promises.realpath(resolve(pluginDir, 'node_modules', name)))
+    .map(name => promises.realpath(resolve(pluginDir, "node_modules", name)))
     .filter(dir => !isSubdirectory(pluginDir, dir))
 
   const compileIf = path => {
@@ -40,7 +40,7 @@ export const setupCompiler = async ({ localPlugins = [] }) => {
     // if we go more than a single `node_modules` deep, we've hit
     // transitive dependencies which should not be compiled
     const rel = relative(pluginDir, path)
-    return count(rel, 'node_modules', 2) < 2
+    return count(rel, "node_modules", 2) < 2
   }
 
   const config = getConfig({ compileIf })

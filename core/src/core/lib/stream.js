@@ -1,14 +1,14 @@
-import { _ } from 'param.macro'
+import { _ } from "param.macro"
 
-import FP from 'functional-promises'
+import FP from "functional-promises"
 
-import { getInstance } from '../bot'
-import duration from '../util/duration'
+import { getInstance } from "../bot"
+import duration from "../util/duration"
 
 /**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('twitch').ChattersList} ChattersList
- * @typedef {import('twitch').HelixStream} HelixStream
+ * @typedef {import("@converge/types").Core} Core
+ * @typedef {import("twitch").ChattersList} ChattersList
+ * @typedef {import("twitch").HelixStream} HelixStream
  */
 
 /**
@@ -21,7 +21,7 @@ const parseChatterList = (context, chatters) => {
   FP.resolve(context.user.resolveUserList(allChatters))
     .then(Object.entries)
     .map(([_, user]) =>
-      context.db.updateOrCreate('users', { id: user.id }, {
+      context.db.updateOrCreate("users", { id: user.id }, {
         name: user.name,
         seen: new Date()
       })
@@ -52,7 +52,7 @@ const pollChatUsers = (context, getter) =>
  */
 const pollStreamInfo = async (context, getter) => {
   /**
-   * @type {import('twitch').HelixStream}
+   * @type {import("twitch").HelixStream}
    */
   const data = await getter()
   const isLive = data !== null
@@ -60,14 +60,14 @@ const pollStreamInfo = async (context, getter) => {
   if (!isLive) {
     Object.assign(context.stream, {
       isLive,
-      game: '',
-      status: '',
-      uptime: 'offline'
+      game: "",
+      status: "",
+      uptime: "offline"
     })
   } else {
     Object.assign(context.stream, {
       isLive,
-      game: (await data.getGame())?.name ?? '',
+      game: (await data.getGame())?.name ?? "",
       status: data.title,
       uptime: duration(Date.now() - data.startDate.valueOf())
     })
@@ -92,23 +92,23 @@ export default async context => {
   const getChatUsers = name =>
     client.unsupported.getChatters(name || context.ownerName)
 
-  context.on('ready', () => {
+  context.on("ready", () => {
     const poll = () => {
       pollChatUsers(context, getChatUsers)
       pollStreamInfo(context, getStreamInfo)
     }
 
-    context.tick.setInterval('stream-polling', poll, '30s')
-    context.tick.setTimeout('start:stream-polling', poll, '2s')
+    context.tick.setInterval("stream-polling", poll, "30s")
+    context.tick.setTimeout("start:stream-polling", poll, "2s")
   })
 
   context.extend({
     stream: {
       getStreamInfo,
       isLive: false,
-      game: '',
-      status: '',
-      uptime: 'offline'
+      game: "",
+      status: "",
+      uptime: "offline"
     },
     user: {
       list: [],

@@ -1,4 +1,4 @@
-import { HelixUser } from 'twitch'
+import { HelixUser } from "twitch"
 
 export interface UserApi {
   isAdmin (id: string): Promise<boolean>

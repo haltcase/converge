@@ -1,4 +1,4 @@
-import * as types from '@converge/types'
+import * as types from "@converge/types"
 
 export interface NoticesApi {
   add (name: string, message: string): Promise<boolean>
@@ -7,7 +7,7 @@ export interface NoticesApi {
   remove (name: string, withCommand?: boolean): Promise<boolean>
 }
 
-declare module '@converge/types' {
+declare module "@converge/types" {
   interface Core {
     notices: NoticesApi
   }

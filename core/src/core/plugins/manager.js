@@ -1,33 +1,33 @@
 /**
- * @typedef {import('@converge/types').Core} Core
+ * @typedef {import("@converge/types").Core} Core
  */
 
-import { _, it } from 'param.macro'
+import { _, it } from "param.macro"
 
-import { join, resolve } from 'path'
-import { extract, manifest } from 'pacote'
-import getPackageProps from 'npm-package-arg'
-import satisfies from 'semver/functions/satisfies'
-import TOML from '@iarna/toml'
+import { join, resolve } from "path"
+import { extract, manifest } from "pacote"
+import getPackageProps from "npm-package-arg"
+import satisfies from "semver/functions/satisfies"
+import TOML from "@iarna/toml"
 
 import {
   exists,
   readAsync,
   removeAsync,
   writeAsync
-} from 'fs-jetpack'
+} from "fs-jetpack"
 
-import log from '../../logger'
+import log from "../../logger"
 import {
   paths,
   pluginPackageKey,
   name as appName,
   version as appVersion
-} from '../../constants'
+} from "../../constants"
 
-export const directory = resolve(paths.data, 'plugins')
-const modulesPath = resolve(directory, 'node_modules')
-const manifestPath = resolve(directory, 'manifest.toml')
+export const directory = resolve(paths.data, "plugins")
+const modulesPath = resolve(directory, "node_modules")
+const manifestPath = resolve(directory, "manifest.toml")
 
 const defaultManifest = Object.freeze({
   plugins: [],
@@ -70,7 +70,7 @@ const toPackageName = getPackageProps(_).name
  * @param {Core} context
  */
 export const install = async context => {
-  context.emit('plugins:install:start')
+  context.emit("plugins:install:start")
 
   const manifest = await readManifest()
 
@@ -86,17 +86,17 @@ export const install = async context => {
     }
   }
 
-  context.emit('plugins:install:done')
+  context.emit("plugins:install:done")
 }
 
 /**
  * @param {Error} error
  */
 const handlePluginFetchError = error => {
-  if (error.code === 'E404') {
+  if (error.code === "E404") {
     log.error(pluginNotFoundError(error))
-  } else if (error.code === 'ETARGET') {
-    log.error(error.message.split('\n')[0])
+  } else if (error.code === "ETARGET") {
+    log.error(error.message.split("\n")[0])
   }
 
   return {}
@@ -106,8 +106,8 @@ const handlePluginFetchError = error => {
  * @param {string} spec
  */
 const getDependencies = spec => {
-  const path = join(modulesPath, toPackageName(spec), 'package.json')
-  return readAsync(path, 'json').then(it.dependencies || {})
+  const path = join(modulesPath, toPackageName(spec), "package.json")
+  return readAsync(path, "json").then(it.dependencies || {})
 }
 
 /**
@@ -138,7 +138,7 @@ export const installPlugin = async (context, spec, {
   const pkgRoot = join(installPath, name)
 
   if (!isLocal && !exists(pkgRoot)) {
-    const kind = isTransitive ? 'dependency' : 'plugin'
+    const kind = isTransitive ? "dependency" : "plugin"
     log.trace(`installing ${kind} ${name} from npm`)
 
     if (!_resolved) return false
@@ -152,7 +152,7 @@ export const installPlugin = async (context, spec, {
       const manifestFile = await readManifest()
       const i = manifestFile.plugins.findIndex(toPackageName(_) === name)
       const { version } = getPackageProps(spec)
-      const versionRange = version ? '@' + version : ''
+      const versionRange = version ? "@" + version : ""
 
       if (i >= 0) {
         manifestFile.plugins[i] = name + versionRange
@@ -168,8 +168,8 @@ export const installPlugin = async (context, spec, {
 
   // recursively install dependencies
   for (const [name, version] of Object.entries(dependencies)) {
-    const pkgModules = join(pkgRoot, 'node_modules')
-    await installPlugin(context, name + '@' + version, {
+    const pkgModules = join(pkgRoot, "node_modules")
+    await installPlugin(context, name + "@" + version, {
       isTransitive: true,
       installPath: pkgModules
     })

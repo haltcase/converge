@@ -14,7 +14,7 @@ export interface QuoteApi {
   remove: (id: number) => Promise<boolean>
 }
 
-declare module '@converge/types' {
+declare module "@converge/types" {
   interface Core {
     quote: QuoteApi
   }

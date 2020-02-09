@@ -1,78 +1,78 @@
-import { Trilogy } from 'trilogy'
-import { ChatUser } from 'twitch-chat-client'
+import { Trilogy } from "trilogy"
+import { ChatUser } from "twitch-chat-client"
 
-import { Tock } from '~core/lib/tock'
-import { EventEmitter2 } from 'eventemitter2'
+import { Tock } from "~core/lib/tock"
+import { EventEmitter2 } from "eventemitter2"
 
-import { Bot } from './Bot'
+import { Bot } from "./Bot"
 export { Bot }
 
-import { CacheApi } from './CacheApi'
+import { CacheApi } from "./CacheApi"
 export { CacheApi }
 
-import { ChatEvent } from './ChatEvent'
+import { ChatEvent } from "./ChatEvent"
 export { ChatEvent }
 
-import { CommandApi } from './CommandApi'
+import { CommandApi } from "./CommandApi"
 export { CommandApi }
 
-import { CommandAttributes, CommandRegistry, SubcommandAttributes, SubcommandRegistry } from './CommandAttributes'
+import { CommandAttributes, CommandRegistry, SubcommandAttributes, SubcommandRegistry } from "./CommandAttributes"
 export { CommandAttributes, CommandRegistry, SubcommandAttributes, SubcommandRegistry }
 
-import { CoreConfig } from './CoreConfig'
+import { CoreConfig } from "./CoreConfig"
 export { CoreConfig }
 
-import { CoreOptions } from './CoreOptions'
+import { CoreOptions } from "./CoreOptions"
 export { CoreOptions }
 
-import { DatabaseApi, TableSchema, TableSchemaDefault, TableSchemaKeyed } from './DatabaseApi'
+import { DatabaseApi, TableSchema, TableSchemaDefault, TableSchemaKeyed } from "./DatabaseApi"
 export { DatabaseApi, TableSchema, TableSchemaDefault, TableSchemaKeyed }
 
-export { Duration, DurationInstance, DurationOptions, LabelSet } from './Duration'
+export { Duration, DurationInstance, DurationOptions, LabelSet } from "./Duration"
 
-import { FileApi } from './FileApi'
+import { FileApi } from "./FileApi"
 export { FileApi }
 
-import { IsApi } from './IsApi'
+import { IsApi } from "./IsApi"
 export { IsApi }
 
-import { LogApi } from './LogApi'
+import { LogApi } from "./LogApi"
 export { LogApi }
 
-import { ParamsApi, Tag, ExtraTags, ExtraTagObject } from './ParamsApi'
+import { ParamsApi, Tag, ExtraTags, ExtraTagObject } from "./ParamsApi"
 export { ParamsApi, Tag, ExtraTags, ExtraTagObject }
 
-import { Plugin } from './Plugin'
+import { Plugin } from "./Plugin"
 export { Plugin }
 
-import { HookListener, PluginLifecycle } from './PluginLifecycle'
+import { HookListener, PluginLifecycle } from "./PluginLifecycle"
 export { HookListener, PluginLifecycle }
 
-import { PluginCommandHandler, PluginSetup } from './PluginSetup'
+import { PluginCommandHandler, PluginSetup } from "./PluginSetup"
 export { PluginCommandHandler, PluginSetup }
 
-import { PluginStrings } from './PluginStrings'
+import { PluginStrings } from "./PluginStrings"
 export { PluginStrings }
 
-import { SleepApi } from './SleepApi'
+import { SleepApi } from "./SleepApi"
 export { SleepApi }
 
-import { StartupOptions } from './StartupOptions'
+import { StartupOptions } from "./StartupOptions"
 export { StartupOptions }
 
-import { StoreApi } from './StoreApi'
+import { StoreApi } from "./StoreApi"
 export { StoreApi }
 
-import { StreamApi } from './StreamApi'
+import { StreamApi } from "./StreamApi"
 export { StreamApi }
 
-import { ToApi } from './ToApi'
+import { ToApi } from "./ToApi"
 export { ToApi }
 
-import { UserApi } from './UserApi'
+import { UserApi } from "./UserApi"
 export { UserApi }
 
-import { WeaveApi } from './WeaveApi'
+import { WeaveApi } from "./WeaveApi"
 export { WeaveApi }
 
 export declare class Core extends EventEmitter2 {

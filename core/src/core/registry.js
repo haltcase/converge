@@ -1,34 +1,34 @@
 /**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').CommandAttributes} CommandAttributes
- * @typedef {import('@converge/types').SubcommandAttributes} SubcommandAttributes
- * @typedef {import('@converge/types').CommandRegistry} CommandRegistry
- * @typedef {import('@converge/types').SubcommandRegistry} SubcommandRegistry
+ * @typedef {import("@converge/types").Core} Core
+ * @typedef {import("@converge/types").CommandAttributes} CommandAttributes
+ * @typedef {import("@converge/types").SubcommandAttributes} SubcommandAttributes
+ * @typedef {import("@converge/types").CommandRegistry} CommandRegistry
+ * @typedef {import("@converge/types").SubcommandRegistry} SubcommandRegistry
  */
 
-import { _, it } from 'param.macro'
+import { _, it } from "param.macro"
 
-import { dirname, join, isAbsolute, sep, relative } from 'path'
+import { dirname, join, isAbsolute, sep, relative } from "path"
 
-import { sync as find } from 'find-up'
-import FP from 'functional-promises'
-import throttle from 'p-throttle'
-import callsites from 'callsites'
+import { sync as find } from "find-up"
+import FP from "functional-promises"
+import throttle from "p-throttle"
+import callsites from "callsites"
 import {
   get,
   has,
   map,
   once,
   set
-} from 'stunsail'
+} from "stunsail"
 
-import log from '../logger'
-import isSubdirectory from './util/is-subdirectory'
+import log from "../logger"
+import isSubdirectory from "./util/is-subdirectory"
 
 import {
   internalPluginDirectory,
   externalPluginDirectory
-} from './plugins'
+} from "./plugins"
 
 /**
  * @type {Record<string, CommandRegistry>}
@@ -36,10 +36,10 @@ import {
 export const registry = {}
 
 const commandProperties = new Set([
-  'cooldown',
-  'permission',
-  'status',
-  'price'
+  "cooldown",
+  "permission",
+  "status",
+  "price"
 ])
 
 /**
@@ -64,7 +64,7 @@ const getSubcommandProperty = (command, sub, property) => {
   if (!commandExists(command)) return
 
   if (commandProperties.has(property)) {
-    return get(registry, [command, 'subcommands', sub, property])
+    return get(registry, [command, "subcommands", sub, property])
   }
 }
 
@@ -91,7 +91,7 @@ const setSubcommandProperty = (command, sub, property, value) => {
   if (!commandExists(command)) return
 
   if (commandProperties.has(property)) {
-    set(registry, [command, 'subcommands', sub, property], value)
+    set(registry, [command, "subcommands", sub, property], value)
   }
 }
 
@@ -100,15 +100,15 @@ const setSubcommandProperty = (command, sub, property, value) => {
  * @param {string} sub
  */
 const commandExists = (name, sub) =>
-  has(registry, [name, ...(sub ? ['subcommands', sub] : [])])
+  has(registry, [name, ...(sub ? ["subcommands", sub] : [])])
 
 /**
  * @param {CommandRegistry} existing
  * @param {string} incoming
  */
 const callerPackagesMatch = (existing, incoming) => {
-  const existingPkgPath = find('package.json', { cwd: dirname(existing.caller) })
-  const incomingPkgPath = find('package.json', { cwd: dirname(incoming) })
+  const existingPkgPath = find("package.json", { cwd: dirname(existing.caller) })
+  const incomingPkgPath = find("package.json", { cwd: dirname(incoming) })
   return dirname(existingPkgPath) === dirname(incomingPkgPath)
 }
 
@@ -154,7 +154,7 @@ const registerSubcommand = (context, subcommand) => {
   if (reference) {
     if (reference.parent === parent) return context
 
-    log.debug('Duplicate subcommand registration attempted')
+    log.debug("Duplicate subcommand registration attempted")
     log.debug(`!${pair} is already registered`)
 
     return context
@@ -175,7 +175,7 @@ const registerCustomCommand = (context, command) => {
   }
 
   const flags = {
-    caller: 'custom',
+    caller: "custom",
     subcommands: {}
   }
 
@@ -189,7 +189,7 @@ const registerCustomCommand = (context, command) => {
  * @param {CommandRegistry} command
  */
 const updateCommand = async (context, command) =>
-  context.db.updateOrCreate('commands', {
+  context.db.updateOrCreate("commands", {
     name: command.name
   }, {
     handler: command.handler,
@@ -201,7 +201,7 @@ const updateCommand = async (context, command) =>
   })
 
 const updateSubcommand = async (context, parent, subcommand) =>
-  context.db.updateOrCreate('subcommands', {
+  context.db.updateOrCreate("subcommands", {
     name: subcommand.name,
     parent
   }, {
@@ -212,7 +212,7 @@ const updateSubcommand = async (context, parent, subcommand) =>
   })
 
 const save = throttle(async context => {
-  log.trace('saving commands')
+  log.trace("saving commands")
 
   await FP.all(
     map(registry, command =>
@@ -226,12 +226,12 @@ const save = throttle(async context => {
     )
   )
 
-  log.trace('saved commands')
+  log.trace("saved commands")
 }, 1, 10_000)
 
 const loadTables = context =>
   FP.all([
-    context.db.model('commands', {
+    context.db.model("commands", {
       name: { type: String, primary: true },
       caller: { type: String, notNullable: true },
       handler: { type: String, notNullable: true },
@@ -241,7 +241,7 @@ const loadTables = context =>
       price: { type: Number, defaultTo: 0 }
     }),
 
-    context.db.model('subcommands', {
+    context.db.model("subcommands", {
       name: String,
       parent: String,
       status: { type: Boolean, defaultTo: null },
@@ -249,7 +249,7 @@ const loadTables = context =>
       permission: { type: Number, defaultTo: -1 },
       price: { type: Number, defaultTo: -1 }
     }, {
-      primary: ['name', 'parent']
+      primary: ["name", "parent"]
     })
   ])
 
@@ -257,12 +257,12 @@ const loadTables = context =>
  * @param {Core} context
  */
 const loadCommands = context => {
-  log.trace('loading commands')
+  log.trace("loading commands")
 
   return FP.all([
-    context.db.find('commands').then(commands => {
+    context.db.find("commands").then(commands => {
       commands.forEach(command => {
-        if (command.caller === 'custom') {
+        if (command.caller === "custom") {
           registerCustomCommand(context, command)
           return
         }
@@ -271,7 +271,7 @@ const loadCommands = context => {
       })
     }),
 
-    context.db.find('subcommands')
+    context.db.find("subcommands")
       .then(it.forEach(registerSubcommand(context, _)))
   ])
 }
@@ -287,13 +287,13 @@ const isCommandType = (caller, kind) =>
  * @param {string} caller
  */
 const isInternalCommand = caller =>
-  isCommandType(caller, 'internal')
+  isCommandType(caller, "internal")
 
 /**
  * @param {string} caller
  */
 const isExternalCommand = caller =>
-  isCommandType(caller, 'plugins')
+  isCommandType(caller, "plugins")
 
 /**
  * @param {string} caller
@@ -304,11 +304,11 @@ const deserializePath = caller => {
   }
 
   if (isInternalCommand(caller)) {
-    return join(internalPluginDirectory, '..', caller)
+    return join(internalPluginDirectory, "..", caller)
   }
 
   if (isExternalCommand(caller)) {
-    return join(externalPluginDirectory, '..', caller)
+    return join(externalPluginDirectory, "..", caller)
   }
 }
 
@@ -318,7 +318,7 @@ const deserializePath = caller => {
 export const stageCommand = name => {
   const { caller, handler } = registry[name]
 
-  if (caller === 'custom') {
+  if (caller === "custom") {
     return (context, event) =>
       context.params(event, handler)
         .then(context.say)
@@ -337,11 +337,11 @@ export const stageCommand = name => {
  */
 const serializePath = caller => {
   if (isSubdirectory(caller, internalPluginDirectory)) {
-    return join('internal', relative(internalPluginDirectory, caller))
+    return join("internal", relative(internalPluginDirectory, caller))
   }
 
   if (isSubdirectory(caller, externalPluginDirectory)) {
-    return join('plugins', relative(externalPluginDirectory, caller))
+    return join("plugins", relative(externalPluginDirectory, caller))
   }
 
   return caller
@@ -413,7 +413,7 @@ export const addCustomCommand = (context, name, options = {}) => {
     price: 0,
     ...options,
     name: name.toLowerCase(),
-    caller: 'custom',
+    caller: "custom",
     handler: options.response || options.handler
   }
 
@@ -465,7 +465,7 @@ const setProperty = context => async (command, ...args) => {
  * @type {(context: Core) => Promise<typeof registry>}
  */
 export const loadRegistry = once(async context => {
-  log.trace('creating registry')
+  log.trace("creating registry")
 
   const _addCommand = addCommand(context, _, _)
   const _addSubcommand = addSubcommand(context, _, _, _)
@@ -482,17 +482,17 @@ export const loadRegistry = once(async context => {
       getProperty: getProperty,
       setProperty: _setProperty,
       enable: (name, sub) =>
-        _setProperty(name, sub, 'status', true),
+        _setProperty(name, sub, "status", true),
       disable: (name, sub) =>
-        _setProperty(name, sub, 'status', false),
+        _setProperty(name, sub, "status", false),
       isEnabled: (name, sub) =>
-        getProperty(name, sub, 'status'),
+        getProperty(name, sub, "status"),
       getPermLevel: (name, sub) =>
-        getProperty(name, sub, 'permission')
+        getProperty(name, sub, "permission")
     }
   })
 
-  context.on('beforeShutdown', () => save(context))
+  context.on("beforeShutdown", () => save(context))
 
   await loadTables(context)
   await loadCommands(context)

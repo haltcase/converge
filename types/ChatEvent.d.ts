@@ -10,7 +10,7 @@ export interface ChatEvent {
   sender: string
 
   /**
-   * Twitch login of the user that sent the message, prefixed by '@'
+   * Twitch login of the user that sent the message, prefixed by "@"
    * for mentioning the user.
    */
   mention: string

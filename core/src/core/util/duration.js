@@ -1,5 +1,5 @@
-import strat from 'strat'
-import { filter } from 'stunsail'
+import strat from "strat"
+import { filter } from "stunsail"
 
 const second = 1000
 const minute = second * 60
@@ -19,26 +19,26 @@ const parse = ms => {
 }
 
 const defaultTemplate = [
-  '{days}{daysLabel}',
-  '{hours}{hoursLabel}',
-  '{minutes}{minutesLabel}',
-  '{seconds}{secondsLabel}'
-].join(' ')
+  "{days}{daysLabel}",
+  "{hours}{hoursLabel}",
+  "{minutes}{minutesLabel}",
+  "{seconds}{secondsLabel}"
+].join(" ")
 
 const defaultLabels = {
-  days: 'd',
-  hours: 'h',
-  minutes: 'm',
-  seconds: 's',
-  milliseconds: 'ms'
+  days: "d",
+  hours: "h",
+  minutes: "m",
+  seconds: "s",
+  milliseconds: "ms"
 }
 
 const verboseLabels = {
-  days: 'days',
-  hours: 'hours',
-  minutes: 'minutes',
-  seconds: 'seconds',
-  milliseconds: 'milliseconds'
+  days: "days",
+  hours: "hours",
+  minutes: "minutes",
+  seconds: "seconds",
+  milliseconds: "milliseconds"
 }
 
 const defaultOptions = {
@@ -50,7 +50,7 @@ const defaultOptions = {
 }
 
 /**
- * @type {import('@converge/types').Duration}
+ * @type {import("@converge/types").Duration}
  */
 const duration = (duration, options) => {
   options = Object.assign(defaultOptions, options)
@@ -59,7 +59,7 @@ const duration = (duration, options) => {
   let { template } = options
 
   if (options.includeMilliseconds) {
-    template += '{milliseconds}{millisecondsLabel}'
+    template += "{milliseconds}{millisecondsLabel}"
   }
 
   if (options.verbose) {
@@ -70,7 +70,7 @@ const duration = (duration, options) => {
     parsed = filter(parsed, (val, unit) => {
       const shouldKeep = val > 0
       if (!shouldKeep) {
-        options.labels[unit] = ''
+        options.labels[unit] = ""
       }
       return shouldKeep
     })

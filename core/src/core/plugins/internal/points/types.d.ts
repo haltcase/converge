@@ -1,4 +1,4 @@
-import * as types from '@converge/types'
+import * as types from "@converge/types"
 
 interface PointsApi {
   add (name: string, amount: number): Promise<Record<string, any>>
@@ -27,7 +27,7 @@ interface PointsApi {
   setPayoutInterval (seconds: number | string, offline: boolean): Promise<unknown>
 }
 
-declare module '@converge/types' {
+declare module "@converge/types" {
   interface CommandApi {
     getPrice (command: string, subcommand?: string): Promise<number>
     setPrice (command: string, price: number): Promise<undefined>

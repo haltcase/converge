@@ -1,6 +1,6 @@
 /**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').ChatEvent} ChatEvent
+ * @typedef {import("@converge/types").Core} Core
+ * @typedef {import("@converge/types").ChatEvent} ChatEvent
  */
 
 /**
@@ -11,7 +11,7 @@
  * @param {ChatEvent} e
  */
 export const couch = async ($, e) => {
-  const multi = await $.db.getPluginConfig('couch.multiplier', 1)
+  const multi = await $.db.getPluginConfig("couch.multiplier", 1)
   const num = $.to.random(1000)
   let payout = 0
 
@@ -39,25 +39,25 @@ export const couch = async ($, e) => {
     }
 
     if (payout === 0) {
-      e.respond(await $.weave('did-not-find', await $.points.getName()))
+      e.respond(await $.weave("did-not-find", await $.points.getName()))
     } else {
       await $.points.add(e.sender, payout)
-      e.respond(await $.weave('found-points', await $.points.str(payout)))
+      e.respond(await $.weave("found-points", await $.points.str(payout)))
     }
 
     return
   }
 
-  if (e.subcommand === 'multi') {
+  if (e.subcommand === "multi") {
     if (!e.subArgs[0] || !$.is.numeric(e.subArgs[0])) {
-      e.respond(await $.weave('multi.usage', multi))
+      e.respond(await $.weave("multi.usage", multi))
       return
     }
 
     const newMulti = $.to.number(e.subArgs[0])
 
-    await $.db.setPluginConfig('couch.multiplier', newMulti)
-    e.respond(await $.weave('multi.success', newMulti))
+    await $.db.setPluginConfig("couch.multiplier", newMulti)
+    e.respond(await $.weave("multi.success", newMulti))
   }
 }
 
@@ -66,6 +66,6 @@ export const couch = async ($, e) => {
 * @param {ChatEvent} e
 */
 export const setup = async $ => {
-  $.addCommand('couch', { cooldown: 300 })
-  $.addSubcommand('multi', 'couch', { permission: 1 })
+  $.addCommand("couch", { cooldown: 300 })
+  $.addSubcommand("multi", "couch", { permission: 1 })
 }

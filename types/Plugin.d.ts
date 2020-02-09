@@ -1,6 +1,6 @@
-import { PluginLifecycle } from './PluginLifecycle'
-import { PluginSetup } from './PluginSetup'
-import { PluginStrings } from './PluginStrings'
+import { PluginLifecycle } from "./PluginLifecycle"
+import { PluginSetup } from "./PluginSetup"
+import { PluginStrings } from "./PluginStrings"
 
 export interface Plugin <T, A> {
   lifecycle?: PluginLifecycle<T, A>

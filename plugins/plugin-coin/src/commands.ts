@@ -1,7 +1,7 @@
 import {
   PluginSetup,
   PluginCommandHandler
-} from '@converge/types'
+} from "@converge/types"
 
 /**
  * @command coin
@@ -9,9 +9,9 @@ import {
  */
 export const coin: PluginCommandHandler = async ($, e) => {
   const [risk, reward, maxBet] = await Promise.all([
-    $.db.getPluginConfig('coin.risk', 1),
-    $.db.getPluginConfig('coin.reward', 1),
-    $.db.getPluginConfig('coin.maxBet', 50)
+    $.db.getPluginConfig("coin.risk", 1),
+    $.db.getPluginConfig("coin.reward", 1),
+    $.db.getPluginConfig("coin.maxBet", 50)
   ])
 
   if ($.is.numeric(e.args[0])) {
@@ -19,13 +19,13 @@ export const coin: PluginCommandHandler = async ($, e) => {
     const userPoints = await $.points.get(e.sender)
 
     if (betAmount > maxBet) {
-      e.respond(await $.weave('error.bet-over-max', await $.points.str(maxBet)))
+      e.respond(await $.weave("error.bet-over-max", await $.points.str(maxBet)))
       return
     }
 
     if (betAmount > userPoints * risk) {
       e.respond(await $.weave(
-        'error.not-enough-points',
+        "error.not-enough-points",
         await $.points.getName(),
         await $.points.get(e.sender, true), risk)
       )
@@ -38,62 +38,62 @@ export const coin: PluginCommandHandler = async ($, e) => {
 
     if (result) {
       await $.points.add(e.sender, outcome)
-      e.respond(await $.weave('flip.win', str))
+      e.respond(await $.weave("flip.win", str))
     } else {
       await $.points.sub(e.sender, outcome)
-      e.respond(await $.weave('flip.loss', str))
+      e.respond(await $.weave("flip.loss", str))
     }
 
     return
   }
 
-  if (e.subcommand === 'risk') {
+  if (e.subcommand === "risk") {
     if (!e.subArgs[0] || !$.is.numeric(e.subArgs[0])) {
-      e.respond(await $.weave('risk.usage', risk))
+      e.respond(await $.weave("risk.usage", risk))
       return
     }
 
     const newRisk = $.to.number(e.subArgs[0])
-    await $.db.setPluginConfig('coin.risk', newRisk)
+    await $.db.setPluginConfig("coin.risk", newRisk)
 
-    e.respond(await $.weave('risk.success', await $.points.str(newRisk)))
+    e.respond(await $.weave("risk.success", await $.points.str(newRisk)))
 
     return
   }
 
-  if (e.subcommand === 'reward') {
+  if (e.subcommand === "reward") {
     if (!e.subArgs[0] || !$.is.numeric(e.subArgs[0])) {
-      e.respond(await $.weave('reward.usage', reward))
+      e.respond(await $.weave("reward.usage", reward))
       return
     }
 
     const newReward = $.to.number(e.subArgs[0])
-    await $.db.setPluginConfig('coin.reward', newReward)
+    await $.db.setPluginConfig("coin.reward", newReward)
 
-    e.respond(await $.weave('reward.success', await $.points.str(newReward)))
+    e.respond(await $.weave("reward.success", await $.points.str(newReward)))
 
     return
   }
 
-  if (e.subcommand === 'max') {
+  if (e.subcommand === "max") {
     if (!e.subArgs[0] || !$.is.numeric(e.subArgs[0])) {
-      e.respond(await $.weave('max.usage', maxBet))
+      e.respond(await $.weave("max.usage", maxBet))
       return
     }
 
     const newMax = $.to.number(e.subArgs[0])
-    await $.db.setPluginConfig('coin.maxBet', newMax)
+    await $.db.setPluginConfig("coin.maxBet", newMax)
 
-    e.respond(await $.weave('max.success', await $.points.str(newMax)))
+    e.respond(await $.weave("max.success", await $.points.str(newMax)))
     return
   }
 
-  e.respond(await $.weave('usage'))
+  e.respond(await $.weave("usage"))
 }
 
 export const setup: PluginSetup = $ => {
-  $.addCommand('coin', { cooldown: 60 })
-  $.addSubcommand('risk', 'coin', { permission: 1 })
-  $.addSubcommand('reward', 'coin', { permission: 1 })
-  $.addSubcommand('max', 'coin', { permission: 1 })
+  $.addCommand("coin", { cooldown: 60 })
+  $.addSubcommand("risk", "coin", { permission: 1 })
+  $.addSubcommand("reward", "coin", { permission: 1 })
+  $.addSubcommand("max", "coin", { permission: 1 })
 }

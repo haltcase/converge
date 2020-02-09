@@ -1,4 +1,4 @@
-import { Model, SchemaRaw } from 'trilogy'
+import { Model, SchemaRaw } from "trilogy"
 
 export type TableSchemaDefault = {
   key: string
@@ -24,5 +24,5 @@ export interface DatabaseApi {
   getPluginConfig <T> (pluginAndKey: string, defaultValue: T): Promise<T>
   setPluginConfig <T> (pluginAndKey: string, value: T): Promise<unknown>
   getRandomRow <T> (table: string, where?: Partial<T>): Promise<T>
-  exists (table: string, ...args: Parameters<Model['findOne']>): Promise<boolean>
+  exists (table: string, ...args: Parameters<Model["findOne"]>): Promise<boolean>
 }

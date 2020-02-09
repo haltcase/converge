@@ -1,4 +1,4 @@
-import * as types from '@converge/types'
+import * as types from "@converge/types"
 
 export type GlobalCooldown =
   Readonly<{ global: true }>
@@ -17,7 +17,7 @@ export type Cooldown = {
 
 export type State = Cooldown[]
 
-declare module '@converge/types' {
+declare module "@converge/types" {
   interface CommandApi {
     /**
      * Get the current cooldown setting for the given command/subcommand

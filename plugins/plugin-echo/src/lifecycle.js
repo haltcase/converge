@@ -1,5 +1,5 @@
 /**
- * @type {import('@converge/types').PluginLifecycle<number>}
+ * @type {import("@converge/types").PluginLifecycle<number>}
  */
 export const lifecycle = {
   async setup ($) {
@@ -26,7 +26,7 @@ export const lifecycle = {
     // this hook is an opportunity to stop the command from running
     // example: if we wanted to only let someone use a command every other attempt...
 
-    if (e.sender === 'some_user_who_hopefully_doesnt_actually_exist_what_are_the_odds') {
+    if (e.sender === "some_user_who_hopefully_doesnt_actually_exist_what_are_the_odds") {
       // use the state & actions we set up in the `setup` hook above:
       const actions = store.getActions()
       actions.increment()

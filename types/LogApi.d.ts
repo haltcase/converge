@@ -1,4 +1,4 @@
-import { LoggerNeue } from 'logger-neue'
+import { LoggerNeue } from "logger-neue"
 
 export interface LogApi extends LoggerNeue {
   (source: string, ...args: readonly unknown[]): void

@@ -1,22 +1,22 @@
-import { _ } from 'param.macro'
+import { _ } from "param.macro"
 
-import { EOL } from 'os'
-import { parse, join } from 'path'
-import { appendAsync } from 'fs-jetpack'
-import { format } from 'date-fns'
+import { EOL } from "os"
+import { parse, join } from "path"
+import { appendAsync } from "fs-jetpack"
+import { format } from "date-fns"
 
-import log from '../../logger'
-import { paths } from '../../constants'
+import log from "../../logger"
+import { paths } from "../../constants"
 
 /**
- * @param {import('@converge/types').Core} context
+ * @param {import("@converge/types").Core} context
  */
 export default async context => {
-  const writeLog = (source, data, channel = '') => {
+  const writeLog = (source, data, channel = "") => {
     const filePath =
-      join(paths.logs, channel, parse(source).name + '.txt')
+      join(paths.logs, channel, parse(source).name + ".txt")
 
-    const timestamp = format(Date.now(), 'yyyy-MM-dd HH:mm:ss aaaa')
+    const timestamp = format(Date.now(), "yyyy-MM-dd HH:mm:ss aaaa")
     const line = `${timestamp} :: ${data}${EOL}`
     return appendAsync(filePath, line)
   }

@@ -1,23 +1,23 @@
 /**
- * @typedef {import('@converge/types').Core} Core
+ * @typedef {import("@converge/types").Core} Core
  * @typedef {(core: Core, ...args: any[]) => any} HookListener
  * @typedef {Record<string, HookListener[]>} PluginHook
  */
 
-import { _, it } from 'param.macro'
+import { _, it } from "param.macro"
 
-import exitHook from 'async-exit-hook'
-import FP from 'functional-promises'
-import { once, has, set, toObjectWith } from 'stunsail'
+import exitHook from "async-exit-hook"
+import FP from "functional-promises"
+import { once, has, set, toObjectWith } from "stunsail"
 
 export const builtinHooks = new Set([
-  'setup',
-  'ready',
-  'beforeMessage',
-  'receivedCommand',
-  'beforeCommand',
-  'afterCommand',
-  'beforeShutdown'
+  "setup",
+  "ready",
+  "beforeMessage",
+  "receivedCommand",
+  "beforeCommand",
+  "afterCommand",
+  "beforeShutdown"
 ])
 
 /**
@@ -73,7 +73,7 @@ export const callHook = (name, ...args) => {
 
   context.emit(name, ...args)
   hooks[name]?.forEach(({ fn, store }) =>
-    fn.apply(context, name === 'setup' ? args : [...args, store])
+    fn.apply(context, name === "setup" ? args : [...args, store])
   )
 }
 
@@ -92,7 +92,7 @@ export const callHookAndWait = async (name, ...args) => {
   return FP.all([
     context.emitAsync(name, ...args),
     ...hooks[name].map(({ fn, store }) =>
-      fn.apply(context, name === 'setup' ? args : [...args, store])
+      fn.apply(context, name === "setup" ? args : [...args, store])
     )
   ]).then(([events, hooks]) => { /* TODO: return something? */ })
 }
@@ -103,7 +103,7 @@ export const callHookAndWait = async (name, ...args) => {
 export const exitHooks = context => {
   exitHook(() => FP.all([
     context.shutdown(),
-    require('wtfnode').dump()
+    require("wtfnode").dump()
   ]))
 
   const uncaughtHandler = (e, done) => {

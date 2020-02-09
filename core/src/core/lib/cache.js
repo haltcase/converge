@@ -1,6 +1,6 @@
-import * as S from 'stunsail'
-import callsites from 'callsites'
-import { basename, dirname } from 'path'
+import * as S from "stunsail"
+import callsites from "callsites"
+import { basename, dirname } from "path"
 
 /**
  * @param {ReturnType<callsites>} callsite
@@ -12,7 +12,7 @@ const getCaller = callsite => {
 }
 
 /**
- * @param {import('@converge/types').Core} context
+ * @param {import("@converge/types").Core} context
  */
 export default context => {
   const cache = {

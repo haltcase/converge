@@ -1,32 +1,32 @@
 /**
- * @typedef {import('@converge/types').CoreConfig} CoreConfig
- * @typedef {import('@converge/types').CoreOptions} CoreOptions
+ * @typedef {import("@converge/types").CoreConfig} CoreConfig
+ * @typedef {import("@converge/types").CoreOptions} CoreOptions
  */
 
-import http from 'http'
-import { join } from 'path'
-import { URL } from 'url'
+import http from "http"
+import { join } from "path"
+import { URL } from "url"
 
-import TOML from '@iarna/toml'
-import FP from 'functional-promises'
-import got from 'got'
-import { writeAsync } from 'fs-jetpack'
-import { connect } from 'trilogy'
-import open from 'open'
+import TOML from "@iarna/toml"
+import FP from "functional-promises"
+import got from "got"
+import { writeAsync } from "fs-jetpack"
+import { connect } from "trilogy"
+import open from "open"
 
-import Core from './core'
-import log from './logger'
-import { paths } from './constants'
+import Core from "./core"
+import log from "./logger"
+import { paths } from "./constants"
 
 /**
  * @param {Record<string, string>} params
  */
 const toQueryParams = params => {
-  let result = '?'
+  let result = "?"
 
   let i = 0
   for (const [key, value] of Object.entries(params)) {
-    if (i++ > 0) result += '&'
+    if (i++ > 0) result += "&"
     result += `${key}=${value}`
   }
 
@@ -46,16 +46,16 @@ const getAuthorization = (config, options) => {
       if (!req.url) return
 
       const url = new URL(req.url, config.redirectUri)
-      const code = url.searchParams.get('code')
+      const code = url.searchParams.get("code")
       if (!code) {
-        res.writeHead('400', 'not ok')
-        res.write('unable to authorize')
+        res.writeHead("400", "not ok")
+        res.write("unable to authorize")
         res.end()
         return
       }
 
-      res.writeHead(200, 'ok')
-      res.write('authorized')
+      res.writeHead(200, "ok")
+      res.write("authorized")
       res.end()
 
       resolve(code)
@@ -65,11 +65,11 @@ const getAuthorization = (config, options) => {
     const params = toQueryParams({
       client_id: config.clientId,
       redirect_uri: config.redirectUri,
-      response_type: 'code',
+      response_type: "code",
       force_verify: true,
-      // scope: 'chat:read+chat:edit',
-      scope: config.scopes.join('+'),
-      state: 'converge-bot'
+      // scope: "chat:read+chat:edit",
+      scope: config.scopes.join("+"),
+      state: "converge-bot"
     })
 
     open(`https://id.twitch.tv/oauth2/authorize${params}`)
@@ -86,7 +86,7 @@ const getAccessToken = async (config, options) => {
     client_id: config.clientId,
     client_secret: config.clientSecret,
     code,
-    grant_type: 'authorization_code',
+    grant_type: "authorization_code",
     redirect_uri: config.redirectUri
   })
 
@@ -103,11 +103,11 @@ const getAccessToken = async (config, options) => {
  * @returns {Promise<{ valid: boolean }>}
  */
 const getTokenStatus = token =>
-  got('https://id.twitch.tv/oauth2/validate', {
+  got("https://id.twitch.tv/oauth2/validate", {
     headers: {
       Authorization: `OAuth ${token}`
     },
-    responseType: 'json'
+    responseType: "json"
   }).then(
     ({ body }) => ({ valid: true, ...body }),
     ({ body }) => ({ valid: false, ...body })
@@ -130,7 +130,7 @@ export const validateToken = async (config, isBot) => {
   const token = isBot ? config.bot.auth : config.owner.auth
   const result = await getTokenStatus(token)
   if (!result.valid) {
-    const target = isBot ? 'bot' : 'owner'
+    const target = isBot ? "bot" : "owner"
     log.error(
       `Unable to validate Twitch token for ${target}: ${result.message}`
     )
@@ -144,11 +144,11 @@ export const validateToken = async (config, isBot) => {
  * @param {CoreOptions} options
  */
 export default async (config, options) => {
-  log.trace('starting up...')
-  options.db = connect(join(paths.data, 'bot.db'))
+  log.trace("starting up...")
+  options.db = connect(join(paths.data, "bot.db"))
 
   if (!config.owner?.auth || !config.owner?.refreshToken) {
-    log.info('Please authenticate the owner\'s Twitch account...')
+    log.info("Please authenticate the owner's Twitch account...")
 
     const { data } = await getAccessToken(config, options)
     config.owner = {
@@ -168,7 +168,7 @@ export default async (config, options) => {
   }
 
   if (!config.bot?.auth || !config.bot?.refreshToken) {
-    log.info('Please authenticate the bot\'s Twitch account...')
+    log.info("Please authenticate the bot's Twitch account...")
 
     const { data } = await getAccessToken(config, options)
     config.bot = {

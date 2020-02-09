@@ -1,13 +1,13 @@
 /**
- * @typedef {import('@converge/types').Core} Core
- * @typedef {import('@converge/types').ChatEvent} ChatEvent
- * @typedef {import('./types').Cooldown} Cooldown
- * @typedef {import('./types').GlobalCooldown} GlobalCooldown
- * @typedef {import('./types').Scope} Scope
- * @typedef {import('./types').State} State
+ * @typedef {import("@converge/types").Core} Core
+ * @typedef {import("@converge/types").ChatEvent} ChatEvent
+ * @typedef {import("./types").Cooldown} Cooldown
+ * @typedef {import("./types").GlobalCooldown} GlobalCooldown
+ * @typedef {import("./types").Scope} Scope
+ * @typedef {import("./types").State} State
  */
 
-import { matches } from 'stunsail'
+import { matches } from "stunsail"
 
 /**
  * @type {Core}
@@ -17,28 +17,28 @@ let $ = null
 const GlobalCooldown = Object.freeze({ global: true })
 
 /**
- * @type {Core['command']['getCooldown']}
+ * @type {Core["command"]["getCooldown"]}
  */
 const getCooldown = async (command, subcommand) => {
   if (!subcommand) {
-    return $.db.get('commands.cooldown', { name: command })
+    return $.db.get("commands.cooldown", { name: command })
   } else {
-    const result = await $.db.get('subcommands.cooldown', {
+    const result = await $.db.get("subcommands.cooldown", {
       name: subcommand,
       parent: command
     })
 
     return result >= 0
       ? result
-      : $.db.get('commands.cooldown', { name: command })
+      : $.db.get("commands.cooldown", { name: command })
   }
 }
 
 /**
- * @type {Core['command']['setCooldown']}
+ * @type {Core["command"]["setCooldown"]}
  */
 const setCooldown = async (command, subcommand, value) => {
-  if (typeof value === 'undefined' && $.is.number(subcommand)) {
+  if (typeof value === "undefined" && $.is.number(subcommand)) {
     value = subcommand
     subcommand = undefined
   }
@@ -46,7 +46,7 @@ const setCooldown = async (command, subcommand, value) => {
   const seconds = $.to.int(value)
 
   if (!subcommand) {
-    await $.db.set('commands', { name: command }, { cooldown: seconds })
+    await $.db.set("commands", { name: command }, { cooldown: seconds })
   } else {
     if (value === -1) {
       const criteria = {
@@ -54,10 +54,10 @@ const setCooldown = async (command, subcommand, value) => {
         parent: command
       }
 
-      const inherited = await $.db.get('commands.cooldown', { name: command })
-      await $.db.set('subcommands', criteria, { cooldown: inherited })
+      const inherited = await $.db.get("commands.cooldown", { name: command })
+      await $.db.set("subcommands", criteria, { cooldown: inherited })
     } else {
-      await $.db.set('subcommands', criteria, { cooldown: seconds })
+      await $.db.set("subcommands", criteria, { cooldown: seconds })
     }
   }
 }
@@ -66,7 +66,7 @@ const setCooldown = async (command, subcommand, value) => {
  * @returns {Promise<boolean>}
  */
 const getDefault = async () => {
-  return $.db.getConfig('defaultCooldown')
+  return $.db.getConfig("defaultCooldown")
 }
 
 /**
@@ -112,13 +112,13 @@ const getActiveCooldown = (state, scope, command, subcommand) => {
 }
 
 /**
- * @returns {Core['command']['startCooldown']}
+ * @returns {Core["command"]["startCooldown"]}
  */
 const startCooldown = store => async (user, command, subcommand) => {
-  if (!await $.db.getPluginConfig('cooldown.enabled', true)) return
+  if (!await $.db.getPluginConfig("cooldown.enabled", true)) return
 
   const [includeAdmins, isAdmin] = await Promise.all([
-    $.db.getPluginConfig('cooldown.includeAdmins', false),
+    $.db.getPluginConfig("cooldown.includeAdmins", false),
     $.user.isAdmin(user.id)
   ])
 
@@ -127,7 +127,7 @@ const startCooldown = store => async (user, command, subcommand) => {
   const [cmdTime, fallback, useGlobalCooldown] = await Promise.all([
     getCooldown(command, subcommand),
     getDefault(),
-    $.db.getConfig('globalCooldown')
+    $.db.getConfig("globalCooldown")
   ])
 
   const time = $.is.number(cmdTime) ? cmdTime : fallback
@@ -149,10 +149,10 @@ const startCooldown = store => async (user, command, subcommand) => {
 }
 
 /**
- * @returns {Core['command']['clearCooldown']}
+ * @returns {Core["command"]["clearCooldown"]}
  */
 const clearCooldown = store => async (user, command, subcommand) => {
-  const scope = normalizeScope(user, await $.db.getConfig('globalCooldown'))
+  const scope = normalizeScope(user, await $.db.getConfig("globalCooldown"))
   const index = getIndex(store.getState(), scope, command, subcommand)
 
   if (index >= 0) {
@@ -172,10 +172,10 @@ const getTimeDelta = cooldown => {
 }
 
 /**
- * @returns {Core['command']['getTimeRemaining']}
+ * @returns {Core["command"]["getTimeRemaining"]}
  */
 const getTimeRemaining = store => async (user, command, subcommand) => {
-  const scope = normalizeScope(user, await $.db.getConfig('globalCooldown'))
+  const scope = normalizeScope(user, await $.db.getConfig("globalCooldown"))
   const active = getActiveCooldown(store.getState(), scope, command, subcommand)
 
   if (active) {
@@ -186,7 +186,7 @@ const getTimeRemaining = store => async (user, command, subcommand) => {
 }
 
 /**
- * @returns {Core['command']['isOnCooldown']}
+ * @returns {Core["command"]["isOnCooldown"]}
  */
 const isOnCooldown = store => async (user, command, subcommand) => {
   const getSeconds = getTimeRemaining(store)
@@ -194,7 +194,7 @@ const isOnCooldown = store => async (user, command, subcommand) => {
 }
 
 /**
- * @type {import('@converge/types').PluginLifecycle<State>}
+ * @type {import("@converge/types").PluginLifecycle<State>}
  */
 export const lifecycle = {
   async setup (context) {
@@ -232,7 +232,7 @@ export const lifecycle = {
     const timeLeft = await $.command.getTimeRemaining({ id }, command, subcommand)
 
     if (timeLeft > 0) {
-      const commandString = `${command}${subcommand ? ' ' + subcommand : ''}`
+      const commandString = `${command}${subcommand ? " " + subcommand : ""}`
       $.whisper(
         `You need to wait ${timeLeft} seconds to use '!${commandString}' again.`
       )
