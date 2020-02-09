@@ -18,8 +18,12 @@ import {
 } from 'fs-jetpack'
 
 import log from '../../logger'
-import { paths, pluginPackageKey } from '../../constants'
-import { name as appName, version as appVersion } from '../../../package.json'
+import {
+  paths,
+  pluginPackageKey,
+  name as appName,
+  version as appVersion
+} from '../../constants'
 
 export const directory = resolve(paths.data, 'plugins')
 const modulesPath = resolve(directory, 'node_modules')

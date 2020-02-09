@@ -89,6 +89,7 @@
     "eslint-plugin-standard": "^4.0.1",
     "import-all.macro": "^2.0.3",
     "param.macro": "^3.2.1",
+    "pkg.macro": "^1.0.1",
     "wtfnode": "^0.8.1"
   }
 }

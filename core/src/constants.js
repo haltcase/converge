@@ -1,11 +1,18 @@
+import getPkg from 'pkg.macro'
+
 import { resolve } from 'path'
 
 import getPaths from 'env-paths'
 import getPackageProps from 'npm-package-arg'
 
-import { name as pkgName } from '../package.json'
+const pkg = getPkg(['name', 'version'])
 
-export const name = getPackageProps(pkgName).scope.substring(1)
+export const name = getPackageProps(pkg.name).scope.substring(1)
+
+/**
+ * @type {string}
+ */
+export const version = pkg.version
 
 /**
  * @typedef {Object} Paths
