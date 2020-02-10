@@ -65,19 +65,17 @@ const setCooldown = async (command, subcommand, value) => {
 /**
  * @returns {Promise<boolean>}
  */
-const getDefault = async () => {
-  return $.db.getConfig("defaultCooldown")
-}
+const getDefault = async () =>
+  $.db.getConfig("defaultCooldown")
 
 /**
  * @param {Scope} user
  * @param {boolean} useGlobalCooldown
  */
-const normalizeScope = (user, useGlobalCooldown) => {
-  return useGlobalCooldown
+const normalizeScope = (user, useGlobalCooldown) =>
+  useGlobalCooldown
     ? GlobalCooldown
     : user ?? GlobalCooldown
-}
 
 const isMatch = (cooldown, scope, command, subcommand) =>
   cooldown.command === command &&
