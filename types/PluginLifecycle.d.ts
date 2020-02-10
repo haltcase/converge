@@ -5,7 +5,7 @@ export type HookListener =
   (core: Core, event: ChatEvent) => unknown
 
 export type HookListenerWithStore <
-  T extends Record<string, unknown> = Record<string, unknown>,
+  T = Record<string, unknown>,
   A extends Actions<T> = Actions<T>
 > =
   (core: Core, event: ChatEvent, store: Store<T, A>) => unknown
