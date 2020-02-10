@@ -1,7 +1,7 @@
 import { _, it } from "param.macro"
 
 import isValidPath from "is-valid-path"
-import { isOneOf, textCase } from "stunsail"
+import { defaults, isOneOf, textCase } from "stunsail"
 import { read, writeAsync } from "fs-jetpack"
 import { resolve } from "path"
 import TOML from "@iarna/toml"
@@ -13,6 +13,15 @@ import { name, paths } from "./constants"
 const usernameRegex = /^(#)?[a-zA-Z0-9][\w]{2,24}$/
 
 const defaultConfig = {
+  connections: {
+    pubsub: {
+      enabled: true
+    },
+    webhooks: {
+      enabled: true,
+      port: 8686
+    }
+  },
   redirectUri: "http://localhost:9339",
   scopes: [
     "user:read:broadcast",
@@ -114,10 +123,10 @@ export default (options = {}) => {
     options.configPath = defaultPath
   }
 
-  const currentConfig = {
-    ...defaultConfig,
-    ...TOML.parse(read(options.configPath) || "")
-  }
+  const currentConfig = defaults(
+    TOML.parse(read(options.configPath) || ""),
+    defaultConfig
+  )
 
   if (options.skipPrompt) {
     return promptOrStart([], currentConfig, options)

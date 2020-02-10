@@ -8,6 +8,6 @@ export interface Bot {
   botClient: TwitchClient
   client: TwitchClient
   owner: ChatClient
-  pubsub: PubSubClient
+  pubsub?: PubSubClient
   webhooks?: WebhookClient
 }

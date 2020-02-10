@@ -77,6 +77,11 @@ export const getInstance = once(
    */
   async (config, options) => {
     /**
+     * @type {Bot}
+     */
+    const instance = {}
+
+    /**
      * @type {[TwitchClient, TwitchClient]}
      */
     const [client, botClient] = await FP.all([
@@ -92,16 +97,33 @@ export const getInstance = once(
       ChatClient.forTwitchClient(botClient)
     ])
 
+    Object.assign(instance, {
+      client,
+      botClient,
+      bot,
+      owner
+    })
+
     owner.onRegister(() => owner.join(config.owner.name))
     bot.onRegister(() => bot.join(config.owner.name))
     await FP.all([owner.connect(), bot.connect()])
 
-    const pubsub = new PubSubClient()
-    await pubsub.registerUserListener(client)
+    if (config.connections.pubsub.enabled) {
+      try {
+        instance.pubsub = new PubSubClient()
+        await instance.pubsub.registerUserListener(client)
+      } catch (e) {
+        log.error(`Failed to set up pubsub: ${e.message}. It will be unavailable.`)
+        instance.pubsub = undefined
+      }
+    }
 
-    const webhooks = await getWebhookClient(client, { port: 8686 })
+    if (config.connections.webhooks.enabled) {
+      const { port } = config.connections.webhooks
+      instance.webhooks = await getWebhookClient(client, { port })
+    }
 
-    return { client, botClient, bot, owner, pubsub, webhooks }
+    return instance
   }
 )
 

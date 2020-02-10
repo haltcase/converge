@@ -6,6 +6,20 @@ export interface AuthInfo {
   expiration: number
 }
 
+export interface PubSubConfig {
+  enabled: boolean
+}
+
+export interface WebhooksConfig {
+  enabled: boolean,
+  port: number
+}
+
+export interface ConnectionConfig {
+  pubsub: PubSubConfig
+  webhooks: WebhooksConfig
+}
+
 export interface CoreConfig {
   redirectUri: string
   scopes: string[]
@@ -14,4 +28,6 @@ export interface CoreConfig {
 
   owner: AuthInfo
   bot: AuthInfo
+
+  connections: ConnectionConfig
 }
